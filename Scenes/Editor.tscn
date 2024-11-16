@@ -1,0 +1,20 @@
+[gd_scene load_steps=6 format=3 uid="uid://cvasy00hsj0lk"]
+
+[ext_resource type="Script" path="res://Scripts/Editor.cs" id="1_c7qby"]
+[ext_resource type="PackedScene" uid="uid://5k8sgg41ctpm" path="res://Scenes/Map.tscn" id="2_pkgv6"]
+[ext_resource type="PackedScene" uid="uid://bd4spy67wa1ic" path="res://Scenes/Filter.tscn" id="3_a4ic1"]
+[ext_resource type="PackedScene" uid="uid://b4nf4nw6chsmc" path="res://Scenes/AssetsPreview.tscn" id="4_7hrj1"]
+[ext_resource type="PackedScene" uid="uid://d14hqwtpnn5ek" path="res://Scenes/Tools.tscn" id="5_uvmdi"]
+
+[node name="Editor" type="Node2D"]
+script = ExtResource("1_c7qby")
+
+[node name="Map" parent="." instance=ExtResource("2_pkgv6")]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="Filter" parent="CanvasLayer" instance=ExtResource("3_a4ic1")]
+
+[node name="AssetsPreview" parent="CanvasLayer" instance=ExtResource("4_7hrj1")]
+
+[node name="Tools" parent="CanvasLayer" instance=ExtResource("5_uvmdi")]

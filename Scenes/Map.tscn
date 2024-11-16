@@ -1,0 +1,23 @@
+[gd_scene load_steps=4 format=3 uid="uid://5k8sgg41ctpm"]
+
+[ext_resource type="Script" path="res://Scripts/Map.cs" id="1_h4evd"]
+[ext_resource type="Texture2D" uid="uid://b3pfja02ihinv" path="res://Assets/Misc/blackBackground.png" id="2_ftqb4"]
+[ext_resource type="Script" path="res://Scripts/Camera.cs" id="2_iuwis"]
+
+[node name="Map" type="Node2D" node_paths=PackedStringArray("_assetContainer")]
+script = ExtResource("1_h4evd")
+_assetContainer = NodePath("AssetContainer")
+
+[node name="Camera" type="Camera2D" parent="."]
+script = ExtResource("2_iuwis")
+_topLeft = Vector2i(-10000, -10000)
+_bottomRight = Vector2i(10000, 10000)
+_zoomMin = 0.05
+_zoomMax = 5.0
+
+[node name="Background" type="Sprite2D" parent="Camera"]
+position = Vector2(-6.10352e-05, 0)
+scale = Vector2(4679.87, 3293.62)
+texture = ExtResource("2_ftqb4")
+
+[node name="AssetContainer" type="Node2D" parent="."]
