@@ -1,10 +1,14 @@
-[gd_scene load_steps=4 format=3 uid="uid://5k8sgg41ctpm"]
+[gd_scene load_steps=7 format=3 uid="uid://5k8sgg41ctpm"]
 
 [ext_resource type="Script" path="res://Scripts/Map.cs" id="1_h4evd"]
 [ext_resource type="Texture2D" uid="uid://b3pfja02ihinv" path="res://Assets/Misc/blackBackground.png" id="2_ftqb4"]
 [ext_resource type="Script" path="res://Scripts/Camera.cs" id="2_iuwis"]
+[ext_resource type="Texture2D" uid="uid://d20xppnxdxwah" path="res://Assets/GFX/77.tgam.png" id="4_x13lr"]
+[ext_resource type="Texture2D" uid="uid://b6wk85cngkpgc" path="res://Assets/GFX/2307.tgam.png" id="5_4k5x3"]
+[ext_resource type="Texture2D" uid="uid://44x37a4bgw8x" path="res://Assets/GFX/_2.tgam.png" id="6_0jalu"]
 
 [node name="Map" type="Node2D" node_paths=PackedStringArray("_assetContainer")]
+y_sort_enabled = true
 script = ExtResource("1_h4evd")
 _assetContainer = NodePath("AssetContainer")
 
@@ -21,3 +25,53 @@ scale = Vector2(4679.87, 3293.62)
 texture = ExtResource("2_ftqb4")
 
 [node name="AssetContainer" type="Node2D" parent="."]
+
+[node name="77_tgam" type="Sprite2D" parent="."]
+position = Vector2(227, 360)
+texture = ExtResource("4_x13lr")
+offset = Vector2(0, 18.01)
+
+[node name="77_tgam2" type="Sprite2D" parent="."]
+position = Vector2(270, 383)
+texture = ExtResource("4_x13lr")
+offset = Vector2(0, 27)
+
+[node name="77_tgam3" type="Sprite2D" parent="."]
+position = Vector2(312, 404)
+texture = ExtResource("4_x13lr")
+offset = Vector2(0, 27)
+
+[node name="77_tgam4" type="Sprite2D" parent="."]
+position = Vector2(355, 381)
+texture = ExtResource("4_x13lr")
+offset = Vector2(0, 27)
+
+[node name="77_tgam5" type="Sprite2D" parent="."]
+position = Vector2(403, 359)
+texture = ExtResource("4_x13lr")
+offset = Vector2(0, 27)
+
+[node name="77_tgam6" type="Sprite2D" parent="."]
+position = Vector2(360, 338)
+texture = ExtResource("4_x13lr")
+offset = Vector2(0, 27)
+
+[node name="77_tgam7" type="Sprite2D" parent="."]
+position = Vector2(317, 319)
+texture = ExtResource("4_x13lr")
+offset = Vector2(0, 27)
+
+[node name="77_tgam8" type="Sprite2D" parent="."]
+position = Vector2(270, 342)
+texture = ExtResource("4_x13lr")
+offset = Vector2(0, 27)
+
+[node name="2307_tgam" type="Sprite2D" parent="."]
+position = Vector2(355, 384)
+texture = ExtResource("5_4k5x3")
+offset = Vector2(0, -130.29)
+
+[node name="2_tgam" type="Sprite2D" parent="."]
+position = Vector2(226, 362)
+texture = ExtResource("6_0jalu")
+offset = Vector2(1.95, -16.595)

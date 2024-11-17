@@ -10,3 +10,88 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_ajv58")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="GridContainer" type="GridContainer" parent="MarginContainer"]
+layout_mode = 2
+columns = 2
+
+[node name="Label" type="Label" parent="MarginContainer/GridContainer"]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+text = "Biome:"
+
+[node name="Label2" type="Label" parent="MarginContainer/GridContainer"]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+text = "Catégorie:"
+
+[node name="OptionButton" type="OptionButton" parent="MarginContainer/GridContainer"]
+layout_mode = 2
+item_count = 11
+popup/item_0/text = "Volcan"
+popup/item_1/text = "Foret"
+popup/item_1/id = 1
+popup/item_2/text = "Montagne"
+popup/item_2/id = 2
+popup/item_3/text = "Chateau"
+popup/item_3/id = 3
+popup/item_4/text = "Interieur"
+popup/item_4/id = 4
+popup/item_5/text = "Neige"
+popup/item_5/id = 5
+popup/item_6/text = "Ville"
+popup/item_6/id = 6
+popup/item_7/text = "Ruine"
+popup/item_7/id = 7
+popup/item_8/text = "Plage"
+popup/item_8/id = 8
+popup/item_9/text = "Plateforme"
+popup/item_9/id = 9
+popup/item_10/text = "Marais"
+popup/item_10/id = 10
+
+[node name="OptionButton2" type="OptionButton" parent="MarginContainer/GridContainer"]
+layout_mode = 2
+item_count = 15
+popup/item_0/text = "Base"
+popup/item_1/text = "Plante"
+popup/item_1/id = 1
+popup/item_2/text = "Herbe"
+popup/item_2/id = 2
+popup/item_3/text = "Arbre"
+popup/item_3/id = 3
+popup/item_4/text = "Nourriture"
+popup/item_4/id = 4
+popup/item_5/text = "Barriere"
+popup/item_5/id = 5
+popup/item_6/text = "Bordure"
+popup/item_6/id = 6
+popup/item_7/text = "Mur"
+popup/item_7/id = 7
+popup/item_8/text = "Toit"
+popup/item_8/id = 8
+popup/item_9/text = "Decoration"
+popup/item_9/id = 9
+popup/item_10/text = "Meuble"
+popup/item_10/id = 10
+popup/item_11/text = "Outil"
+popup/item_11/id = 11
+popup/item_12/text = "Statue"
+popup/item_12/id = 12
+popup/item_13/text = "Effet"
+popup/item_13/id = 13
+popup/item_14/text = "Eau"
+popup/item_14/id = 14
+
+[node name="Button" type="Button" parent="MarginContainer/GridContainer"]
+layout_mode = 2
+text = "Déjà présent"
