@@ -3,20 +3,22 @@ using System;
 
 public partial class Camera : Camera2D
 {
-	[Export] private Vector2I _topLeft;
-	[Export] private Vector2I _bottomRight;
-	[Export] private float _zoomMin;
-	[Export] private float _zoomMax;
+	private Vector2I _topLeft = new(-10000, -10000);
+	private Vector2I _bottomRight = new(10000, 10000);
 	
 	private float _zoom;
 	private bool _isDragging;
 	private Vector2 _dragStart = Vector2.Inf;
 	private Vector2 _dragEnd = Vector2.Inf;
+	
+	private float[] _zoomSteps = { 0.05f, 0.07f, 0.10f, 0.14f, 0.20f, 0.28f, 0.40f, 0.56f, 0.80f, 1.12f, 1.6f, 2.24f, 3.2f, 4.48f };
+	private int _currentZoomIndex = 6;
 
 	public override void _Ready()
 	{
-		Zoom = new Vector2(_zoomMin, _zoomMin);
-		_zoom = _zoomMin;
+		_zoom = _zoomSteps[_currentZoomIndex];
+		Zoom = new Vector2(_zoom, _zoom);
+		
 	}
 	
 	public override void _Process(double delta)
@@ -34,13 +36,20 @@ public partial class Camera : Camera2D
 		{
 			if (eventMouseButton.ButtonIndex == MouseButton.WheelDown)
 			{
-				_zoom = Math.Max(_zoom * 0.75f, _zoomMin);
+				var oldMousePosition = GetGlobalMousePosition();
+				_currentZoomIndex = Math.Max(0, _currentZoomIndex - 1);
+				_zoom = _zoomSteps[_currentZoomIndex];
 				Zoom = new Vector2(_zoom, _zoom);
+				var newMousePosition = GetGlobalMousePosition();
+				
 			}
 			if (eventMouseButton.ButtonIndex == MouseButton.WheelUp)
 			{
-				_zoom = Math.Min(_zoom * 1.5f, _zoomMax);
+				var oldMousePosition = GetGlobalMousePosition();
+				_currentZoomIndex = Math.Min(_zoomSteps.Length - 1, _currentZoomIndex + 1);
+				_zoom = _zoomSteps[_currentZoomIndex];
 				Zoom = new Vector2(_zoom, _zoom);
+				var newMousePosition = GetGlobalMousePosition();
 			}
 		}
 

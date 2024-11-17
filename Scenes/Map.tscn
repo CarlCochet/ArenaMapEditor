@@ -20,6 +20,7 @@ _zoomMin = 0.05
 _zoomMax = 5.0
 
 [node name="Background" type="Sprite2D" parent="Camera"]
+z_index = -4096
 position = Vector2(-6.10352e-05, 0)
 scale = Vector2(4679.87, 3293.62)
 texture = ExtResource("2_ftqb4")

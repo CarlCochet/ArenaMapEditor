@@ -1,8 +1,9 @@
-﻿namespace ArenaMapEditor.Scripts;
+using Godot;
+using System;
 
 public static class Enums
 {
-    public enum Biomes
+    public enum Biome
     {
         Global = 0,
         Volcano = 1,
@@ -17,7 +18,7 @@ public static class Enums
         Swamp = 10,
     }
 
-    public enum Categories
+    public enum Category
     {
         Global = 0,
         Tile = 1,
