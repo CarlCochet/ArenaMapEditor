@@ -12,9 +12,9 @@ public partial class Editor : Node2D
 	
 	public override void _Ready()
 	{
-		// GlobalData.Instance.LoadAssets();
-		
+		GlobalData.Instance.LoadAssets();
+		_assetsPreview.DisplayAssets(Enums.Biome.Global, Enums.Category.Global, false);
 	}
-
+	
 	
 }

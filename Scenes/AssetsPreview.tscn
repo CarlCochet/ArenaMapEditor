@@ -1,8 +1,9 @@
-[gd_scene load_steps=2 format=3 uid="uid://b4nf4nw6chsmc"]
+[gd_scene load_steps=3 format=3 uid="uid://b4nf4nw6chsmc"]
 
 [ext_resource type="Script" path="res://Scripts/AssetsPreview.cs" id="1_11bbo"]
+[ext_resource type="PackedScene" uid="uid://bogtigjjsearp" path="res://Scenes/PreviewComponent.tscn" id="2_7i1jo"]
 
-[node name="AssetsPreview" type="Control"]
+[node name="AssetsPreview" type="Control" node_paths=PackedStringArray("_container")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -10,12 +11,13 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_11bbo")
+_container = NodePath("Container")
+_component = ExtResource("2_7i1jo")
 
-[node name="GridContainer" type="GridContainer" parent="."]
+[node name="Container" type="GridContainer" parent="."]
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
+anchors_preset = 2
+anchor_top = 1.0
 anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-columns = 4
+grow_vertical = 0
+columns = 6

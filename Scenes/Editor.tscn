@@ -7,8 +7,13 @@
 [ext_resource type="PackedScene" uid="uid://d14hqwtpnn5ek" path="res://Scenes/Tools.tscn" id="5_uvmdi"]
 [ext_resource type="PackedScene" uid="uid://bs7nf7ebx8s4w" path="res://Scenes/Overlay.tscn" id="6_ehtoy"]
 
-[node name="Editor" type="Node2D"]
+[node name="Editor" type="Node2D" node_paths=PackedStringArray("_map", "_filter", "_assetsPreview", "_tools", "_overlay")]
 script = ExtResource("1_c7qby")
+_map = NodePath("Map")
+_filter = NodePath("CanvasLayer/HBoxContainer/ColorRect/VBoxContainer/Filter")
+_assetsPreview = NodePath("CanvasLayer/HBoxContainer/ColorRect/VBoxContainer/AssetsPreview")
+_tools = NodePath("CanvasLayer/HBoxContainer/VBoxContainer2/ColorRect2/Tools")
+_overlay = NodePath("CanvasLayer/HBoxContainer/VBoxContainer2/Overlay")
 
 [node name="Map" parent="." instance=ExtResource("2_pkgv6")]
 

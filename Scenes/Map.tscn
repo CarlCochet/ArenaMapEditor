@@ -64,9 +64,9 @@ texture = ExtResource("4_x13lr")
 offset = Vector2(0, 27)
 
 [node name="2307_tgam" type="Sprite2D" parent="."]
-position = Vector2(355, 384)
+position = Vector2(309, 366)
 texture = ExtResource("5_4k5x3")
-offset = Vector2(0, -136.27)
+offset = Vector2(0, -11.63)
 
 [node name="2_tgam" type="Sprite2D" parent="."]
 position = Vector2(226, 362)

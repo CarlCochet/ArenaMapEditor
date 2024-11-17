@@ -24,17 +24,17 @@ theme_override_constants/margin_bottom = 5
 layout_mode = 2
 columns = 2
 
-[node name="Label" type="Label" parent="MarginContainer/GridContainer"]
+[node name="BiomeLabel" type="Label" parent="MarginContainer/GridContainer"]
 custom_minimum_size = Vector2(140, 0)
 layout_mode = 2
 text = "Biome:"
 
-[node name="Label2" type="Label" parent="MarginContainer/GridContainer"]
+[node name="CategoryLabel" type="Label" parent="MarginContainer/GridContainer"]
 custom_minimum_size = Vector2(140, 0)
 layout_mode = 2
 text = "Catégorie:"
 
-[node name="OptionButton" type="OptionButton" parent="MarginContainer/GridContainer"]
+[node name="BiomeButton" type="OptionButton" parent="MarginContainer/GridContainer"]
 layout_mode = 2
 selected = 0
 item_count = 12
@@ -62,7 +62,7 @@ popup/item_10/id = 10
 popup/item_11/text = "Marais"
 popup/item_11/id = 11
 
-[node name="OptionButton2" type="OptionButton" parent="MarginContainer/GridContainer"]
+[node name="CategoryButton" type="OptionButton" parent="MarginContainer/GridContainer"]
 layout_mode = 2
 selected = 0
 item_count = 15
@@ -96,7 +96,7 @@ popup/item_13/id = 13
 popup/item_14/text = "Eau"
 popup/item_14/id = 14
 
-[node name="Button" type="Button" parent="MarginContainer/GridContainer"]
+[node name="PresentButton" type="Button" parent="MarginContainer/GridContainer"]
 layout_mode = 2
 toggle_mode = true
 text = "Déjà présent"
