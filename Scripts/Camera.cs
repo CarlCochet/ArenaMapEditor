@@ -32,7 +32,7 @@ public partial class Camera : Camera2D
 	
 	public override void _Input(InputEvent @event)
 	{
-		if (@event is InputEventMouseButton eventMouseButton)
+		if (@event is InputEventMouseButton eventMouseButton && @event.IsPressed())
 		{
 			if (eventMouseButton.ButtonIndex == MouseButton.WheelDown)
 			{
@@ -41,7 +41,7 @@ public partial class Camera : Camera2D
 				_zoom = _zoomSteps[_currentZoomIndex];
 				Zoom = new Vector2(_zoom, _zoom);
 				var newMousePosition = GetGlobalMousePosition();
-				
+				Position += oldMousePosition - newMousePosition;
 			}
 			if (eventMouseButton.ButtonIndex == MouseButton.WheelUp)
 			{
@@ -50,6 +50,7 @@ public partial class Camera : Camera2D
 				_zoom = _zoomSteps[_currentZoomIndex];
 				Zoom = new Vector2(_zoom, _zoom);
 				var newMousePosition = GetGlobalMousePosition();
+				Position += oldMousePosition - newMousePosition;
 			}
 		}
 

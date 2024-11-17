@@ -36,6 +36,7 @@ text = "Catégorie:"
 
 [node name="OptionButton" type="OptionButton" parent="MarginContainer/GridContainer"]
 layout_mode = 2
+selected = 0
 item_count = 12
 popup/item_0/text = "Global"
 popup/item_1/text = "Volcan"
@@ -63,17 +64,18 @@ popup/item_11/id = 11
 
 [node name="OptionButton2" type="OptionButton" parent="MarginContainer/GridContainer"]
 layout_mode = 2
+selected = 0
 item_count = 15
-popup/item_0/text = "Base"
-popup/item_1/text = "Plante"
+popup/item_0/text = "Global"
+popup/item_1/text = "Base"
 popup/item_1/id = 1
-popup/item_2/text = "Herbe"
+popup/item_2/text = "Plante"
 popup/item_2/id = 2
-popup/item_3/text = "Arbre"
+popup/item_3/text = "Herbe"
 popup/item_3/id = 3
-popup/item_4/text = "Nourriture"
+popup/item_4/text = "Arbre"
 popup/item_4/id = 4
-popup/item_5/text = "Barriere"
+popup/item_5/text = "Nourriture"
 popup/item_5/id = 5
 popup/item_6/text = "Bordure"
 popup/item_6/id = 6
@@ -96,4 +98,5 @@ popup/item_14/id = 14
 
 [node name="Button" type="Button" parent="MarginContainer/GridContainer"]
 layout_mode = 2
+toggle_mode = true
 text = "Déjà présent"

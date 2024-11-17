@@ -14,10 +14,6 @@ _assetContainer = NodePath("AssetContainer")
 
 [node name="Camera" type="Camera2D" parent="."]
 script = ExtResource("2_iuwis")
-_topLeft = Vector2i(-10000, -10000)
-_bottomRight = Vector2i(10000, 10000)
-_zoomMin = 0.05
-_zoomMax = 5.0
 
 [node name="Background" type="Sprite2D" parent="Camera"]
 z_index = -4096
@@ -70,7 +66,7 @@ offset = Vector2(0, 27)
 [node name="2307_tgam" type="Sprite2D" parent="."]
 position = Vector2(355, 384)
 texture = ExtResource("5_4k5x3")
-offset = Vector2(0, -130.29)
+offset = Vector2(0, -136.27)
 
 [node name="2_tgam" type="Sprite2D" parent="."]
 position = Vector2(226, 362)
