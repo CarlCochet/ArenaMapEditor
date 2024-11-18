@@ -10,55 +10,74 @@
 [node name="Editor" type="Node2D" node_paths=PackedStringArray("_map", "_filter", "_assetsPreview", "_tools", "_overlay")]
 script = ExtResource("1_c7qby")
 _map = NodePath("Map")
-_filter = NodePath("CanvasLayer/HBoxContainer/ColorRect/VBoxContainer/Filter")
-_assetsPreview = NodePath("CanvasLayer/HBoxContainer/ColorRect/VBoxContainer/AssetsPreview")
-_tools = NodePath("CanvasLayer/HBoxContainer/VBoxContainer2/ColorRect2/Tools")
-_overlay = NodePath("CanvasLayer/HBoxContainer/VBoxContainer2/Overlay")
+_filter = NodePath("CanvasLayer/SplitContainer/SplitContainer/ColorRect/Filter")
+_assetsPreview = NodePath("CanvasLayer/SplitContainer/SplitContainer/ColorRect2/AssetsPreview")
+_tools = NodePath("CanvasLayer/SplitContainer/SplitContainer2/ColorRect/Tools")
+_overlay = NodePath("CanvasLayer/SplitContainer/SplitContainer2/ColorRect2/Overlay")
 
 [node name="Map" parent="." instance=ExtResource("2_pkgv6")]
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
-[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer"]
-offset_right = 40.0
-offset_bottom = 40.0
-theme_override_constants/separation = 0
-
-[node name="ColorRect" type="ColorRect" parent="CanvasLayer/HBoxContainer"]
-custom_minimum_size = Vector2(300, 900)
-layout_mode = 2
-color = Color(0.341176, 0.341176, 0.341176, 0.509804)
-
-[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/HBoxContainer/ColorRect"]
-layout_mode = 1
+[node name="SplitContainer" type="SplitContainer" parent="CanvasLayer"]
+custom_minimum_size = Vector2(1200, 600)
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 0
+dragger_visibility = 2
 
-[node name="Filter" parent="CanvasLayer/HBoxContainer/ColorRect/VBoxContainer" instance=ExtResource("3_a4ic1")]
-custom_minimum_size = Vector2(200, 200)
+[node name="SplitContainer" type="SplitContainer" parent="CanvasLayer/SplitContainer"]
+custom_minimum_size = Vector2(300, 600)
 layout_mode = 2
+dragger_visibility = 2
+vertical = true
 
-[node name="AssetsPreview" parent="CanvasLayer/HBoxContainer/ColorRect/VBoxContainer" instance=ExtResource("4_7hrj1")]
-custom_minimum_size = Vector2(0, 700)
-layout_mode = 2
-
-[node name="VBoxContainer2" type="VBoxContainer" parent="CanvasLayer/HBoxContainer"]
-layout_mode = 2
-theme_override_constants/separation = 0
-
-[node name="ColorRect2" type="ColorRect" parent="CanvasLayer/HBoxContainer/VBoxContainer2"]
-custom_minimum_size = Vector2(1300, 50)
+[node name="ColorRect" type="ColorRect" parent="CanvasLayer/SplitContainer/SplitContainer"]
+custom_minimum_size = Vector2(300, 120)
 layout_mode = 2
 color = Color(0.341176, 0.341176, 0.341176, 0.509804)
 
-[node name="Tools" parent="CanvasLayer/HBoxContainer/VBoxContainer2/ColorRect2" instance=ExtResource("5_uvmdi")]
+[node name="Filter" parent="CanvasLayer/SplitContainer/SplitContainer/ColorRect" instance=ExtResource("3_a4ic1")]
+custom_minimum_size = Vector2(200, 120)
+layout_mode = 1
+
+[node name="ColorRect2" type="ColorRect" parent="CanvasLayer/SplitContainer/SplitContainer"]
+custom_minimum_size = Vector2(300, 480)
+layout_mode = 2
+color = Color(0.341176, 0.341176, 0.341176, 0.509804)
+
+[node name="AssetsPreview" parent="CanvasLayer/SplitContainer/SplitContainer/ColorRect2" instance=ExtResource("4_7hrj1")]
+custom_minimum_size = Vector2(0, 480)
+layout_mode = 1
+size_flags_vertical = 3
+
+[node name="SplitContainer2" type="SplitContainer" parent="CanvasLayer/SplitContainer"]
+custom_minimum_size = Vector2(800, 450)
+layout_mode = 2
+dragger_visibility = 2
+vertical = true
+
+[node name="ColorRect" type="ColorRect" parent="CanvasLayer/SplitContainer/SplitContainer2"]
+custom_minimum_size = Vector2(800, 50)
+layout_mode = 2
+color = Color(0.341176, 0.341176, 0.341176, 0.509804)
+
+[node name="Tools" parent="CanvasLayer/SplitContainer/SplitContainer2/ColorRect" instance=ExtResource("5_uvmdi")]
 custom_minimum_size = Vector2(500, 50)
 layout_mode = 1
 
-[node name="Overlay" parent="CanvasLayer/HBoxContainer/VBoxContainer2" instance=ExtResource("6_ehtoy")]
-custom_minimum_size = Vector2(0, 850)
+[node name="ColorRect2" type="ColorRect" parent="CanvasLayer/SplitContainer/SplitContainer2"]
+custom_minimum_size = Vector2(400, 400)
 layout_mode = 2
+color = Color(0.341176, 0.341176, 0.341176, 0)
+
+[node name="Overlay" parent="CanvasLayer/SplitContainer/SplitContainer2/ColorRect2" instance=ExtResource("6_ehtoy")]
+custom_minimum_size = Vector2(0, 400)
+layout_mode = 2
+anchors_preset = 0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_right = 1300.0
+offset_bottom = 850.0
