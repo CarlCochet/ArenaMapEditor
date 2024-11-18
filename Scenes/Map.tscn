@@ -7,10 +7,11 @@
 [ext_resource type="Texture2D" uid="uid://b6wk85cngkpgc" path="res://Assets/GFX/2307.tgam.png" id="5_4k5x3"]
 [ext_resource type="Texture2D" uid="uid://44x37a4bgw8x" path="res://Assets/GFX/_2.tgam.png" id="6_0jalu"]
 
-[node name="Map" type="Node2D" node_paths=PackedStringArray("_assetContainer")]
+[node name="Map" type="Node2D" node_paths=PackedStringArray("_assetContainer", "_camera")]
 y_sort_enabled = true
 script = ExtResource("1_h4evd")
 _assetContainer = NodePath("AssetContainer")
+_camera = NodePath("Camera")
 
 [node name="Camera" type="Camera2D" parent="."]
 script = ExtResource("2_iuwis")

@@ -100,3 +100,7 @@ popup/item_14/id = 14
 layout_mode = 2
 toggle_mode = true
 text = "Déjà présent"
+
+[connection signal="item_selected" from="MarginContainer/GridContainer/BiomeButton" to="." method="_OnBiomeSelected"]
+[connection signal="item_selected" from="MarginContainer/GridContainer/CategoryButton" to="." method="_OnCategorySelected"]
+[connection signal="toggled" from="MarginContainer/GridContainer/PresentButton" to="." method="_OnPresentToggled"]

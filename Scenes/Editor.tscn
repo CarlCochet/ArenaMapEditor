@@ -81,3 +81,6 @@ anchor_right = 0.0
 anchor_bottom = 0.0
 offset_right = 1300.0
 offset_bottom = 850.0
+
+[connection signal="mouse_entered" from="CanvasLayer/SplitContainer/SplitContainer/ColorRect2/AssetsPreview" to="." method="_OnAssetPreviewEntered"]
+[connection signal="mouse_exited" from="CanvasLayer/SplitContainer/SplitContainer/ColorRect2/AssetsPreview" to="." method="_OnAssetPreviewExited"]

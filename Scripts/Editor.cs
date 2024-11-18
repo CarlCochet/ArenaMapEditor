@@ -17,4 +17,13 @@ public partial class Editor : Node2D
 		_assetsPreview.DisplayAssets(Enums.Biome.Global, Enums.Category.Global, false);
 	}
 	
+	private void _OnAssetPreviewEntered()
+	{
+		
+	}
+
+	private void _OnAssetPreviewExited()
+	{
+		
+	}
 }

@@ -3,6 +3,8 @@ using System;
 
 public partial class Camera : Camera2D
 {
+	public bool HasFocus = true;
+	
 	private Vector2I _topLeft = new(-10000, -10000);
 	private Vector2I _bottomRight = new(10000, 10000);
 	
@@ -18,7 +20,6 @@ public partial class Camera : Camera2D
 	{
 		_zoom = _zoomSteps[_currentZoomIndex];
 		Zoom = new Vector2(_zoom, _zoom);
-		
 	}
 	
 	public override void _Process(double delta)
@@ -32,6 +33,9 @@ public partial class Camera : Camera2D
 	
 	public override void _Input(InputEvent @event)
 	{
+		if (!HasFocus)
+			return;
+		
 		if (@event is InputEventMouseButton eventMouseButton && @event.IsPressed())
 		{
 			if (eventMouseButton.ButtonIndex == MouseButton.WheelDown)

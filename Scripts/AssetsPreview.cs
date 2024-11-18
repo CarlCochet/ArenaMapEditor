@@ -20,4 +20,9 @@ public partial class AssetsPreview : Control
 			_container.AddChild(preview);
 		}
 	}
+
+	public void _OnAssetSelected(int index)
+	{
+		
+	}
 }
