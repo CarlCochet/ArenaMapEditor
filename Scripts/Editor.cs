@@ -12,7 +12,7 @@ public partial class Editor : Node2D
 	
 	public override void _Ready()
 	{
-		DisplayServer.WindowSetMinSize(new Vector2I(1200, 600));
+		DisplayServer.WindowSetMinSize(new Vector2I(900, 500));
 		GlobalData.Instance.LoadAssets();
 		_assetsPreview.DisplayAssets(Enums.Biome.Global, Enums.Category.Global, false);
 	}

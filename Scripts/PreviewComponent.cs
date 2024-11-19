@@ -11,4 +11,9 @@ public partial class PreviewComponent : Control
     {
         _thumbnail.Texture = data.Texture;
     }
+
+    private void _OnToggled(bool toggledOn)
+    {
+        
+    }
 }

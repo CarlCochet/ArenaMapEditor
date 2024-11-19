@@ -96,11 +96,42 @@ popup/item_13/id = 13
 popup/item_14/text = "Eau"
 popup/item_14/id = 14
 
-[node name="PresentButton" type="Button" parent="MarginContainer/GridContainer"]
+[node name="Control" type="Control" parent="MarginContainer/GridContainer"]
+custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
-toggle_mode = true
-text = "Déjà présent"
+
+[node name="CheckBox" type="CheckBox" parent="MarginContainer/GridContainer/Control"]
+layout_mode = 0
+offset_right = 24.0
+offset_bottom = 24.0
+
+[node name="Label" type="Label" parent="MarginContainer/GridContainer/Control"]
+layout_mode = 0
+offset_left = 27.0
+offset_right = 126.0
+offset_bottom = 23.0
+text = "Déja présent"
+
+[node name="Control2" type="Control" parent="MarginContainer/GridContainer"]
+layout_mode = 2
+
+[node name="Control3" type="Control" parent="MarginContainer/GridContainer"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+
+[node name="CheckBox" type="CheckBox" parent="MarginContainer/GridContainer/Control3"]
+layout_mode = 0
+offset_right = 24.0
+offset_bottom = 24.0
+
+[node name="Label" type="Label" parent="MarginContainer/GridContainer/Control3"]
+layout_mode = 0
+offset_left = 27.0
+offset_right = 126.0
+offset_bottom = 23.0
+text = "Mode topologie"
 
 [connection signal="item_selected" from="MarginContainer/GridContainer/BiomeButton" to="." method="_OnBiomeSelected"]
 [connection signal="item_selected" from="MarginContainer/GridContainer/CategoryButton" to="." method="_OnCategorySelected"]
-[connection signal="toggled" from="MarginContainer/GridContainer/PresentButton" to="." method="_OnPresentToggled"]
+[connection signal="toggled" from="MarginContainer/GridContainer/Control/CheckBox" to="." method="_OnPresentToggled"]
+[connection signal="toggled" from="MarginContainer/GridContainer/Control3/CheckBox" to="." method="_OnPresentToggled"]
