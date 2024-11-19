@@ -1,28 +1,39 @@
 using Godot;
 using System;
+using System.Collections.Generic;
 
 public partial class AssetsPreview : Control
 {
 	[Export] private GridContainer _container;
 	[Export] private PackedScene _component;
+	private List<PreviewComponent> _components = [];
 	
 	public override void _Ready() { }
 
 	public void DisplayAssets(Enums.Biome biome, Enums.Category category, bool onlyInScene)
 	{
-		foreach (var asset in GlobalData.Instance.Assets)
+		for (var index = 0; index < GlobalData.Instance.Assets.Count; index++)
 		{
-			if ((asset.Biome != biome && biome != Enums.Biome.Global) || 
+			var asset = GlobalData.Instance.Assets[index];
+			if ((asset.Biome != biome && biome != Enums.Biome.Global) ||
 			    (asset.Category != category && category != Enums.Category.Global))
 				continue;
 			var preview = _component.Instantiate<PreviewComponent>();
-			preview.DisplayAsset(asset);
+			preview.InitAsset(index, asset);
 			_container.AddChild(preview);
+			_components.Add(preview);
+
+			preview.ToggledOn += _OnAssetSelected;
 		}
 	}
 
-	public void _OnAssetSelected(int index)
+	public void _OnAssetSelected(object sender, PreviewComponent.ToggledOnEventArgs eventArgs)
 	{
-		
+		foreach (var component in _components)
+		{
+			if (component.Index == eventArgs.Index)
+				continue;
+			component.Unselect();
+		}
 	}
 }
