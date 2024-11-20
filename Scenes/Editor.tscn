@@ -83,6 +83,12 @@ offset_right = 1300.0
 offset_bottom = 850.0
 
 [node name="FileDialog" type="FileDialog" parent="CanvasLayer"]
+title = "Open Map File"
+ok_button_text = "Open"
+file_mode = 0
+access = 2
+filters = PackedStringArray("*.json")
 
 [connection signal="mouse_entered" from="CanvasLayer/SplitContainer/SplitContainer/ColorRect2/AssetsPreview" to="." method="_OnAssetPreviewEntered"]
 [connection signal="mouse_exited" from="CanvasLayer/SplitContainer/SplitContainer/ColorRect2/AssetsPreview" to="." method="_OnAssetPreviewExited"]
+[connection signal="file_selected" from="CanvasLayer/FileDialog" to="." method="_OnFileSelected"]

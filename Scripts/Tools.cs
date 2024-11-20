@@ -8,6 +8,9 @@ public partial class Tools : Control
 	[Export] private TextureButton _brushButton;
 	[Export] private TextureButton _lineButton;
 	[Export] private TextureButton _areaButton;
+	[Export] private LineEdit _sizeField;
+
+	public event EventHandler LoadMapPressed;
 	
 	public override void _Ready() { }
 
@@ -56,18 +59,20 @@ public partial class Tools : Control
 		_areaButton.SetPressed(true);
 	}
 	
-	private void _OnRandomizeToggled(bool toggledOn)
-	{
-		
-	}
-	
 	private void _OnSizeChanged(string newSize)
 	{
-		
+		if (int.TryParse(newSize, out var size))
+		{
+			size = Math.Clamp(size, 1, 99);
+			GlobalData.Instance.BrushSize = size;
+			_sizeField.Text = size.ToString();
+			return;
+		}
+		_sizeField.Text = GlobalData.Instance.BrushSize.ToString();
 	}
 	
 	private void _OnLoadPressed()
 	{
-		
+		LoadMapPressed?.Invoke(this, EventArgs.Empty);
 	}
 }

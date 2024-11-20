@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3 uid="uid://d14hqwtpnn5ek"]
+[gd_scene load_steps=18 format=3 uid="uid://d14hqwtpnn5ek"]
 
 [ext_resource type="Script" path="res://Scripts/Tools.cs" id="1_6s3ac"]
 [ext_resource type="Texture2D" uid="uid://cr0hplinhgo3t" path="res://Assets/UI/ToolSelect.png" id="2_78btu"]
@@ -10,19 +10,16 @@
 [ext_resource type="Texture2D" uid="uid://eefmarws6b3o" path="res://Assets/UI/Edit_pressed.png" id="6_1defl"]
 [ext_resource type="Texture2D" uid="uid://yoe3myn46gy8" path="res://Assets/UI/Rectangle.png" id="6_ejfkd"]
 [ext_resource type="Texture2D" uid="uid://b1shtlkctym8u" path="res://Assets/UI/Edit_hover.png" id="7_kfo0c"]
-[ext_resource type="Texture2D" uid="uid://tnwm7we7m0ht" path="res://Assets/UI/RandomNumberGenerator.png" id="7_yfcmf"]
 [ext_resource type="Texture2D" uid="uid://bpaokhede5uin" path="res://Assets/UI/Paint_pressed.png" id="9_seshs"]
 [ext_resource type="Texture2D" uid="uid://ckerng5ahc7e3" path="res://Assets/UI/Line_pressed.png" id="10_htrqw"]
 [ext_resource type="Texture2D" uid="uid://vqqvprwci8sh" path="res://Assets/UI/Paint_hover.png" id="10_m4mf0"]
 [ext_resource type="Texture2D" uid="uid://dgolnpdymosp5" path="res://Assets/UI/Line_hover.png" id="11_6x28h"]
-[ext_resource type="Texture2D" uid="uid://s5k4i3rxx0nf" path="res://Assets/UI/RandomNumberGenerator_pressed.png" id="14_k0icp"]
-[ext_resource type="Texture2D" uid="uid://bkd5wkc6uxp8f" path="res://Assets/UI/RandomNumberGenerator_hover.png" id="15_2euvg"]
 [ext_resource type="Texture2D" uid="uid://biimfisaiy2xg" path="res://Assets/UI/Rectangle_pressed.png" id="15_ryfbt"]
 [ext_resource type="Texture2D" uid="uid://c87qqsedfrp6l" path="res://Assets/UI/Rectangle_hover.png" id="16_mwthy"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_kgn1q"]
 
-[node name="Tools" type="Control"]
+[node name="Tools" type="Control" node_paths=PackedStringArray("_selectButton", "_pencilButton", "_brushButton", "_lineButton", "_areaButton")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -30,6 +27,11 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_6s3ac")
+_selectButton = NodePath("MarginContainer/HBoxContainer/Selector")
+_pencilButton = NodePath("MarginContainer/HBoxContainer/Pencil")
+_brushButton = NodePath("MarginContainer/HBoxContainer/Brush")
+_lineButton = NodePath("MarginContainer/HBoxContainer/Line")
+_areaButton = NodePath("MarginContainer/HBoxContainer/Area")
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
 layout_mode = 0
@@ -46,6 +48,7 @@ theme_override_constants/separation = 10
 [node name="Selector" type="TextureButton" parent="MarginContainer/HBoxContainer"]
 layout_mode = 2
 toggle_mode = true
+button_pressed = true
 texture_normal = ExtResource("2_78btu")
 texture_pressed = ExtResource("3_c31eb")
 texture_hover = ExtResource("4_0mtuu")
@@ -78,13 +81,6 @@ texture_normal = ExtResource("6_ejfkd")
 texture_pressed = ExtResource("15_ryfbt")
 texture_hover = ExtResource("16_mwthy")
 
-[node name="Randomize" type="TextureButton" parent="MarginContainer/HBoxContainer"]
-layout_mode = 2
-toggle_mode = true
-texture_normal = ExtResource("7_yfcmf")
-texture_pressed = ExtResource("14_k0icp")
-texture_hover = ExtResource("15_2euvg")
-
 [node name="Control" type="Control" parent="MarginContainer/HBoxContainer"]
 custom_minimum_size = Vector2(137.345, 0)
 layout_mode = 2
@@ -95,7 +91,7 @@ offset_left = 26.0
 offset_top = 3.0
 offset_right = 78.0
 offset_bottom = 37.0
-text = "Size:"
+text = "Taille:"
 label_settings = SubResource("LabelSettings_kgn1q")
 vertical_alignment = 1
 
@@ -109,6 +105,9 @@ theme_override_font_sizes/font_size = 20
 text = "1"
 alignment = 1
 max_length = 2
+context_menu_enabled = false
+virtual_keyboard_type = 3
+caret_blink = true
 
 [node name="LoadMap" type="Button" parent="."]
 layout_mode = 1
@@ -128,6 +127,5 @@ text = "Charger carte"
 [connection signal="pressed" from="MarginContainer/HBoxContainer/Brush" to="." method="_OnBrushPressed"]
 [connection signal="pressed" from="MarginContainer/HBoxContainer/Line" to="." method="_OnLinePressed"]
 [connection signal="pressed" from="MarginContainer/HBoxContainer/Area" to="." method="_OnAreaPressed"]
-[connection signal="toggled" from="MarginContainer/HBoxContainer/Randomize" to="." method="_OnRandomizeToggled"]
 [connection signal="text_changed" from="MarginContainer/HBoxContainer/Control/Size" to="." method="_OnSizeChanged"]
 [connection signal="pressed" from="LoadMap" to="." method="_OnLoadPressed"]
