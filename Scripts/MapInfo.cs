@@ -5,52 +5,60 @@ using System.Text.Json.Serialization;
 
 public class MapInfo
 {
-    [JsonPropertyName("instanceId")] private int _instanceId;
-    [JsonPropertyName("partitions")] private List<MapPartition> _partitions;
+    [JsonPropertyName("instanceId")] public int InstanceId { get; set; }
+    [JsonPropertyName("partitions")] public List<MapPartition> Partitions { get; set; }
+    
+    public MapInfo() { }
 
     public class MapPartition
     {
-        [JsonPropertyName("id")] private string _id;
-        [JsonPropertyName("elements")] private List<PartitionElement> _elements;
+        [JsonPropertyName("id")] public string Id { get; set; }
+        [JsonPropertyName("elements")] public List<PartitionElement> Elements { get; set; }
+        
+        public MapPartition() { }
     }
 
     public class PartitionElement
     {
-        [JsonPropertyName("m_type")] private int _type;
-        [JsonPropertyName("m_cellZ")] private int _cellZ;
-        [JsonPropertyName("m_cellX")] private int _cellX;
-        [JsonPropertyName("m_cellY")] private int _cellY;
-        [JsonPropertyName("m_top")] private int _top;
-        [JsonPropertyName("m_left")] private int _left;
-        [JsonPropertyName("m_altitudeOrder")] private int _altitudeOrder;
-        [JsonPropertyName("m_height")] private int _height;
-        [JsonPropertyName("m_groupKey")] private int _groupKey;
-        [JsonPropertyName("m_layerIndex")] private int _layerIndex;
-        [JsonPropertyName("m_groupId")] private int _groupId;
-        [JsonPropertyName("m_occluder")] private bool _occluder;
-        [JsonPropertyName("m_hashCode")] private long _hashCode;
-        [JsonPropertyName("m_colors")] private List<float> _colors;
-        [JsonPropertyName("m_commonData")] private CommonElementData _commonData;
+        [JsonPropertyName("m_type")] public int Type { get; set; }
+        [JsonPropertyName("m_cellZ")] public int CellZ { get; set; }
+        [JsonPropertyName("m_cellX")] public int CellX { get; set; }
+        [JsonPropertyName("m_cellY")] public int CellY { get; set; }
+        [JsonPropertyName("m_top")] public int Top { get; set; }
+        [JsonPropertyName("m_left")] public int Left { get; set; }
+        [JsonPropertyName("m_altitudeOrder")] public int AltitudeOrder { get; set; }
+        [JsonPropertyName("m_height")] public int Height { get; set; }
+        [JsonPropertyName("m_groupKey")] public int GroupKey { get; set; }
+        [JsonPropertyName("m_layerIndex")] public int LayerIndex { get; set; }
+        [JsonPropertyName("m_groupId")] public int GroupId { get; set; }
+        [JsonPropertyName("m_occluder")] public bool Occluder { get; set; }
+        [JsonPropertyName("m_hashCode")] public long HashCode { get; set; }
+        [JsonPropertyName("m_colors")] public List<float> Colors { get; set; }
+        [JsonPropertyName("m_commonData")] public CommonElementData CommonData { get; set; }
+        
+        public PartitionElement() { }
     }
 
     public class CommonElementData
     {
-        [JsonPropertyName("animData")] private object _animData;
-        [JsonPropertyName("originX")] private int _originX;
-        [JsonPropertyName("originY")] private int _originY;
-        [JsonPropertyName("imgWidth")] private int _imgWidth;
-        [JsonPropertyName("imgHeight")] private int _imgHeight;
-        [JsonPropertyName("gfxId")] private int _gfxId;
-        [JsonPropertyName("visualHeight")] private int _visualHeight;
-        [JsonPropertyName("visibilityMask")] private int _visibilityMask;
-        [JsonPropertyName("shader")] private int _shader;
-        [JsonPropertyName("propertiesFlag")] private int _propertiesFlag;
-        [JsonPropertyName("groundSoundType")] private int _groundSoundType;
-        [JsonPropertyName("slope")] private int _slope;
-        [JsonPropertyName("moveTop")] private bool _moveTop;
-        [JsonPropertyName("walkable")] private bool _walkable;
-        [JsonPropertyName("annimated")] private bool _annimated;
-        [JsonPropertyName("beforeMobile")] private bool _beforeMobile;
-        [JsonPropertyName("flip")] private bool _flip;
+        [JsonPropertyName("animData")] public object AnimData { get; set; }
+        [JsonPropertyName("originX")] public int OriginX { get; set; }
+        [JsonPropertyName("originY")] public int OriginY { get; set; }
+        [JsonPropertyName("imgWidth")] public int ImgWidth { get; set; }
+        [JsonPropertyName("imgHeight")] public int ImgHeight { get; set; }
+        [JsonPropertyName("gfxId")] public int GfxId { get; set; }
+        [JsonPropertyName("visualHeight")] public int VisualHeight { get; set; }
+        [JsonPropertyName("visibilityMask")] public int VisibilityMask { get; set; }
+        [JsonPropertyName("shader")] public int Shader { get; set; }
+        [JsonPropertyName("propertiesFlag")] public int PropertiesFlag { get; set; }
+        [JsonPropertyName("groundSoundType")] public int GroundSoundType { get; set; }
+        [JsonPropertyName("slope")] public int Slope { get; set; }
+        [JsonPropertyName("moveTop")] public bool MoveTop { get; set; }
+        [JsonPropertyName("walkable")] public bool Walkable { get; set; }
+        [JsonPropertyName("annimated")] public bool Animated { get; set; }
+        [JsonPropertyName("beforeMobile")] public bool BeforeMobile { get; set; }
+        [JsonPropertyName("flip")] public bool Flip { get; set; }
+        
+        public CommonElementData() { }
     }
 }

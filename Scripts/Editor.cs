@@ -38,6 +38,9 @@ public partial class Editor : Node2D
 	private void _OnFileSelected(string path)
 	{
 		using var file = FileAccess.Open(path, FileAccess.ModeFlags.Read);
-		var tiles = JsonSerializer.Deserialize<MapInfo>(file.GetAsText());
+		var text = file.GetAsText();
+		var tiles = JsonSerializer.Deserialize<MapInfo>(text);
+		GD.Print(tiles.InstanceId);
+		GD.Print(tiles.Partitions.Count);
 	}
 }
