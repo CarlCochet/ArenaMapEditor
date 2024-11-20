@@ -8,7 +8,7 @@ public partial class PreviewComponent : Control
     [Export] private TextureRect _thumbnail;
     [Export] private TextureButton _button;
     
-    public event EventHandler<ToggledOnEventArgs> ToggledOn;
+    public event EventHandler<PressedEventArgs> Pressed;
     
     public override void _Ready() { }
 
@@ -23,14 +23,18 @@ public partial class PreviewComponent : Control
         _button.SetPressed(false);
     }
 
-    private void _OnToggled(bool toggledOn)
+    public void Select(bool selected)
     {
-        ToggledOn?.Invoke(this, new ToggledOnEventArgs(Index, toggledOn));
+        _button.SetPressed(selected);
     }
 
-    public class ToggledOnEventArgs(int index, bool toggledOn): EventArgs
+    private void _OnPressed()
+    {
+        Pressed?.Invoke(this, new PressedEventArgs(Index));
+    }
+    
+    public class PressedEventArgs(int index): EventArgs
     {
         public int Index => index;
-        public bool ToggledOn => toggledOn;
     }
 }

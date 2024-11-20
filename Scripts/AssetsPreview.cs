@@ -23,17 +23,15 @@ public partial class AssetsPreview : Control
 			_container.AddChild(preview);
 			_components.Add(preview);
 
-			preview.ToggledOn += _OnAssetSelected;
+			preview.Pressed += _OnAssetSelected;
 		}
 	}
 
-	public void _OnAssetSelected(object sender, PreviewComponent.ToggledOnEventArgs eventArgs)
+	private void _OnAssetSelected(object sender, PreviewComponent.PressedEventArgs eventArgs)
 	{
 		foreach (var component in _components)
 		{
-			if (component.Index == eventArgs.Index)
-				continue;
-			component.Unselect();
+			component.Select(component.Index == eventArgs.Index);
 		}
 	}
 }

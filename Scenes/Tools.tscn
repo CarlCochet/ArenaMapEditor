@@ -123,11 +123,11 @@ grow_horizontal = 0
 theme_override_font_sizes/font_size = 16
 text = "Charger carte"
 
-[connection signal="toggled" from="MarginContainer/HBoxContainer/Selector" to="." method="_OnSelectToggled"]
-[connection signal="toggled" from="MarginContainer/HBoxContainer/Pencil" to="." method="_OnPencilToggled"]
-[connection signal="toggled" from="MarginContainer/HBoxContainer/Brush" to="." method="_OnBrushToggled"]
-[connection signal="toggled" from="MarginContainer/HBoxContainer/Line" to="." method="_OnLineToggled"]
-[connection signal="toggled" from="MarginContainer/HBoxContainer/Area" to="." method="_OnAreaToggled"]
+[connection signal="pressed" from="MarginContainer/HBoxContainer/Selector" to="." method="_OnSelectPressed"]
+[connection signal="pressed" from="MarginContainer/HBoxContainer/Pencil" to="." method="_OnPencilPressed"]
+[connection signal="pressed" from="MarginContainer/HBoxContainer/Brush" to="." method="_OnBrushPressed"]
+[connection signal="pressed" from="MarginContainer/HBoxContainer/Line" to="." method="_OnLinePressed"]
+[connection signal="pressed" from="MarginContainer/HBoxContainer/Area" to="." method="_OnAreaPressed"]
 [connection signal="toggled" from="MarginContainer/HBoxContainer/Randomize" to="." method="_OnRandomizeToggled"]
 [connection signal="text_changed" from="MarginContainer/HBoxContainer/Control/Size" to="." method="_OnSizeChanged"]
 [connection signal="pressed" from="LoadMap" to="." method="_OnLoadPressed"]

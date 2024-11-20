@@ -33,4 +33,4 @@ texture_pressed = ExtResource("3_a83ku")
 texture_hover = ExtResource("2_26hdo")
 stretch_mode = 5
 
-[connection signal="toggled" from="Button" to="." method="_OnToggled"]
+[connection signal="pressed" from="Button" to="." method="_OnPressed"]

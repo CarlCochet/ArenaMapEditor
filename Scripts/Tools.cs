@@ -11,7 +11,7 @@ public partial class Tools : Control
 	
 	public override void _Ready() { }
 
-	private void _OnSelectToggled(bool toggledOn)
+	private void _OnSelectPressed()
 	{
 		_selectButton.SetPressed(true);
 		_pencilButton.SetPressed(false);
@@ -20,7 +20,7 @@ public partial class Tools : Control
 		_areaButton.SetPressed(false);
 	}
 
-	private void _OnPencilToggled(bool toggledOn)
+	private void _OnPencilPressed()
 	{
 		_selectButton.SetPressed(false);
 		_pencilButton.SetPressed(true);
@@ -29,7 +29,7 @@ public partial class Tools : Control
 		_areaButton.SetPressed(false);
 	}
 	
-	private void _OnBrushToggled(bool toggledOn)
+	private void _OnBrushPressed()
 	{
 		_selectButton.SetPressed(false);
 		_pencilButton.SetPressed(false);
@@ -38,7 +38,7 @@ public partial class Tools : Control
 		_areaButton.SetPressed(false);
 	}
 	
-	private void _OnLineToggled(bool toggledOn)
+	private void _OnLinePressed()
 	{
 		_selectButton.SetPressed(false);
 		_pencilButton.SetPressed(false);
@@ -47,7 +47,7 @@ public partial class Tools : Control
 		_areaButton.SetPressed(false);
 	}
 	
-	private void _OnAreaToggled(bool toggledOn)
+	private void _OnAreaPressed()
 	{
 		_selectButton.SetPressed(false);
 		_pencilButton.SetPressed(false);
