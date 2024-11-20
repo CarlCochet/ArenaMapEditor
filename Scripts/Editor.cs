@@ -22,12 +22,12 @@ public partial class Editor : Node2D
 	
 	private void _OnAssetPreviewEntered()
 	{
-		
+		_map.UpdateFocus(false);
 	}
 
 	private void _OnAssetPreviewExited()
 	{
-		
+		_map.UpdateFocus(true);
 	}
 
 	private void _OnLoadMapPressed(object sender, EventArgs eventArgs)
@@ -39,8 +39,7 @@ public partial class Editor : Node2D
 	{
 		using var file = FileAccess.Open(path, FileAccess.ModeFlags.Read);
 		var text = file.GetAsText();
-		var tiles = JsonSerializer.Deserialize<MapInfo>(text);
-		GD.Print(tiles.InstanceId);
-		GD.Print(tiles.Partitions.Count);
+		var mapInfo = JsonSerializer.Deserialize<MapInfo>(text);
+		_map.LoadMap(mapInfo);
 	}
 }

@@ -14,4 +14,9 @@ public partial class Map : Node2D
     {
         _camera.HasFocus = hasFocus;
     }
+
+    public void LoadMap(MapInfo mapInfo)
+    {
+        
+    }
 }
