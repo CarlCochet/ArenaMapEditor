@@ -76,12 +76,7 @@ color = Color(0.341176, 0.341176, 0.341176, 0)
 
 [node name="Overlay" parent="CanvasLayer/SplitContainer/SplitContainer2/ColorRect2" instance=ExtResource("6_ehtoy")]
 custom_minimum_size = Vector2(600, 450)
-layout_mode = 2
-anchors_preset = 0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_right = 1300.0
-offset_bottom = 850.0
+layout_mode = 1
 
 [node name="FileDialog" type="FileDialog" parent="CanvasLayer"]
 title = "Open a File"

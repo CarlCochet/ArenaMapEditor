@@ -17,6 +17,16 @@ public partial class Map : Node2D
 
     public void LoadMap(MapInfo mapInfo)
     {
-        
+        foreach (var partition in mapInfo.Partitions)
+        {
+            foreach (var element in partition.Elements)
+            {
+                var tile = new Tile();
+                tile.SetData(GlobalData.Instance.Assets[element.CommonData.GfxId]);
+                tile.Position = new Vector2(element.CellX * 43 + element.CellY * 21.5f, element.CellX * 21.5f + element.CellY * 43 + element.CellZ * 9);
+                tile.Offset = new Vector2(-element.CommonData.OriginX, -element.CommonData.OriginY);
+                _assetContainer.AddChild(tile);
+            }
+        }
     }
 }

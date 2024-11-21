@@ -1,18 +1,10 @@
-[gd_scene load_steps=11 format=3 uid="uid://5k8sgg41ctpm"]
+[gd_scene load_steps=4 format=3 uid="uid://5k8sgg41ctpm"]
 
 [ext_resource type="Script" path="res://Scripts/Map.cs" id="1_h4evd"]
 [ext_resource type="Texture2D" uid="uid://b3pfja02ihinv" path="res://Assets/Misc/blackBackground.png" id="2_ftqb4"]
 [ext_resource type="Script" path="res://Scripts/Camera.cs" id="2_iuwis"]
-[ext_resource type="Texture2D" uid="uid://d20xppnxdxwah" path="res://Assets/GFX/77.tgam.png" id="4_x13lr"]
-[ext_resource type="Texture2D" uid="uid://b6wk85cngkpgc" path="res://Assets/GFX/2307.tgam.png" id="5_4k5x3"]
-[ext_resource type="Texture2D" uid="uid://44x37a4bgw8x" path="res://Assets/GFX/_2.tgam.png" id="6_0jalu"]
-[ext_resource type="Texture2D" uid="uid://3osfkgugrh2q" path="res://Assets/GFX/50.tgam.png" id="7_6pa2m"]
-[ext_resource type="Texture2D" uid="uid://5f5b71kx5pwh" path="res://Assets/GFX/49.tgam.png" id="8_5xb51"]
-[ext_resource type="Texture2D" uid="uid://di3k3b6oxh1xg" path="res://Assets/GFX/51.tgam.png" id="9_uwox5"]
-[ext_resource type="Texture2D" uid="uid://se106ux0vvgi" path="res://Assets/GFX/46.tgam.png" id="10_kjo1j"]
 
 [node name="Map" type="Node2D" node_paths=PackedStringArray("_assetContainer", "_camera")]
-y_sort_enabled = true
 script = ExtResource("1_h4evd")
 _assetContainer = NodePath("AssetContainer")
 _camera = NodePath("Camera")
@@ -27,71 +19,4 @@ scale = Vector2(4679.87, 3293.62)
 texture = ExtResource("2_ftqb4")
 
 [node name="AssetContainer" type="Node2D" parent="."]
-visible = false
-
-[node name="77_tgam" type="Sprite2D" parent="AssetContainer"]
-position = Vector2(227, 360)
-texture = ExtResource("4_x13lr")
-offset = Vector2(0, 18.01)
-
-[node name="77_tgam2" type="Sprite2D" parent="AssetContainer"]
-position = Vector2(270, 383)
-texture = ExtResource("4_x13lr")
-offset = Vector2(0, 27)
-
-[node name="77_tgam3" type="Sprite2D" parent="AssetContainer"]
-position = Vector2(312, 404)
-texture = ExtResource("4_x13lr")
-offset = Vector2(0, 27)
-
-[node name="77_tgam4" type="Sprite2D" parent="AssetContainer"]
-position = Vector2(355, 381)
-texture = ExtResource("4_x13lr")
-offset = Vector2(0, 27)
-
-[node name="77_tgam5" type="Sprite2D" parent="AssetContainer"]
-position = Vector2(403, 359)
-texture = ExtResource("4_x13lr")
-offset = Vector2(0, 27)
-
-[node name="77_tgam6" type="Sprite2D" parent="AssetContainer"]
-position = Vector2(360, 338)
-texture = ExtResource("4_x13lr")
-offset = Vector2(0, 27)
-
-[node name="77_tgam7" type="Sprite2D" parent="AssetContainer"]
-position = Vector2(317, 319)
-texture = ExtResource("4_x13lr")
-offset = Vector2(0, 27)
-
-[node name="77_tgam8" type="Sprite2D" parent="AssetContainer"]
-position = Vector2(270, 342)
-texture = ExtResource("4_x13lr")
-offset = Vector2(0, 27)
-
-[node name="2307_tgam" type="Sprite2D" parent="AssetContainer"]
-position = Vector2(309, 366)
-texture = ExtResource("5_4k5x3")
-offset = Vector2(0, -11.63)
-
-[node name="2_tgam" type="Sprite2D" parent="AssetContainer"]
-position = Vector2(226, 362)
-texture = ExtResource("6_0jalu")
-offset = Vector2(1.95, -16.595)
-
-[node name="50_tgam" type="Sprite2D" parent="."]
-position = Vector2(505, 428)
-texture = ExtResource("7_6pa2m")
-
-[node name="49_tgam" type="Sprite2D" parent="."]
-position = Vector2(553, 454)
-texture = ExtResource("8_5xb51")
-
-[node name="51_tgam" type="Sprite2D" parent="."]
-position = Vector2(603, 428)
-texture = ExtResource("9_uwox5")
-
-[node name="46_tgam" type="Sprite2D" parent="."]
-position = Vector2(556.5, 405.25)
-scale = Vector2(1.01111, 1.0098)
-texture = ExtResource("10_kjo1j")
+y_sort_enabled = true

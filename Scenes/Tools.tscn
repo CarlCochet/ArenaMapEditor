@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3 uid="uid://d14hqwtpnn5ek"]
+[gd_scene load_steps=21 format=3 uid="uid://d14hqwtpnn5ek"]
 
 [ext_resource type="Script" path="res://Scripts/Tools.cs" id="1_6s3ac"]
 [ext_resource type="Texture2D" uid="uid://cr0hplinhgo3t" path="res://Assets/UI/ToolSelect.png" id="2_78btu"]
@@ -16,6 +16,9 @@
 [ext_resource type="Texture2D" uid="uid://dgolnpdymosp5" path="res://Assets/UI/Line_hover.png" id="11_6x28h"]
 [ext_resource type="Texture2D" uid="uid://biimfisaiy2xg" path="res://Assets/UI/Rectangle_pressed.png" id="15_ryfbt"]
 [ext_resource type="Texture2D" uid="uid://c87qqsedfrp6l" path="res://Assets/UI/Rectangle_hover.png" id="16_mwthy"]
+[ext_resource type="Texture2D" uid="uid://cu0kxtj7s54ln" path="res://Assets/UI/Eraser.png" id="17_nax05"]
+[ext_resource type="Texture2D" uid="uid://csds328agsh4n" path="res://Assets/UI/Eraser_pressed.png" id="18_q8l62"]
+[ext_resource type="Texture2D" uid="uid://cq4eqlo7mj14l" path="res://Assets/UI/Eraser_hover.png" id="19_hm6ee"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_kgn1q"]
 
@@ -81,6 +84,13 @@ texture_normal = ExtResource("6_ejfkd")
 texture_pressed = ExtResource("15_ryfbt")
 texture_hover = ExtResource("16_mwthy")
 
+[node name="TextureButton" type="TextureButton" parent="MarginContainer/HBoxContainer"]
+layout_mode = 2
+toggle_mode = true
+texture_normal = ExtResource("17_nax05")
+texture_pressed = ExtResource("18_q8l62")
+texture_hover = ExtResource("19_hm6ee")
+
 [node name="Control" type="Control" parent="MarginContainer/HBoxContainer"]
 custom_minimum_size = Vector2(137.345, 0)
 layout_mode = 2
@@ -127,5 +137,6 @@ text = "Charger carte"
 [connection signal="pressed" from="MarginContainer/HBoxContainer/Brush" to="." method="_OnBrushPressed"]
 [connection signal="pressed" from="MarginContainer/HBoxContainer/Line" to="." method="_OnLinePressed"]
 [connection signal="pressed" from="MarginContainer/HBoxContainer/Area" to="." method="_OnAreaPressed"]
+[connection signal="toggled" from="MarginContainer/HBoxContainer/TextureButton" to="." method="_OnEraserToggled"]
 [connection signal="text_changed" from="MarginContainer/HBoxContainer/Control/Size" to="." method="_OnSizeChanged"]
 [connection signal="pressed" from="LoadMap" to="." method="_OnLoadPressed"]

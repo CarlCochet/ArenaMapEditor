@@ -3,4 +3,5 @@
 [ext_resource type="Script" path="res://Scripts/Tile.cs" id="1_bn515"]
 
 [node name="Tile" type="Sprite2D"]
+centered = false
 script = ExtResource("1_bn515")

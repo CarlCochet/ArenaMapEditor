@@ -58,6 +58,11 @@ public partial class Tools : Control
 		_lineButton.SetPressed(false);
 		_areaButton.SetPressed(true);
 	}
+
+	private void _OnEraserToggled(bool toggledOn)
+	{
+		
+	}
 	
 	private void _OnSizeChanged(string newSize)
 	{

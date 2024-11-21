@@ -10,5 +10,6 @@ public partial class Tile : Sprite2D
 	public void SetData(TileData data)
 	{
 		_data = data.Copy();
+		Texture = _data.Texture;
 	}
 }

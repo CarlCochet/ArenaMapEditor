@@ -1,6 +1,9 @@
-[gd_scene load_steps=2 format=3 uid="uid://bs7nf7ebx8s4w"]
+[gd_scene load_steps=3 format=3 uid="uid://bs7nf7ebx8s4w"]
 
 [ext_resource type="Script" path="res://Scripts/Overlay.cs" id="1_ic50a"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_t0xsw"]
+font_size = 24
 
 [node name="Overlay" type="Control"]
 layout_mode = 3
@@ -10,3 +13,48 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_ic50a")
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Control2" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -40.0
+offset_bottom = 40.0
+grow_horizontal = 0
+
+[node name="Control3" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -40.0
+offset_right = 40.0
+grow_vertical = 0
+
+[node name="Label" type="Label" parent="Control3"]
+layout_mode = 0
+offset_left = 5.0
+offset_right = 100.0
+offset_bottom = 34.0
+text = "(12, 7, 2)"
+label_settings = SubResource("LabelSettings_t0xsw")
+vertical_alignment = 1
+
+[node name="Control4" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -40.0
+offset_top = -40.0
+grow_horizontal = 0
+grow_vertical = 0
