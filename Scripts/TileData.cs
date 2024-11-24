@@ -19,7 +19,6 @@ public class TileData
     {
         if (!IsValid)
             return;
-        
         Texture = GD.Load<CompressedTexture2D>($"res://Assets/GFX/{Id}.tgam.png");
     }
 

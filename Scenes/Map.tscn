@@ -1,6 +1,7 @@
-[gd_scene load_steps=4 format=3 uid="uid://5k8sgg41ctpm"]
+[gd_scene load_steps=5 format=3 uid="uid://5k8sgg41ctpm"]
 
 [ext_resource type="Script" path="res://Scripts/Map.cs" id="1_h4evd"]
+[ext_resource type="PackedScene" uid="uid://bnepr33hnfesr" path="res://Scenes/Tile.tscn" id="2_d05hl"]
 [ext_resource type="Texture2D" uid="uid://b3pfja02ihinv" path="res://Assets/Misc/blackBackground.png" id="2_ftqb4"]
 [ext_resource type="Script" path="res://Scripts/Camera.cs" id="2_iuwis"]
 
@@ -8,6 +9,7 @@
 script = ExtResource("1_h4evd")
 _assetContainer = NodePath("AssetContainer")
 _camera = NodePath("Camera")
+_tileScene = ExtResource("2_d05hl")
 
 [node name="Camera" type="Camera2D" parent="."]
 script = ExtResource("2_iuwis")
@@ -19,4 +21,3 @@ scale = Vector2(4679.87, 3293.62)
 texture = ExtResource("2_ftqb4")
 
 [node name="AssetContainer" type="Node2D" parent="."]
-y_sort_enabled = true

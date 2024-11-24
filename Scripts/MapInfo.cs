@@ -7,15 +7,11 @@ public class MapInfo
 {
     [JsonPropertyName("instanceId")] public int InstanceId { get; set; }
     [JsonPropertyName("partitions")] public List<MapPartition> Partitions { get; set; }
-    
-    public MapInfo() { }
 
     public class MapPartition
     {
         [JsonPropertyName("id")] public string Id { get; set; }
         [JsonPropertyName("elements")] public List<PartitionElement> Elements { get; set; }
-        
-        public MapPartition() { }
     }
 
     public class PartitionElement
@@ -35,8 +31,6 @@ public class MapInfo
         [JsonPropertyName("m_hashCode")] public long HashCode { get; set; }
         [JsonPropertyName("m_colors")] public List<float> Colors { get; set; }
         [JsonPropertyName("m_commonData")] public CommonElementData CommonData { get; set; }
-        
-        public PartitionElement() { }
     }
 
     public class CommonElementData
@@ -58,7 +52,5 @@ public class MapInfo
         [JsonPropertyName("annimated")] public bool Animated { get; set; }
         [JsonPropertyName("beforeMobile")] public bool BeforeMobile { get; set; }
         [JsonPropertyName("flip")] public bool Flip { get; set; }
-        
-        public CommonElementData() { }
     }
 }
