@@ -10,10 +10,10 @@ config_version=5
 
 [application]
 
-config/name="ArenaMapEditor"
+config/name="Barnabos"
 run/main_scene="res://Scenes/Editor.tscn"
 config/features=PackedStringArray("4.3", "C#", "Forward Plus")
-config/icon="res://icon.svg"
+config/icon="res://Assets/Misc/barnabe.png"
 
 [display]
 
