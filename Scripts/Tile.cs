@@ -4,16 +4,20 @@ using System;
 public partial class Tile : Sprite2D
 {
 	private TileData _data;
+	private MapInfo.PartitionElement _element;
+	
 	private const int CellWidth = 86;
 	private const int CellHeight = 43;
 	private const int ElevationStep = 10;
 	
 	public override void _Ready() { }
-
-	public void SetData(TileData data)
+	
+	public void SetData(MapInfo.PartitionElement element)
 	{
-		_data = data.Copy();
+		_data = GlobalData.Instance.Assets[element.CommonData.GfxId].Copy();
+		_element = element;
 		Texture = _data.Texture;
+		SelfModulate = _element.Colors.Count < 3 ? Colors.White : new Color(_element.Colors[0], _element.Colors[1], _element.Colors[2]);
 	}
 
 	public void PositionToIso(int x, int y, int z, int height, int originX, int originY)

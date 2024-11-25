@@ -33,7 +33,7 @@ public partial class Map : Node2D
         foreach (var tileData in sortedTiles)
         {
             var tile = _tileScene.Instantiate<Tile>();
-            tile.SetData(GlobalData.Instance.Assets[tileData.CommonData.GfxId]);
+            tile.SetData(tileData);
             tile.PositionToIso(tileData.CellX, tileData.CellY, tileData.CellZ, tileData.Height, tileData.CommonData.OriginX, tileData.CommonData.OriginY);
             tile.FlipH = tileData.CommonData.Flip;
             _assetContainer.AddChild(tile);
