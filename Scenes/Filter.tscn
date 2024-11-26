@@ -27,12 +27,12 @@ columns = 2
 [node name="BiomeLabel" type="Label" parent="MarginContainer/GridContainer"]
 custom_minimum_size = Vector2(140, 0)
 layout_mode = 2
-text = "Biome:"
+text = "Biome :"
 
 [node name="CategoryLabel" type="Label" parent="MarginContainer/GridContainer"]
 custom_minimum_size = Vector2(140, 0)
 layout_mode = 2
-text = "Catégorie:"
+text = "Catégorie :"
 
 [node name="BiomeButton" type="OptionButton" parent="MarginContainer/GridContainer"]
 layout_mode = 2
@@ -96,42 +96,26 @@ popup/item_13/id = 13
 popup/item_14/text = "Eau"
 popup/item_14/id = 14
 
-[node name="Control" type="Control" parent="MarginContainer/GridContainer"]
-custom_minimum_size = Vector2(0, 30)
+[node name="ModeLabel" type="Label" parent="MarginContainer/GridContainer"]
+layout_mode = 2
+text = "Mode :"
+
+[node name="Control4" type="Control" parent="MarginContainer/GridContainer"]
 layout_mode = 2
 
-[node name="CheckBox" type="CheckBox" parent="MarginContainer/GridContainer/Control"]
-layout_mode = 0
-offset_right = 24.0
-offset_bottom = 24.0
-
-[node name="Label" type="Label" parent="MarginContainer/GridContainer/Control"]
-layout_mode = 0
-offset_left = 27.0
-offset_right = 126.0
-offset_bottom = 23.0
-text = "Déja présent"
-
-[node name="Control2" type="Control" parent="MarginContainer/GridContainer"]
+[node name="ModeButton" type="OptionButton" parent="MarginContainer/GridContainer"]
 layout_mode = 2
-
-[node name="Control3" type="Control" parent="MarginContainer/GridContainer"]
-custom_minimum_size = Vector2(0, 30)
-layout_mode = 2
-
-[node name="CheckBox" type="CheckBox" parent="MarginContainer/GridContainer/Control3"]
-layout_mode = 0
-offset_right = 24.0
-offset_bottom = 24.0
-
-[node name="Label" type="Label" parent="MarginContainer/GridContainer/Control3"]
-layout_mode = 0
-offset_left = 27.0
-offset_right = 126.0
-offset_bottom = 23.0
-text = "Mode topologie"
+selected = 0
+item_count = 5
+popup/item_0/text = "GFX"
+popup/item_1/text = "GFX Present"
+popup/item_1/id = 1
+popup/item_2/text = "Topologie"
+popup/item_2/id = 2
+popup/item_3/text = "Lumière"
+popup/item_3/id = 3
+popup/item_4/text = "Combat"
+popup/item_4/id = 4
 
 [connection signal="item_selected" from="MarginContainer/GridContainer/BiomeButton" to="." method="_OnBiomeSelected"]
 [connection signal="item_selected" from="MarginContainer/GridContainer/CategoryButton" to="." method="_OnCategorySelected"]
-[connection signal="toggled" from="MarginContainer/GridContainer/Control/CheckBox" to="." method="_OnPresentToggled"]
-[connection signal="toggled" from="MarginContainer/GridContainer/Control3/CheckBox" to="." method="_OnPresentToggled"]

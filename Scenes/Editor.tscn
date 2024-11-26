@@ -21,7 +21,7 @@ _fileDialog = NodePath("CanvasLayer/FileDialog")
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
 [node name="SplitContainer" type="SplitContainer" parent="CanvasLayer"]
-custom_minimum_size = Vector2(900, 500)
+custom_minimum_size = Vector2(1400, 500)
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -55,31 +55,32 @@ layout_mode = 1
 size_flags_vertical = 3
 
 [node name="SplitContainer2" type="SplitContainer" parent="CanvasLayer/SplitContainer"]
-custom_minimum_size = Vector2(600, 500)
+custom_minimum_size = Vector2(1100, 500)
 layout_mode = 2
 dragger_visibility = 2
 vertical = true
 
 [node name="ColorRect" type="ColorRect" parent="CanvasLayer/SplitContainer/SplitContainer2"]
-custom_minimum_size = Vector2(600, 50)
+custom_minimum_size = Vector2(1100, 50)
 layout_mode = 2
 color = Color(0.341176, 0.341176, 0.341176, 0.509804)
 
 [node name="Tools" parent="CanvasLayer/SplitContainer/SplitContainer2/ColorRect" instance=ExtResource("5_uvmdi")]
-custom_minimum_size = Vector2(600, 50)
+custom_minimum_size = Vector2(1100, 50)
 layout_mode = 1
 
 [node name="ColorRect2" type="ColorRect" parent="CanvasLayer/SplitContainer/SplitContainer2"]
-custom_minimum_size = Vector2(600, 450)
+custom_minimum_size = Vector2(1100, 450)
 layout_mode = 2
 color = Color(0.341176, 0.341176, 0.341176, 0)
 
 [node name="Overlay" parent="CanvasLayer/SplitContainer/SplitContainer2/ColorRect2" instance=ExtResource("6_ehtoy")]
-custom_minimum_size = Vector2(600, 450)
+custom_minimum_size = Vector2(1100, 450)
 layout_mode = 1
 
 [node name="FileDialog" type="FileDialog" parent="CanvasLayer"]
 title = "Open a File"
+size = Vector2i(324, 180)
 ok_button_text = "Open"
 file_mode = 0
 access = 2

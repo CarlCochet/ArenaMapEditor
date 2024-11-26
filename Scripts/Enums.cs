@@ -3,6 +3,15 @@ using System;
 
 public static class Enums
 {
+    public enum Tool
+    {
+        None = 0,
+        Select = 1,
+        Brush = 2,
+        Line = 3,
+        Area = 4,
+    }
+    
     public enum Biome
     {
         Global = 0,
@@ -36,5 +45,14 @@ public static class Enums
         Statue = 13,
         Effect = 14,
         Water = 15,
+    }
+
+    public enum Mode
+    {
+        Gfx = 0,
+        GfxPresent = 1,
+        Topology = 2,
+        Light = 3,
+        Fight = 4,
     }
 }

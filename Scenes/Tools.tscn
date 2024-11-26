@@ -1,15 +1,12 @@
-[gd_scene load_steps=21 format=3 uid="uid://d14hqwtpnn5ek"]
+[gd_scene load_steps=24 format=3 uid="uid://d14hqwtpnn5ek"]
 
 [ext_resource type="Script" path="res://Scripts/Tools.cs" id="1_6s3ac"]
 [ext_resource type="Texture2D" uid="uid://cr0hplinhgo3t" path="res://Assets/UI/ToolSelect.png" id="2_78btu"]
-[ext_resource type="Texture2D" uid="uid://bl510c4n2hcq3" path="res://Assets/UI/Edit.png" id="3_3hu5u"]
 [ext_resource type="Texture2D" uid="uid://bq8iuh80f1tm3" path="res://Assets/UI/ToolSelect_pressed.png" id="3_c31eb"]
 [ext_resource type="Texture2D" uid="uid://nal35cjovp7s" path="res://Assets/UI/ToolSelect_hover.png" id="4_0mtuu"]
 [ext_resource type="Texture2D" uid="uid://i6mw1c1wescc" path="res://Assets/UI/Paint.png" id="4_48r52"]
 [ext_resource type="Texture2D" uid="uid://ct3i3nyle7sbf" path="res://Assets/UI/Line.png" id="5_6pqdi"]
-[ext_resource type="Texture2D" uid="uid://eefmarws6b3o" path="res://Assets/UI/Edit_pressed.png" id="6_1defl"]
 [ext_resource type="Texture2D" uid="uid://yoe3myn46gy8" path="res://Assets/UI/Rectangle.png" id="6_ejfkd"]
-[ext_resource type="Texture2D" uid="uid://b1shtlkctym8u" path="res://Assets/UI/Edit_hover.png" id="7_kfo0c"]
 [ext_resource type="Texture2D" uid="uid://bpaokhede5uin" path="res://Assets/UI/Paint_pressed.png" id="9_seshs"]
 [ext_resource type="Texture2D" uid="uid://ckerng5ahc7e3" path="res://Assets/UI/Line_pressed.png" id="10_htrqw"]
 [ext_resource type="Texture2D" uid="uid://vqqvprwci8sh" path="res://Assets/UI/Paint_hover.png" id="10_m4mf0"]
@@ -19,10 +16,16 @@
 [ext_resource type="Texture2D" uid="uid://cu0kxtj7s54ln" path="res://Assets/UI/Eraser.png" id="17_nax05"]
 [ext_resource type="Texture2D" uid="uid://csds328agsh4n" path="res://Assets/UI/Eraser_pressed.png" id="18_q8l62"]
 [ext_resource type="Texture2D" uid="uid://cq4eqlo7mj14l" path="res://Assets/UI/Eraser_hover.png" id="19_hm6ee"]
+[ext_resource type="Texture2D" uid="uid://dek3xcw6rhbyj" path="res://Assets/UI/Undo.png" id="20_yyeh5"]
+[ext_resource type="Texture2D" uid="uid://cbbkffqih0m5a" path="res://Assets/UI/Undo_pressed.png" id="21_nyhfs"]
+[ext_resource type="Texture2D" uid="uid://dx1ux6ypq3nni" path="res://Assets/UI/Undo_hover.png" id="22_m5x4e"]
+[ext_resource type="Texture2D" uid="uid://dp5js65xl1ilg" path="res://Assets/UI/Redo.png" id="23_hwnd8"]
+[ext_resource type="Texture2D" uid="uid://bnjnag32bqy5i" path="res://Assets/UI/Redo_pressed.png" id="24_yuo05"]
+[ext_resource type="Texture2D" uid="uid://cn0xmqin56k55" path="res://Assets/UI/Redo_hover.png" id="25_v1ccl"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_kgn1q"]
 
-[node name="Tools" type="Control" node_paths=PackedStringArray("_selectButton", "_pencilButton", "_brushButton", "_lineButton", "_areaButton")]
+[node name="Tools" type="Control" node_paths=PackedStringArray("_selectButton", "_brushButton", "_lineButton", "_areaButton", "_sizeField")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -31,17 +34,18 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_6s3ac")
 _selectButton = NodePath("MarginContainer/HBoxContainer/Selector")
-_pencilButton = NodePath("MarginContainer/HBoxContainer/Pencil")
 _brushButton = NodePath("MarginContainer/HBoxContainer/Brush")
 _lineButton = NodePath("MarginContainer/HBoxContainer/Line")
 _areaButton = NodePath("MarginContainer/HBoxContainer/Area")
+_sizeField = NodePath("MarginContainer/HBoxContainer/BrushSize/Size")
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 40.0
-theme_override_constants/margin_left = 6
+theme_override_constants/margin_left = 5
 theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
 theme_override_constants/margin_bottom = 5
 
 [node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer"]
@@ -55,13 +59,6 @@ button_pressed = true
 texture_normal = ExtResource("2_78btu")
 texture_pressed = ExtResource("3_c31eb")
 texture_hover = ExtResource("4_0mtuu")
-
-[node name="Pencil" type="TextureButton" parent="MarginContainer/HBoxContainer"]
-layout_mode = 2
-toggle_mode = true
-texture_normal = ExtResource("3_3hu5u")
-texture_pressed = ExtResource("6_1defl")
-texture_hover = ExtResource("7_kfo0c")
 
 [node name="Brush" type="TextureButton" parent="MarginContainer/HBoxContainer"]
 layout_mode = 2
@@ -84,18 +81,18 @@ texture_normal = ExtResource("6_ejfkd")
 texture_pressed = ExtResource("15_ryfbt")
 texture_hover = ExtResource("16_mwthy")
 
-[node name="TextureButton" type="TextureButton" parent="MarginContainer/HBoxContainer"]
+[node name="Eraser" type="TextureButton" parent="MarginContainer/HBoxContainer"]
 layout_mode = 2
 toggle_mode = true
 texture_normal = ExtResource("17_nax05")
 texture_pressed = ExtResource("18_q8l62")
 texture_hover = ExtResource("19_hm6ee")
 
-[node name="Control" type="Control" parent="MarginContainer/HBoxContainer"]
-custom_minimum_size = Vector2(137.345, 0)
+[node name="BrushSize" type="Control" parent="MarginContainer/HBoxContainer"]
+custom_minimum_size = Vector2(125.96, 0)
 layout_mode = 2
 
-[node name="SizeLabel" type="Label" parent="MarginContainer/HBoxContainer/Control"]
+[node name="SizeLabel" type="Label" parent="MarginContainer/HBoxContainer/BrushSize"]
 layout_mode = 2
 offset_left = 26.0
 offset_top = 3.0
@@ -105,7 +102,7 @@ text = "Taille:"
 label_settings = SubResource("LabelSettings_kgn1q")
 vertical_alignment = 1
 
-[node name="Size" type="LineEdit" parent="MarginContainer/HBoxContainer/Control"]
+[node name="Size" type="LineEdit" parent="MarginContainer/HBoxContainer/BrushSize"]
 layout_mode = 2
 offset_left = 78.0
 offset_right = 122.906
@@ -119,24 +116,62 @@ context_menu_enabled = false
 virtual_keyboard_type = 3
 caret_blink = true
 
-[node name="LoadMap" type="Button" parent="."]
+[node name="ColorPicker" type="ColorPickerButton" parent="MarginContainer/HBoxContainer"]
+custom_minimum_size = Vector2(40, 0)
+layout_mode = 2
+color = Color(1, 1, 1, 1)
+
+[node name="Undo" type="TextureButton" parent="MarginContainer/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("20_yyeh5")
+texture_pressed = ExtResource("21_nyhfs")
+texture_hover = ExtResource("22_m5x4e")
+
+[node name="Redo" type="TextureButton" parent="MarginContainer/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("23_hwnd8")
+texture_pressed = ExtResource("24_yuo05")
+texture_hover = ExtResource("25_v1ccl")
+
+[node name="MarginContainer2" type="MarginContainer" parent="."]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -146.0
-offset_top = 5.0
-offset_right = -6.0
-offset_bottom = 45.0
+offset_left = -40.0
+offset_bottom = 40.0
 grow_horizontal = 0
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer2"]
+layout_mode = 2
+
+[node name="NewMap" type="Button" parent="MarginContainer2/HBoxContainer"]
+custom_minimum_size = Vector2(150, 40)
+layout_mode = 2
+text = "Nouvelle carte"
+
+[node name="LoadMap" type="Button" parent="MarginContainer2/HBoxContainer"]
+custom_minimum_size = Vector2(150, 40)
+layout_mode = 2
 theme_override_font_sizes/font_size = 16
 text = "Charger carte"
 
+[node name="ExportMap" type="Button" parent="MarginContainer2/HBoxContainer"]
+custom_minimum_size = Vector2(150, 40)
+layout_mode = 2
+text = "Exporter carte"
+
 [connection signal="pressed" from="MarginContainer/HBoxContainer/Selector" to="." method="_OnSelectPressed"]
-[connection signal="pressed" from="MarginContainer/HBoxContainer/Pencil" to="." method="_OnPencilPressed"]
 [connection signal="pressed" from="MarginContainer/HBoxContainer/Brush" to="." method="_OnBrushPressed"]
 [connection signal="pressed" from="MarginContainer/HBoxContainer/Line" to="." method="_OnLinePressed"]
 [connection signal="pressed" from="MarginContainer/HBoxContainer/Area" to="." method="_OnAreaPressed"]
-[connection signal="toggled" from="MarginContainer/HBoxContainer/TextureButton" to="." method="_OnEraserToggled"]
-[connection signal="text_changed" from="MarginContainer/HBoxContainer/Control/Size" to="." method="_OnSizeChanged"]
-[connection signal="pressed" from="LoadMap" to="." method="_OnLoadPressed"]
+[connection signal="toggled" from="MarginContainer/HBoxContainer/Eraser" to="." method="_OnEraserToggled"]
+[connection signal="text_changed" from="MarginContainer/HBoxContainer/BrushSize/Size" to="." method="_OnSizeChanged"]
+[connection signal="color_changed" from="MarginContainer/HBoxContainer/ColorPicker" to="." method="_OnColorChanged"]
+[connection signal="pressed" from="MarginContainer2/HBoxContainer/NewMap" to="." method="_OnNewPressed"]
+[connection signal="pressed" from="MarginContainer2/HBoxContainer/LoadMap" to="." method="_OnLoadPressed"]
+[connection signal="pressed" from="MarginContainer2/HBoxContainer/ExportMap" to="." method="_OnExportPressed"]
