@@ -10,6 +10,8 @@ public partial class Map : Node2D
     [Export] private Camera _camera;
     [Export] private PackedScene _tileScene;
 
+    private List<Chunk> _chunks = [];
+
     public override void _Ready() { }
 
     public void UpdateFocus(bool hasFocus)

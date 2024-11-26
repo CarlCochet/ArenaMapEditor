@@ -172,6 +172,8 @@ text = "Exporter carte"
 [connection signal="toggled" from="MarginContainer/HBoxContainer/Eraser" to="." method="_OnEraserToggled"]
 [connection signal="text_changed" from="MarginContainer/HBoxContainer/BrushSize/Size" to="." method="_OnSizeChanged"]
 [connection signal="color_changed" from="MarginContainer/HBoxContainer/ColorPicker" to="." method="_OnColorChanged"]
+[connection signal="pressed" from="MarginContainer/HBoxContainer/Undo" to="." method="_OnUndoPressed"]
+[connection signal="pressed" from="MarginContainer/HBoxContainer/Redo" to="." method="_OnRedoPressed"]
 [connection signal="pressed" from="MarginContainer2/HBoxContainer/NewMap" to="." method="_OnNewPressed"]
 [connection signal="pressed" from="MarginContainer2/HBoxContainer/LoadMap" to="." method="_OnLoadPressed"]
 [connection signal="pressed" from="MarginContainer2/HBoxContainer/ExportMap" to="." method="_OnExportPressed"]
