@@ -9,8 +9,8 @@
 custom_minimum_size = Vector2(45, 45)
 layout_mode = 3
 anchors_preset = 0
-offset_right = 50.0
-offset_bottom = 50.0
+offset_right = 45.0
+offset_bottom = 45.0
 mouse_filter = 1
 script = ExtResource("1_rtx3l")
 _thumbnail = NodePath("Thumbnail")
@@ -25,10 +25,10 @@ expand_mode = 4
 stretch_mode = 5
 
 [node name="Button" type="TextureButton" parent="."]
-custom_minimum_size = Vector2(50, 50)
+custom_minimum_size = Vector2(45, 45)
 layout_mode = 1
-offset_right = 40.0
-offset_bottom = 40.0
+offset_right = 45.0
+offset_bottom = 45.0
 mouse_filter = 1
 toggle_mode = true
 texture_normal = ExtResource("1_hs76v")

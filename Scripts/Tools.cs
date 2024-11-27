@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.Collections.Generic;
 
 public partial class Tools : Control
 {
@@ -8,15 +9,25 @@ public partial class Tools : Control
 	[Export] private TextureButton _lineButton;
 	[Export] private TextureButton _areaButton;
 	[Export] private LineEdit _sizeField;
+	[Export] private OptionButton _loadButton;
 
 	public event EventHandler<ColorChangedEventArgs> ColorChanged;
 	public event EventHandler UndoPressed;
 	public event EventHandler RedoPressed;
 	public event EventHandler NewMapPressed; 
-	public event EventHandler LoadMapPressed;
+	public event EventHandler LocateArenaPressed;
+	public event EventHandler<MapSelectedEventArgs> MapSelected;
 	public event EventHandler ExportMapPressed;
 	
 	public override void _Ready() { }
+
+	public void SetMapIndexes(List<int> mapIndexes)
+	{
+		for (var i = 0; i < mapIndexes.Count; i++)
+		{
+			_loadButton.AddItem(mapIndexes[i].ToString(), i);
+		}
+	}
 
 	private void _OnSelectPressed()
 	{
@@ -90,10 +101,15 @@ public partial class Tools : Control
 	{
 		NewMapPressed?.Invoke(this, EventArgs.Empty);
 	}
-	
-	private void _OnLoadPressed()
+
+	private void _OnLocatePressed()
 	{
-		LoadMapPressed?.Invoke(this, EventArgs.Empty);
+		LocateArenaPressed?.Invoke(this, EventArgs.Empty);
+	}
+
+	private void _OnMapSelected(int index)
+	{
+		MapSelected?.Invoke(this, new MapSelectedEventArgs(index));
 	}
 
 	private void _OnExportPressed()
@@ -104,5 +120,10 @@ public partial class Tools : Control
 	public class ColorChangedEventArgs(Color color) : EventArgs
 	{
 		public Color Color => color;
+	}
+
+	public class MapSelectedEventArgs(int mapIndex) : EventArgs
+	{
+		public int MapIndex => mapIndex;
 	}
 }

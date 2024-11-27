@@ -154,16 +154,20 @@ custom_minimum_size = Vector2(150, 40)
 layout_mode = 2
 text = "Nouvelle carte"
 
-[node name="LoadMap" type="Button" parent="MarginContainer2/HBoxContainer"]
-custom_minimum_size = Vector2(150, 40)
-layout_mode = 2
-theme_override_font_sizes/font_size = 16
-text = "Charger carte"
-
 [node name="ExportMap" type="Button" parent="MarginContainer2/HBoxContainer"]
 custom_minimum_size = Vector2(150, 40)
 layout_mode = 2
 text = "Exporter carte"
+
+[node name="LocateArena" type="Button" parent="MarginContainer2/HBoxContainer"]
+custom_minimum_size = Vector2(150, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "Localiser Arena"
+
+[node name="LoadMap" type="OptionButton" parent="MarginContainer2/HBoxContainer"]
+custom_minimum_size = Vector2(150, 40)
+layout_mode = 2
 
 [connection signal="pressed" from="MarginContainer/HBoxContainer/Selector" to="." method="_OnSelectPressed"]
 [connection signal="pressed" from="MarginContainer/HBoxContainer/Brush" to="." method="_OnBrushPressed"]
@@ -175,5 +179,6 @@ text = "Exporter carte"
 [connection signal="pressed" from="MarginContainer/HBoxContainer/Undo" to="." method="_OnUndoPressed"]
 [connection signal="pressed" from="MarginContainer/HBoxContainer/Redo" to="." method="_OnRedoPressed"]
 [connection signal="pressed" from="MarginContainer2/HBoxContainer/NewMap" to="." method="_OnNewPressed"]
-[connection signal="pressed" from="MarginContainer2/HBoxContainer/LoadMap" to="." method="_OnLoadPressed"]
 [connection signal="pressed" from="MarginContainer2/HBoxContainer/ExportMap" to="." method="_OnExportPressed"]
+[connection signal="pressed" from="MarginContainer2/HBoxContainer/LocateArena" to="." method="_OnLocatePressed"]
+[connection signal="item_selected" from="MarginContainer2/HBoxContainer/LoadMap" to="." method="_OnMapSelected"]

@@ -1,3 +1,6 @@
-[gd_scene format=3 uid="uid://37ijq8hndkyk"]
+[gd_scene load_steps=2 format=3 uid="uid://37ijq8hndkyk"]
+
+[ext_resource type="Script" path="res://Scripts/Chunk.cs" id="1_8jc5y"]
 
 [node name="Chunk" type="Node2D"]
+script = ExtResource("1_8jc5y")
