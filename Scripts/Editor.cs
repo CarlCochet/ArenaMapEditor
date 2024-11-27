@@ -35,7 +35,7 @@ public partial class Editor : Node2D
 
 	private void _OnMapSelected(object sender, Tools.MapSelectedEventArgs eventArgs)
 	{
-		using var file = FileAccess.Open($"{_path}{eventArgs.MapIndex}.json", FileAccess.ModeFlags.Read);
+		using var file = FileAccess.Open($"{_path}/{eventArgs.MapName}.json", FileAccess.ModeFlags.Read);
 		var text = file.GetAsText();
 		var mapInfo = JsonSerializer.Deserialize<MapInfo>(text);
 		_map.LoadMap(mapInfo);
@@ -46,8 +46,27 @@ public partial class Editor : Node2D
 		_fileDialog.Visible = true;
 	}
 
-	private void _OnFileSelected(string path)
+	private void _OnDirectorySelected(string dir)
 	{
-		_path = path;
+		_path = dir;
+		using var dirAccess = DirAccess.Open(_path);
+		if (dirAccess == null)
+			return;
+		
+		dirAccess.ListDirBegin();
+		var name = dirAccess.GetNext();
+		List<string> mapNames = [];
+		while (name != "")
+		{
+			if (dirAccess.CurrentIsDir())
+				continue;
+			if (!name.EndsWith(".json"))
+				continue;
+			mapNames.Add(name.Split(".")[0]);
+			name = dirAccess.GetNext();
+		}
+		dirAccess.ListDirEnd();
+		
+		_tools.SetMapOptions(mapNames);
 	}
 }

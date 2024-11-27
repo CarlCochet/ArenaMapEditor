@@ -79,14 +79,13 @@ custom_minimum_size = Vector2(1100, 450)
 layout_mode = 1
 
 [node name="FileDialog" type="FileDialog" parent="CanvasLayer"]
-title = "Open a File"
+title = "Open a Directory"
 size = Vector2i(324, 180)
-ok_button_text = "Open"
-file_mode = 0
+ok_button_text = "Select Current Folder"
+file_mode = 2
 access = 2
-filters = PackedStringArray("*.json")
 use_native_dialog = true
 
 [connection signal="mouse_entered" from="CanvasLayer/SplitContainer/SplitContainer/ColorRect2/AssetsPreview" to="." method="_OnAssetPreviewEntered"]
 [connection signal="mouse_exited" from="CanvasLayer/SplitContainer/SplitContainer/ColorRect2/AssetsPreview" to="." method="_OnAssetPreviewExited"]
-[connection signal="file_selected" from="CanvasLayer/FileDialog" to="." method="_OnFileSelected"]
+[connection signal="dir_selected" from="CanvasLayer/FileDialog" to="." method="_OnDirectorySelected"]

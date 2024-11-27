@@ -21,11 +21,11 @@ public partial class Tools : Control
 	
 	public override void _Ready() { }
 
-	public void SetMapIndexes(List<int> mapIndexes)
+	public void SetMapOptions(List<string> mapNames)
 	{
-		for (var i = 0; i < mapIndexes.Count; i++)
+		for (var i = 0; i < mapNames.Count; i++)
 		{
-			_loadButton.AddItem(mapIndexes[i].ToString(), i);
+			_loadButton.AddItem(mapNames[i], i);
 		}
 	}
 
@@ -109,7 +109,8 @@ public partial class Tools : Control
 
 	private void _OnMapSelected(int index)
 	{
-		MapSelected?.Invoke(this, new MapSelectedEventArgs(index));
+		var name = _loadButton.GetItemText(index);
+		MapSelected?.Invoke(this, new MapSelectedEventArgs(name));
 	}
 
 	private void _OnExportPressed()
@@ -122,8 +123,8 @@ public partial class Tools : Control
 		public Color Color => color;
 	}
 
-	public class MapSelectedEventArgs(int mapIndex) : EventArgs
+	public class MapSelectedEventArgs(string mapName) : EventArgs
 	{
-		public int MapIndex => mapIndex;
+		public string MapName => mapName;
 	}
 }

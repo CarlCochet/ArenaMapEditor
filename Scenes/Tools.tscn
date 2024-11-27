@@ -25,7 +25,7 @@
 
 [sub_resource type="LabelSettings" id="LabelSettings_kgn1q"]
 
-[node name="Tools" type="Control" node_paths=PackedStringArray("_selectButton", "_brushButton", "_lineButton", "_areaButton", "_sizeField")]
+[node name="Tools" type="Control" node_paths=PackedStringArray("_selectButton", "_brushButton", "_lineButton", "_areaButton", "_sizeField", "_loadButton")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -38,6 +38,7 @@ _brushButton = NodePath("MarginContainer/HBoxContainer/Brush")
 _lineButton = NodePath("MarginContainer/HBoxContainer/Line")
 _areaButton = NodePath("MarginContainer/HBoxContainer/Area")
 _sizeField = NodePath("MarginContainer/HBoxContainer/BrushSize/Size")
+_loadButton = NodePath("MarginContainer2/HBoxContainer/LoadMap")
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
 layout_mode = 0
