@@ -17,7 +17,10 @@ public partial class Tile : Sprite2D
 		_data = GlobalData.Instance.Assets[element.CommonData.GfxId].Copy();
 		_element = element;
 		Texture = _data.Texture;
-		SelfModulate = _element.Colors.Count < 3 ? Colors.White : new Color(_element.Colors[0], _element.Colors[1], _element.Colors[2]);
+		SelfModulate = _element.Colors.Count < 3 ? Colors.White : new Color(
+			0.7f + 0.3f * _element.Colors[0], 
+			0.7f + 0.3f * _element.Colors[1], 
+			0.7f + 0.3f * _element.Colors[2]);
 	}
 
 	public void PositionToIso(int x, int y, int z, int height, int originX, int originY)

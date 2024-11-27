@@ -27,6 +27,8 @@ public partial class Tools : Control
 		{
 			_loadButton.AddItem(mapNames[i], i);
 		}
+
+		_loadButton.Selected = -1;
 	}
 
 	private void _OnSelectPressed()
