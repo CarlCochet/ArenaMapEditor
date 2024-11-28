@@ -1,4 +1,4 @@
-[gd_scene load_steps=24 format=3 uid="uid://d14hqwtpnn5ek"]
+[gd_scene load_steps=27 format=3 uid="uid://d14hqwtpnn5ek"]
 
 [ext_resource type="Script" path="res://Scripts/Tools.cs" id="1_6s3ac"]
 [ext_resource type="Texture2D" uid="uid://cr0hplinhgo3t" path="res://Assets/UI/ToolSelect.png" id="2_78btu"]
@@ -14,7 +14,10 @@
 [ext_resource type="Texture2D" uid="uid://biimfisaiy2xg" path="res://Assets/UI/Rectangle_pressed.png" id="15_ryfbt"]
 [ext_resource type="Texture2D" uid="uid://c87qqsedfrp6l" path="res://Assets/UI/Rectangle_hover.png" id="16_mwthy"]
 [ext_resource type="Texture2D" uid="uid://cu0kxtj7s54ln" path="res://Assets/UI/Eraser.png" id="17_nax05"]
+[ext_resource type="Texture2D" uid="uid://deq36qstdoi40" path="res://Assets/UI/MirrorX.png" id="17_wjtxm"]
+[ext_resource type="Texture2D" uid="uid://cr6n382oc77ha" path="res://Assets/UI/MirrorX_pressed.png" id="18_bsk82"]
 [ext_resource type="Texture2D" uid="uid://csds328agsh4n" path="res://Assets/UI/Eraser_pressed.png" id="18_q8l62"]
+[ext_resource type="Texture2D" uid="uid://brvqxprbi6drr" path="res://Assets/UI/MirrorX_hover.png" id="19_74djj"]
 [ext_resource type="Texture2D" uid="uid://cq4eqlo7mj14l" path="res://Assets/UI/Eraser_hover.png" id="19_hm6ee"]
 [ext_resource type="Texture2D" uid="uid://dek3xcw6rhbyj" path="res://Assets/UI/Undo.png" id="20_yyeh5"]
 [ext_resource type="Texture2D" uid="uid://cbbkffqih0m5a" path="res://Assets/UI/Undo_pressed.png" id="21_nyhfs"]
@@ -24,6 +27,7 @@
 [ext_resource type="Texture2D" uid="uid://cn0xmqin56k55" path="res://Assets/UI/Redo_hover.png" id="25_v1ccl"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_kgn1q"]
+font_size = 14
 
 [node name="Tools" type="Control" node_paths=PackedStringArray("_selectButton", "_brushButton", "_lineButton", "_areaButton", "_sizeField", "_loadButton")]
 layout_mode = 3
@@ -44,10 +48,10 @@ _loadButton = NodePath("MarginContainer2/HBoxContainer/LoadMap")
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 40.0
-theme_override_constants/margin_left = 5
-theme_override_constants/margin_top = 5
-theme_override_constants/margin_right = 5
-theme_override_constants/margin_bottom = 5
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
 
 [node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer"]
 layout_mode = 2
@@ -89,16 +93,22 @@ texture_normal = ExtResource("17_nax05")
 texture_pressed = ExtResource("18_q8l62")
 texture_hover = ExtResource("19_hm6ee")
 
+[node name="TextureButton" type="TextureButton" parent="MarginContainer/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("17_wjtxm")
+texture_pressed = ExtResource("18_bsk82")
+texture_hover = ExtResource("19_74djj")
+
 [node name="BrushSize" type="Control" parent="MarginContainer/HBoxContainer"]
-custom_minimum_size = Vector2(125.96, 0)
+custom_minimum_size = Vector2(115, 0)
 layout_mode = 2
 
 [node name="SizeLabel" type="Label" parent="MarginContainer/HBoxContainer/BrushSize"]
 layout_mode = 2
 offset_left = 26.0
-offset_top = 3.0
+offset_top = -2.0
 offset_right = 78.0
-offset_bottom = 37.0
+offset_bottom = 32.0
 text = "Taille:"
 label_settings = SubResource("LabelSettings_kgn1q")
 vertical_alignment = 1
@@ -106,10 +116,10 @@ vertical_alignment = 1
 [node name="Size" type="LineEdit" parent="MarginContainer/HBoxContainer/BrushSize"]
 layout_mode = 2
 offset_left = 78.0
-offset_right = 122.906
-offset_bottom = 40.0
+offset_right = 113.0
+offset_bottom = 30.0
 theme_override_constants/minimum_character_width = 2
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 14
 text = "1"
 alignment = 1
 max_length = 2
@@ -118,7 +128,7 @@ virtual_keyboard_type = 3
 caret_blink = true
 
 [node name="ColorPicker" type="ColorPickerButton" parent="MarginContainer/HBoxContainer"]
-custom_minimum_size = Vector2(40, 0)
+custom_minimum_size = Vector2(30, 0)
 layout_mode = 2
 color = Color(1, 1, 1, 1)
 
@@ -142,32 +152,34 @@ anchor_right = 1.0
 offset_left = -40.0
 offset_bottom = 40.0
 grow_horizontal = 0
-theme_override_constants/margin_left = 5
-theme_override_constants/margin_top = 5
-theme_override_constants/margin_right = 5
-theme_override_constants/margin_bottom = 5
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
 
 [node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer2"]
 layout_mode = 2
 
 [node name="NewMap" type="Button" parent="MarginContainer2/HBoxContainer"]
-custom_minimum_size = Vector2(150, 40)
+custom_minimum_size = Vector2(130, 30)
 layout_mode = 2
+theme_override_font_sizes/font_size = 14
 text = "Nouvelle carte"
 
 [node name="ExportMap" type="Button" parent="MarginContainer2/HBoxContainer"]
-custom_minimum_size = Vector2(150, 40)
+custom_minimum_size = Vector2(130, 30)
 layout_mode = 2
+theme_override_font_sizes/font_size = 14
 text = "Exporter carte"
 
 [node name="LocateArena" type="Button" parent="MarginContainer2/HBoxContainer"]
-custom_minimum_size = Vector2(150, 40)
+custom_minimum_size = Vector2(130, 30)
 layout_mode = 2
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 14
 text = "Localiser Arena"
 
 [node name="LoadMap" type="OptionButton" parent="MarginContainer2/HBoxContainer"]
-custom_minimum_size = Vector2(150, 40)
+custom_minimum_size = Vector2(130, 30)
 layout_mode = 2
 
 [connection signal="pressed" from="MarginContainer/HBoxContainer/Selector" to="." method="_OnSelectPressed"]

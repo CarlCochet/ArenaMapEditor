@@ -2,7 +2,6 @@ using Godot;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Vector2 = Godot.Vector2;
 
 public partial class Map : Node2D
 {
