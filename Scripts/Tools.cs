@@ -11,6 +11,7 @@ public partial class Tools : Control
 	[Export] private LineEdit _sizeField;
 	[Export] private OptionButton _loadButton;
 
+	public event EventHandler FlipPressed;
 	public event EventHandler<ColorChangedEventArgs> ColorChanged;
 	public event EventHandler UndoPressed;
 	public event EventHandler RedoPressed;
@@ -70,6 +71,11 @@ public partial class Tools : Control
 	private void _OnEraserToggled(bool toggledOn)
 	{
 		GlobalData.Instance.Erasing = toggledOn;
+	}
+
+	private void _OnFlipPressed()
+	{
+		FlipPressed?.Invoke(this, EventArgs.Empty);
 	}
 	
 	private void _OnSizeChanged(string newSize)

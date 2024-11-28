@@ -69,4 +69,9 @@ public partial class Overlay : Control
 	{
 		
 	}
+
+	private void _OnHighlightHeightPressed()
+	{
+		
+	}
 }

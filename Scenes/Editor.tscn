@@ -84,6 +84,7 @@ size = Vector2i(324, 180)
 ok_button_text = "Select Current Folder"
 file_mode = 2
 access = 2
+filters = PackedStringArray("*.jar", "*.json")
 use_native_dialog = true
 
 [connection signal="mouse_entered" from="CanvasLayer/SplitContainer/SplitContainer/ColorRect2/AssetsPreview" to="." method="_OnAssetPreviewEntered"]

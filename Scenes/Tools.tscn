@@ -59,6 +59,7 @@ theme_override_constants/separation = 10
 
 [node name="Selector" type="TextureButton" parent="MarginContainer/HBoxContainer"]
 layout_mode = 2
+tooltip_text = "Selection (S)"
 toggle_mode = true
 button_pressed = true
 texture_normal = ExtResource("2_78btu")
@@ -67,6 +68,7 @@ texture_hover = ExtResource("4_0mtuu")
 
 [node name="Brush" type="TextureButton" parent="MarginContainer/HBoxContainer"]
 layout_mode = 2
+tooltip_text = "Dessin (D)"
 toggle_mode = true
 texture_normal = ExtResource("4_48r52")
 texture_pressed = ExtResource("9_seshs")
@@ -74,6 +76,7 @@ texture_hover = ExtResource("10_m4mf0")
 
 [node name="Line" type="TextureButton" parent="MarginContainer/HBoxContainer"]
 layout_mode = 2
+tooltip_text = "Ligne (T)"
 toggle_mode = true
 texture_normal = ExtResource("5_6pqdi")
 texture_pressed = ExtResource("10_htrqw")
@@ -81,6 +84,7 @@ texture_hover = ExtResource("11_6x28h")
 
 [node name="Area" type="TextureButton" parent="MarginContainer/HBoxContainer"]
 layout_mode = 2
+tooltip_text = "Rectangle (R)"
 toggle_mode = true
 texture_normal = ExtResource("6_ejfkd")
 texture_pressed = ExtResource("15_ryfbt")
@@ -88,13 +92,15 @@ texture_hover = ExtResource("16_mwthy")
 
 [node name="Eraser" type="TextureButton" parent="MarginContainer/HBoxContainer"]
 layout_mode = 2
+tooltip_text = "Efface (E)"
 toggle_mode = true
 texture_normal = ExtResource("17_nax05")
 texture_pressed = ExtResource("18_q8l62")
 texture_hover = ExtResource("19_hm6ee")
 
-[node name="TextureButton" type="TextureButton" parent="MarginContainer/HBoxContainer"]
+[node name="Flip" type="TextureButton" parent="MarginContainer/HBoxContainer"]
 layout_mode = 2
+tooltip_text = "Flip horizontal (F)"
 texture_normal = ExtResource("17_wjtxm")
 texture_pressed = ExtResource("18_bsk82")
 texture_hover = ExtResource("19_74djj")
@@ -134,12 +140,14 @@ color = Color(1, 1, 1, 1)
 
 [node name="Undo" type="TextureButton" parent="MarginContainer/HBoxContainer"]
 layout_mode = 2
+tooltip_text = "Annuler (Ctrl + Z)"
 texture_normal = ExtResource("20_yyeh5")
 texture_pressed = ExtResource("21_nyhfs")
 texture_hover = ExtResource("22_m5x4e")
 
 [node name="Redo" type="TextureButton" parent="MarginContainer/HBoxContainer"]
 layout_mode = 2
+tooltip_text = "Réappliquer (Ctrl + Y)"
 texture_normal = ExtResource("23_hwnd8")
 texture_pressed = ExtResource("24_yuo05")
 texture_hover = ExtResource("25_v1ccl")
@@ -181,12 +189,14 @@ text = "Localiser Arena"
 [node name="LoadMap" type="OptionButton" parent="MarginContainer2/HBoxContainer"]
 custom_minimum_size = Vector2(130, 30)
 layout_mode = 2
+tooltip_text = "Sélectionner carte du client Arena (localiser Arena avant utilisation)"
 
 [connection signal="pressed" from="MarginContainer/HBoxContainer/Selector" to="." method="_OnSelectPressed"]
 [connection signal="pressed" from="MarginContainer/HBoxContainer/Brush" to="." method="_OnBrushPressed"]
 [connection signal="pressed" from="MarginContainer/HBoxContainer/Line" to="." method="_OnLinePressed"]
 [connection signal="pressed" from="MarginContainer/HBoxContainer/Area" to="." method="_OnAreaPressed"]
 [connection signal="toggled" from="MarginContainer/HBoxContainer/Eraser" to="." method="_OnEraserToggled"]
+[connection signal="pressed" from="MarginContainer/HBoxContainer/Flip" to="." method="_OnFlipPressed"]
 [connection signal="text_changed" from="MarginContainer/HBoxContainer/BrushSize/Size" to="." method="_OnSizeChanged"]
 [connection signal="color_changed" from="MarginContainer/HBoxContainer/ColorPicker" to="." method="_OnColorChanged"]
 [connection signal="pressed" from="MarginContainer/HBoxContainer/Undo" to="." method="_OnUndoPressed"]

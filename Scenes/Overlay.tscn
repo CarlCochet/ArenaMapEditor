@@ -1,4 +1,4 @@
-[gd_scene load_steps=31 format=3 uid="uid://bs7nf7ebx8s4w"]
+[gd_scene load_steps=33 format=3 uid="uid://bs7nf7ebx8s4w"]
 
 [ext_resource type="Script" path="res://Scripts/Overlay.cs" id="1_ic50a"]
 [ext_resource type="Texture2D" uid="uid://dma4ldynf4oya" path="res://Assets/UI/Left.png" id="2_20wea"]
@@ -27,7 +27,9 @@
 [ext_resource type="Texture2D" uid="uid://cncenmqpng0e2" path="res://Assets/UI/Up_hover.png" id="25_dosm3"]
 [ext_resource type="Texture2D" uid="uid://dfn3jjg38isl2" path="res://Assets/UI/Heights.png" id="26_2hu0k"]
 [ext_resource type="Texture2D" uid="uid://d0e1tq43g52mt" path="res://Assets/UI/Down.png" id="26_cf6e0"]
+[ext_resource type="Texture2D" uid="uid://bcehavq7ppqrq" path="res://Assets/UI/Heights_pressed.png" id="27_dputo"]
 [ext_resource type="Texture2D" uid="uid://lt7hi01ywga0" path="res://Assets/UI/Down_pressed.png" id="27_qa7qn"]
+[ext_resource type="Texture2D" uid="uid://r6ima1p0xf6l" path="res://Assets/UI/Heights_hover.png" id="28_sv3im"]
 [ext_resource type="Texture2D" uid="uid://cq654qvxwgvaq" path="res://Assets/UI/Down_hover.png" id="28_xtvus"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_t0xsw"]
@@ -176,7 +178,7 @@ theme_override_constants/margin_bottom = 5
 
 [node name="Label" type="Label" parent="Position"]
 layout_mode = 2
-text = "(12, 7, 2)"
+text = "(0, 0, 0)"
 label_settings = SubResource("LabelSettings_t0xsw")
 vertical_alignment = 1
 
@@ -198,6 +200,7 @@ theme_override_constants/margin_bottom = 5
 
 [node name="VBoxContainer" type="VBoxContainer" parent="HeightModifier"]
 layout_mode = 2
+theme_override_constants/separation = 0
 
 [node name="Up" type="TextureButton" parent="HeightModifier/VBoxContainer"]
 layout_mode = 2
@@ -205,9 +208,11 @@ texture_normal = ExtResource("23_gjujf")
 texture_pressed = ExtResource("24_uuvrw")
 texture_hover = ExtResource("25_dosm3")
 
-[node name="TextureRect" type="TextureRect" parent="HeightModifier/VBoxContainer"]
+[node name="Highlight" type="TextureButton" parent="HeightModifier/VBoxContainer"]
 layout_mode = 2
-texture = ExtResource("26_2hu0k")
+texture_normal = ExtResource("26_2hu0k")
+texture_pressed = ExtResource("27_dputo")
+texture_hover = ExtResource("28_sv3im")
 
 [node name="Down" type="TextureButton" parent="HeightModifier/VBoxContainer"]
 layout_mode = 2
@@ -227,4 +232,5 @@ texture_hover = ExtResource("28_xtvus")
 [connection signal="button_down" from="Offsetter/GridContainer/Down" to="." method="_OnOffsetDownDown"]
 [connection signal="button_up" from="Offsetter/GridContainer/Down" to="." method="_OnOffsetDownUp"]
 [connection signal="pressed" from="HeightModifier/VBoxContainer/Up" to="." method="_OnHeightUpPressed"]
+[connection signal="pressed" from="HeightModifier/VBoxContainer/Highlight" to="." method="_OnHighlightHeightPressed"]
 [connection signal="pressed" from="HeightModifier/VBoxContainer/Down" to="." method="_OnHeightDownPressed"]
