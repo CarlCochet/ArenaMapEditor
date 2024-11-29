@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 
-public partial class MapData : Node
+public class MapData
 {
     public string Id { get; set; }
     public TopologyData Topology { get; set; }
@@ -55,7 +55,7 @@ public partial class MapData : Node
             GD.PrintErr("Can't find elements.lib");
             return;
         }
-            
+        
         using var stream = entry.Open();
         using var reader = new StreamReader(stream);
     }

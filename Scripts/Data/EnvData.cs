@@ -1,7 +1,7 @@
 using Godot;
 using System;
 
-public partial class EnvData : Node
+public class EnvData
 {
 
     public EnvData(string path, string id)

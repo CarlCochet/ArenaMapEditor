@@ -1,7 +1,7 @@
 using Godot;
 using System;
 
-public partial class LightData : Node
+public class LightData
 {
 
     public LightData(string path, string id)

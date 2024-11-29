@@ -1,10 +1,12 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 
-public partial class GfxData : Node
+public class GfxData
 {
-    private List<string> _ignoreFiles = ["META-INF", "coord", "groups.lib"]; 
+    private readonly List<string> _ignoreFiles = ["META-INF", "coord", "groups.lib"]; 
 
     public GfxData(string path, string id)
     {
@@ -13,7 +15,32 @@ public partial class GfxData : Node
 
     private void LoadData(string path, string id)
     {
-        var archivePath = $"{path}/gfx/{id}.jar";
+        using var archive = ZipFile.OpenRead($"{path}/gfx/{id}.jar");
+
+        foreach (var entry in archive.Entries)
+        {
+            if (_ignoreFiles.Contains(entry.FullName))
+                continue;
+            
+            using var stream = entry.Open();
+            using var reader = new BinaryReader(stream);
+            
+            ReadBytes(reader);
+        }
+    }
+
+    private void ReadBytes(BinaryReader reader)
+    {
+        
+    }
+
+    public class Partition
+    {
+        
+    }
+
+    public class Element
+    {
         
     }
 }

@@ -1,7 +1,7 @@
 using Godot;
 using System;
 
-public partial class TopologyData : Node
+public class TopologyData
 {
 
     public TopologyData(string path, string id)
@@ -11,6 +11,12 @@ public partial class TopologyData : Node
 
     private void LoadData()
     {
+        
+    }
+
+    public class Partition
+    {
+
         
     }
 }

@@ -1,7 +1,7 @@
 using Godot;
 using System;
 
-public partial class FightData : Node
+public class FightData
 {
 
     public FightData(string path, string id)

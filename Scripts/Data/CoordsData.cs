@@ -1,7 +1,7 @@
 using Godot;
 using System;
 
-public partial class CoordsData : Node
+public class CoordsData
 {
 
     public CoordsData(string path, string id)

@@ -1,6 +1,6 @@
 using Godot;
 using System;
 
-public partial class AmbianceData : Node
+public class AmbianceData
 {
 }

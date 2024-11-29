@@ -1,7 +1,7 @@
 using Godot;
 using System;
 
-public partial class ElementData : Node
+public class ElementData
 {
 
     public ElementData(string path, int id)
