@@ -4,12 +4,12 @@ using System;
 public partial class TopologyData : Node
 {
 
-    public TopologyData(string path, int id)
+    public TopologyData(string path, string id)
     {
-        
+        LoadData();
     }
 
-    public void LoadData()
+    private void LoadData()
     {
         
     }

@@ -4,12 +4,12 @@ using System;
 public partial class LightData : Node
 {
 
-    public LightData(string path, int id)
+    public LightData(string path, string id)
     {
-        
+        LoadData();
     }
 
-    public void LoadData()
+    private void LoadData()
     {
         
     }

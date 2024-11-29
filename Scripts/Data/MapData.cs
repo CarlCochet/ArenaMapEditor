@@ -6,7 +6,7 @@ using System.IO.Compression;
 
 public partial class MapData : Node
 {
-    public int Id { get; set; }
+    public string Id { get; set; }
     public TopologyData Topology { get; set; }
     public LightData Light { get; set; }
     public GfxData Gfx { get; set; }
@@ -14,7 +14,7 @@ public partial class MapData : Node
     public EnvData Env { get; set; }
     public CoordsData Coords { get; set; }
     
-    public MapData(string path, int id)
+    public MapData(string path, string id)
     {
         Id = id;
         LoadData(path);
@@ -25,9 +25,9 @@ public partial class MapData : Node
         try
         {
             LoadPartitions(path);
-            LoadElements(path + "maps/data.jar");
-            LoadAmbiance(path + "maps.jar");
-            LoadPlaylists(path + "maps.jar");
+            // LoadElements(path + "maps/data.jar");
+            // LoadAmbiance(path + "maps.jar");
+            // LoadPlaylists(path + "maps.jar");
         }
         catch (Exception ex)
         {
@@ -37,7 +37,12 @@ public partial class MapData : Node
 
     private void LoadPartitions(string path)
     {
-        
+        Topology = new TopologyData(path, Id);
+        Light = new LightData(path, Id);
+        Gfx = new GfxData(path, Id);
+        Fight = new FightData(path, Id);
+        Env = new EnvData(path, Id);
+        Coords = new CoordsData(path, Id);
     }
 
     private void LoadElements(string path)

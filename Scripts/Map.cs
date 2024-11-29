@@ -18,6 +18,11 @@ public partial class Map : Node2D
         _camera.HasFocus = hasFocus;
     }
 
+    public void LoadMap(MapData mapData)
+    {
+        
+    }
+
     public void LoadMap(MapInfo mapInfo)
     {
         var children = _assetContainer.GetChildren();

@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 public partial class Tools : Control
 {
@@ -24,14 +25,18 @@ public partial class Tools : Control
 
 	public void SetMapOptions(List<string> mapNames)
 	{
-		for (var i = 0; i < mapNames.Count; i++)
+		var orderedNames = mapNames
+			.OrderBy(n => int.TryParse(n, out _))
+			.ThenBy(n => int.TryParse(n, out var num) ? num : int.MaxValue)
+			.ToList();
+		for (var i = 0; i < orderedNames.Count; i++)
 		{
-			_loadButton.AddItem(mapNames[i], i);
+			_loadButton.AddItem(orderedNames[i], i);
 		}
 
 		_loadButton.Selected = -1;
 	}
-
+	
 	private void _OnSelectPressed()
 	{
 		GlobalData.Instance.SelectedTool = Enums.Tool.Select;

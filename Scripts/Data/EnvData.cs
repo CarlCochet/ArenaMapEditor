@@ -4,12 +4,12 @@ using System;
 public partial class EnvData : Node
 {
 
-    public EnvData(string path, int id)
+    public EnvData(string path, string id)
     {
-        
+        LoadData();
     }
 
-    public void LoadData()
+    private void LoadData()
     {
         
     }

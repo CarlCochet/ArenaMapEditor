@@ -4,12 +4,12 @@ using System;
 public partial class CoordsData : Node
 {
 
-    public CoordsData(string path, int id)
+    public CoordsData(string path, string id)
     {
-        
+        LoadData();
     }
 
-    public void LoadData()
+    private void LoadData()
     {
         
     }

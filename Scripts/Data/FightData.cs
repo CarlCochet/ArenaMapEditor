@@ -4,12 +4,12 @@ using System;
 public partial class FightData : Node
 {
 
-    public FightData(string path, int id)
+    public FightData(string path, string id)
     {
-        
+        LoadData();
     }
 
-    public void LoadData()
+    private void LoadData()
     {
         
     }

@@ -5,15 +5,15 @@ public partial class Camera : Camera2D
 {
 	public bool HasFocus = true;
 	
-	private Vector2I _topLeft = new(-10000, -10000);
-	private Vector2I _bottomRight = new(10000, 10000);
+	private Vector2I _topLeft = new(-30000, -30000);
+	private Vector2I _bottomRight = new(30000, 30000);
 	
 	private float _zoom;
 	private bool _isDragging;
 	private Vector2 _dragStart = Vector2.Inf;
 	private Vector2 _dragEnd = Vector2.Inf;
 	
-	private float[] _zoomSteps = { 0.05f, 0.07f, 0.10f, 0.14f, 0.20f, 0.28f, 0.40f, 0.56f, 0.80f, 1.12f, 1.6f, 2.24f, 3.2f, 4.48f };
+	private float[] _zoomSteps = [0.05f, 0.07f, 0.10f, 0.14f, 0.20f, 0.28f, 0.40f, 0.56f, 0.80f, 1.12f, 1.6f, 2.24f, 3.2f, 4.48f];
 	private int _currentZoomIndex = 6;
 
 	public override void _Ready()
