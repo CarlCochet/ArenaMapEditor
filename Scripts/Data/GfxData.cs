@@ -17,13 +17,6 @@ public class GfxData
     {
         LoadData(path, id);
     }
-
-    public static (int x, int y) IsoToScreen(int isoX, int isoY, int isoAltitude)
-    {
-        var x = (isoX - isoY) * 43;
-        var y = (int)(-(isoY + isoX) * 21.5f) + isoAltitude * ElevationStep;
-        return (x, y);
-    }
     
     private void LoadData(string path, string id)
     {
@@ -134,12 +127,26 @@ public class GfxData
             LayerIndex = reader.ReadByte();
             GroupLayer = reader.ReadInt32();
             Occluder = reader.ReadBoolean();
+            
             var elementId = reader.ReadInt32();
             CommonData = new ElementProperties(elementId);
             (Left, Top) = IsoToScreen(CellX, CellY, CellZ - Height);
             Top += CommonData.OriginY;
 
+            ComputeHashCode();
             ReadColors(reader, Type);
+        }
+        
+        public (int x, int y) IsoToScreen(int isoX, int isoY, int isoAltitude)
+        {
+            var x = (isoX - isoY) * 43;
+            var y = (int)(-(isoY + isoX) * 21.5f) + isoAltitude * ElevationStep;
+            return (x, y);
+        }
+
+        private void ComputeHashCode()
+        {
+            HashCode = (CellY + 8192L & 0x3FFFL) << 34 | (CellX + 8192L & 0x3FFFL) << 19 | (AltitudeOrder & 0x1FFFL) << 6 | 0;
         }
 
         private float[] GetNewColors(int type)
