@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Text;
 
 public class MapData
 {
@@ -13,6 +14,7 @@ public class MapData
     public FightData Fight { get; set; }
     public EnvData Env { get; set; }
     public CoordsData Coords { get; set; }
+    public static Dictionary<int, ElementProperties> Elements { get; set; } 
     
     public MapData(string path, string id)
     {
@@ -24,8 +26,8 @@ public class MapData
     {
         try
         {
+            LoadElements(path + "maps/data.jar");
             LoadPartitions(path);
-            // LoadElements(path + "maps/data.jar");
             // LoadAmbiance(path + "maps.jar");
             // LoadPlaylists(path + "maps.jar");
         }
@@ -57,7 +59,14 @@ public class MapData
         }
         
         using var stream = entry.Open();
-        using var reader = new StreamReader(stream);
+        using var reader = new BinaryReader(stream);
+        
+        var elementCount = reader.ReadInt32();
+        for (var i = 0; i < elementCount; i++)
+        {
+            var elementProperties = new ElementProperties(reader);
+            Elements.TryAdd(elementProperties.Id, elementProperties);
+        }
     }
 
     private void LoadAmbiance(string path)
@@ -68,5 +77,50 @@ public class MapData
     private void LoadPlaylists(string path)
     {
         
+    }
+    
+    public class ElementProperties
+    {
+        public int Id { get; private set; }
+        public AnimationData AnimationData { get; set; }
+        public short OriginX { get; set; }
+        public short OriginY { get; set; }
+        public short ImgWidth { get; set; }
+        public short ImgHeight { get; set; }
+        public int GfxId { get; set; }
+        public byte VisualHeight { get; set; }
+        public byte VisibilityMask { get; set; }
+        public byte ExportMask { get; set; }
+        public byte Shader { get; set; }
+        public byte PropertiesFlag { get; set; }
+        public byte GroundSoundType { get; set; }
+        public byte Slope { get; set; }
+        public bool MoveTop { get; set; }
+        public bool Walkable { get; set; }
+        public bool Animated { get; set; }
+        public bool BeforeMobile { get; set; }
+        public bool Flip { get; set; }
+
+        public ElementProperties(BinaryReader reader)
+        {
+            Id = reader.ReadInt32();
+            OriginX = reader.ReadInt16();
+            OriginY = reader.ReadInt16();
+            ImgWidth = reader.ReadInt16();
+            ImgHeight = reader.ReadInt16();
+            GfxId = reader.ReadInt32();
+            
+            PropertiesFlag = reader.ReadByte();
+            
+            VisualHeight = reader.ReadByte();
+            VisibilityMask = reader.ReadByte();
+            ExportMask = reader.ReadByte();
+        }
+    }
+
+    public class AnimationData
+    {
+        public int Duration { get; set; }
+        public short[] Frames { get; set; }
     }
 }

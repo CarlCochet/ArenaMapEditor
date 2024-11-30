@@ -32,8 +32,6 @@ public partial class Editor : Node2D
 	{
 		_map.UpdateFocus(true);
 	}
-
-	
 	
 	private void _OnLocateArenaPressed(object sender, EventArgs eventArgs)
 	{

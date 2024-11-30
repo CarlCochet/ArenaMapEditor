@@ -10,7 +10,6 @@ public class GfxData
     public const int MapHeight = 576;
     public List<Partition> Partitions = [];
     
-    private readonly List<string> _ignoreFiles = ["META-INF", "coord", "groups.lib"];
     private const int ElevationStep = 10;
 
     public GfxData(string path, string id)
@@ -24,7 +23,7 @@ public class GfxData
 
         foreach (var entry in archive.Entries)
         {
-            if (_ignoreFiles.Contains(entry.FullName))
+            if (!entry.FullName.Contains('_'))
                 continue;
             
             var partition = new Partition(entry);
@@ -108,7 +107,7 @@ public class GfxData
         public bool Occluder { get; set; }
         public long HashCode { get; set; }
         public float[] Colors { get; set; }
-        public ElementProperties CommonData { get; set; }
+        public MapData.ElementProperties CommonData { get; set; }
 
         public Element(byte type, int x, int y)
         {
@@ -129,7 +128,7 @@ public class GfxData
             Occluder = reader.ReadBoolean();
             
             var elementId = reader.ReadInt32();
-            CommonData = new ElementProperties(elementId);
+            CommonData = MapData.Elements[elementId];
             (Left, Top) = IsoToScreen(CellX, CellY, CellZ - Height);
             Top += CommonData.OriginY;
 
@@ -204,37 +203,5 @@ public class GfxData
                 }
             }
         }
-    }
-
-    public class ElementProperties
-    {
-        public AnimationData AnimationData { get; set; }
-        public short OriginX { get; set; }
-        public short OriginY { get; set; }
-        public short ImgWidth { get; set; }
-        public short ImgHeight { get; set; }
-        public int GfxId { get; set; }
-        public byte VisualHeight { get; set; }
-        public byte VisibilityMask { get; set; }
-        public byte Shader { get; set; }
-        public byte PropertiesFlag { get; set; }
-        public byte GroundSoundType { get; set; }
-        public byte Slope { get; set; }
-        public bool MoveTop { get; set; }
-        public bool Walkable { get; set; }
-        public bool Animated { get; set; }
-        public bool BeforeMobile { get; set; }
-        public bool Flip { get; set; }
-
-        public ElementProperties(int elementId)
-        {
-            
-        }
-    }
-
-    public class AnimationData
-    {
-        public int Duration { get; set; }
-        public short[] Frames { get; set; }
     }
 }
