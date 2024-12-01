@@ -90,8 +90,7 @@ public class MapData
         public int GfxId { get; set; }
         public byte VisualHeight { get; set; }
         public byte VisibilityMask { get; set; }
-        public byte ExportMask { get; set; }
-        public byte Shader { get; set; }
+        public byte ShaderId { get; set; }
         public byte PropertiesFlag { get; set; }
         public byte GroundSoundType { get; set; }
         public byte Slope { get; set; }
@@ -114,7 +113,18 @@ public class MapData
             
             VisualHeight = reader.ReadByte();
             VisibilityMask = reader.ReadByte();
-            ExportMask = reader.ReadByte();
+            ShaderId = reader.ReadByte();
+            
+            Slope = (byte)(PropertiesFlag & 15);
+            Flip = (PropertiesFlag & 16) == 16;
+            MoveTop = (PropertiesFlag & 32) == 32;
+            BeforeMobile = (PropertiesFlag & 64) == 64;
+            Walkable = (PropertiesFlag & 128) == 128;
+            
+            
+            Animated = AnimationData != null;
+
+            GroundSoundType = reader.ReadByte();
         }
     }
 
