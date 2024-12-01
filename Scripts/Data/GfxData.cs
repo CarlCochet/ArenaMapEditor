@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 
 public class GfxData
 {
@@ -26,15 +27,29 @@ public class GfxData
             if (!entry.FullName.Contains('_'))
                 continue;
             
-            var partition = new Partition(entry);
+            var splitName = entry.FullName.Split('_');
+            if (!short.TryParse(splitName[0], out var x))
+                x = 0;
+            if (!short.TryParse(splitName[1], out var y))
+                y = 0;
+            
+            var partition = new Partition(entry, x, y);
             Partitions.Add(partition);
         }
+        Partitions = Partitions.OrderBy(p => p.X).ThenBy(p => p.Y).ToList();
     }
 
     public class Partition
     {
         public string Id { get; set; }
         public List<Element> Elements = [];
+
+        public short X;
+        public short Y;
+        private int _minX = int.MaxValue;
+        private int _minY = int.MaxValue;
+        private int _maxX = int.MinValue;
+        private int _maxY = int.MinValue;
         
         private int _coordMinX = int.MaxValue;
         private int _coordMinY = int.MaxValue;
@@ -43,9 +58,11 @@ public class GfxData
         private int _coordMaxY = int.MinValue;
         private short _coordMaxZ = short.MinValue;
 
-        public Partition(ZipArchiveEntry entry)
+        public Partition(ZipArchiveEntry entry, short x, short y)
         {
             Id = entry.FullName;
+            X = x;
+            Y = y;
             LoadData(entry);
         }
 
@@ -82,12 +99,27 @@ public class GfxData
                             var elementType = reader.ReadByte();
                             var element = new Element(elementType, x, y);
                             element.LoadData(reader);
-                            
                             Elements.Add(element);
+                            
+                            if (element.Left < _minX)
+                                _minX = element.Left;
+                            if (element.Left + element.CommonData.ImgWidth > _maxX)
+                                _maxX = element.Left + element.CommonData.ImgWidth;
+                            if (element.Top < _minY)
+                                _minY = element.Top;
+                            if (element.Top + element.CommonData.ImgHeight > _maxY)
+                                _maxY = element.Top + element.CommonData.ImgHeight;
                         }
                     }
                 }
             }
+            reader.Close();
+            Elements = Elements
+                .Select((e, i) => (Element: e, Index: i))
+                .OrderBy(x => x.Element.HashCode)
+                .ThenBy(x => x.Index)
+                .Select(x => x.Element)
+                .ToList();
         }
     }
 
@@ -107,7 +139,7 @@ public class GfxData
         public bool Occluder { get; set; }
         public long HashCode { get; set; }
         public float[] Colors { get; set; }
-        public MapData.ElementProperties CommonData { get; set; }
+        public ElementData CommonData { get; set; }
 
         public Element(byte type, int x, int y)
         {
@@ -145,7 +177,9 @@ public class GfxData
 
         private void ComputeHashCode()
         {
-            HashCode = (CellY + 8192L & 0x3FFFL) << 34 | (CellX + 8192L & 0x3FFFL) << 19 | (AltitudeOrder & 0x1FFFL) << 6 | 0;
+            HashCode = (CellY + 8192L & 0x3FFFL) << 34 | 
+                       (CellX + 8192L & 0x3FFFL) << 19 | 
+                       (AltitudeOrder & 0x1FFFL) << 6 | 0;
         }
 
         private float[] GetNewColors(int type)

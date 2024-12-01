@@ -14,7 +14,9 @@ public class MapData
     public FightData Fight { get; set; }
     public EnvData Env { get; set; }
     public CoordsData Coords { get; set; }
-    public static Dictionary<int, ElementProperties> Elements { get; set; } 
+    public static Dictionary<int, ElementData> Elements { get; set; } 
+    public static Dictionary<int, AmbianceData> Ambiances { get; set; }
+    public static Dictionary<int, PlaylistData> Playlists { get; set; }
     
     public MapData(string path, string id)
     {
@@ -64,73 +66,35 @@ public class MapData
         var elementCount = reader.ReadInt32();
         for (var i = 0; i < elementCount; i++)
         {
-            var elementProperties = new ElementProperties(reader);
+            var elementProperties = new ElementData(reader);
             Elements.TryAdd(elementProperties.Id, elementProperties);
         }
     }
 
     private void LoadAmbiance(string path)
     {
-        
+        using var archive = ZipFile.OpenRead(path);
+
+        foreach (var entry in archive.Entries)
+        {
+            if (!entry.FullName.StartsWith("maps/env"))
+                continue;
+            if (!entry.FullName.EndsWith("ambiences.lib"))
+                continue;
+            
+            using var stream = entry.Open();
+            using var reader = new BinaryReader(stream);
+
+            var ambiance = new AmbianceData(reader, entry.FullName);
+            if (ambiance.Id == -1)
+                continue;
+            
+            Ambiances.TryAdd(ambiance.Id, ambiance);
+        }
     }
 
     private void LoadPlaylists(string path)
     {
         
-    }
-    
-    public class ElementProperties
-    {
-        public int Id { get; private set; }
-        public AnimationData AnimationData { get; set; }
-        public short OriginX { get; set; }
-        public short OriginY { get; set; }
-        public short ImgWidth { get; set; }
-        public short ImgHeight { get; set; }
-        public int GfxId { get; set; }
-        public byte VisualHeight { get; set; }
-        public byte VisibilityMask { get; set; }
-        public byte ShaderId { get; set; }
-        public byte PropertiesFlag { get; set; }
-        public byte GroundSoundType { get; set; }
-        public byte Slope { get; set; }
-        public bool MoveTop { get; set; }
-        public bool Walkable { get; set; }
-        public bool Animated { get; set; }
-        public bool BeforeMobile { get; set; }
-        public bool Flip { get; set; }
-
-        public ElementProperties(BinaryReader reader)
-        {
-            Id = reader.ReadInt32();
-            OriginX = reader.ReadInt16();
-            OriginY = reader.ReadInt16();
-            ImgWidth = reader.ReadInt16();
-            ImgHeight = reader.ReadInt16();
-            GfxId = reader.ReadInt32();
-            
-            PropertiesFlag = reader.ReadByte();
-            
-            VisualHeight = reader.ReadByte();
-            VisibilityMask = reader.ReadByte();
-            ShaderId = reader.ReadByte();
-            
-            Slope = (byte)(PropertiesFlag & 15);
-            Flip = (PropertiesFlag & 16) == 16;
-            MoveTop = (PropertiesFlag & 32) == 32;
-            BeforeMobile = (PropertiesFlag & 64) == 64;
-            Walkable = (PropertiesFlag & 128) == 128;
-            
-            
-            Animated = AnimationData != null;
-
-            GroundSoundType = reader.ReadByte();
-        }
-    }
-
-    public class AnimationData
-    {
-        public int Duration { get; set; }
-        public short[] Frames { get; set; }
     }
 }
