@@ -15,7 +15,7 @@ public class MapData
     public EnvData Env { get; set; }
     public CoordsData Coords { get; set; }
     
-    public static Dictionary<int, AmbianceData> Ambiances { get; set; }
+    public static AmbianceData Ambiances { get; set; }
     public static Dictionary<int, PlaylistData> Playlists { get; set; }
     
     public MapData(string path, string id)
@@ -29,8 +29,8 @@ public class MapData
         try
         {
             LoadPartitions(path);
-            // LoadAmbiance(path + "maps.jar");
-            // LoadPlaylists(path + "maps.jar");
+            LoadAmbiance(path + "maps.jar");
+            LoadPlaylists(path + "maps.jar");
         }
         catch (Exception ex)
         {
@@ -48,31 +48,18 @@ public class MapData
         Coords = new CoordsData(path, Id);
     }
 
-    
-
     private void LoadAmbiance(string path)
     {
         using var archive = ZipFile.OpenRead(path);
-
-        foreach (var entry in archive.Entries)
-        {
-            if (!entry.FullName.StartsWith("maps/env"))
-                continue;
-            var lastName = entry.Name;
-            if (!entry.FullName.EndsWith("ambiences.lib"))
-                continue;
-            
-            
-            
-            using var stream = entry.Open();
-            using var reader = new BinaryReader(stream);
-
-            var ambiance = new AmbianceData(reader, entry.FullName);
-            if (ambiance.Id == -1)
-                continue;
-            
-            Ambiances.TryAdd(ambiance.Id, ambiance);
-        }
+        var entry = archive.GetEntry($"maps/env/{Id}/ambiences.lib");
+        
+        if (entry == null)
+            return;
+        
+        using var stream = entry.Open();
+        using var reader = new BinaryReader(stream);
+        
+        Ambiances = new AmbianceData(reader, entry.FullName);
     }
 
     private void LoadPlaylists(string path)
