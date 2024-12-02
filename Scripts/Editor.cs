@@ -72,6 +72,7 @@ public partial class Editor : Node2D
 		dirAccess.ListDirEnd();
 		
 		_tools.SetMapOptions(mapNames);
+		GlobalData.Instance.LoadElements($"{_path}/data.jar");
 	}
 	
 	private void _OnMapSelectedJson(object sender, Tools.MapSelectedEventArgs eventArgs)

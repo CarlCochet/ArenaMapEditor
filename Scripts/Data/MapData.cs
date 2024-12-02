@@ -14,7 +14,7 @@ public class MapData
     public FightData Fight { get; set; }
     public EnvData Env { get; set; }
     public CoordsData Coords { get; set; }
-    public static Dictionary<int, ElementData> Elements { get; set; } 
+    
     public static Dictionary<int, AmbianceData> Ambiances { get; set; }
     public static Dictionary<int, PlaylistData> Playlists { get; set; }
     
@@ -28,7 +28,6 @@ public class MapData
     {
         try
         {
-            LoadElements(path + "maps/data.jar");
             LoadPartitions(path);
             // LoadAmbiance(path + "maps.jar");
             // LoadPlaylists(path + "maps.jar");
@@ -49,27 +48,7 @@ public class MapData
         Coords = new CoordsData(path, Id);
     }
 
-    private void LoadElements(string path)
-    {
-        using var archive = ZipFile.OpenRead(path);
-        var entry = archive.GetEntry("elements.lib");
-
-        if (entry == null)
-        {
-            GD.PrintErr("Can't find elements.lib");
-            return;
-        }
-        
-        using var stream = entry.Open();
-        using var reader = new BinaryReader(stream);
-        
-        var elementCount = reader.ReadInt32();
-        for (var i = 0; i < elementCount; i++)
-        {
-            var elementProperties = new ElementData(reader);
-            Elements.TryAdd(elementProperties.Id, elementProperties);
-        }
-    }
+    
 
     private void LoadAmbiance(string path)
     {
@@ -79,8 +58,11 @@ public class MapData
         {
             if (!entry.FullName.StartsWith("maps/env"))
                 continue;
+            var lastName = entry.Name;
             if (!entry.FullName.EndsWith("ambiences.lib"))
                 continue;
+            
+            
             
             using var stream = entry.Open();
             using var reader = new BinaryReader(stream);

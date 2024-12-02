@@ -1,8 +1,11 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Text.Json;
 using System.Threading;
+using FileAccess = Godot.FileAccess;
 
 public class GlobalData
 {
@@ -16,6 +19,8 @@ public class GlobalData
     public List<int> SelectedTiles = [];
     public List<TileData> Assets { get; private set; } = [];
     public RandomNumberGenerator Rng { get; private set; } = new();
+    
+    public Dictionary<int, ElementData> Elements { get; set; } 
     
     private static GlobalData _instance;
     private static readonly Lock Lock = new();
@@ -42,6 +47,28 @@ public class GlobalData
         foreach (var asset in Assets)
         {
             asset.LoadTexture();
+        }
+    }
+    
+    public void LoadElements(string path)
+    {
+        using var archive = ZipFile.OpenRead(path);
+        var entry = archive.GetEntry("elements.lib");
+
+        if (entry == null)
+        {
+            GD.PrintErr("Can't find elements.lib");
+            return;
+        }
+        
+        using var stream = entry.Open();
+        using var reader = new BinaryReader(stream);
+        
+        var elementCount = reader.ReadInt32();
+        for (var i = 0; i < elementCount; i++)
+        {
+            var elementProperties = new ElementData(reader);
+            Elements.TryAdd(elementProperties.Id, elementProperties);
         }
     }
 }

@@ -160,7 +160,7 @@ public class GfxData
             Occluder = reader.ReadBoolean();
             
             var elementId = reader.ReadInt32();
-            CommonData = MapData.Elements[elementId];
+            CommonData = GlobalData.Instance.Elements[elementId];
             (Left, Top) = IsoToScreen(CellX, CellY, CellZ - Height);
             Top += CommonData.OriginY;
 
