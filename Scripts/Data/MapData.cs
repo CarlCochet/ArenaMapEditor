@@ -59,7 +59,8 @@ public class MapData
         using var stream = entry.Open();
         using var reader = new BinaryReader(stream);
         
-        Ambiances = new AmbianceData(reader, entry.FullName);
+        Ambiances = new AmbianceData(entry.FullName);
+        Ambiances.Load(reader);
     }
 
     private void LoadPlaylists(string path)

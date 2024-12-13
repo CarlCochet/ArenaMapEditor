@@ -65,9 +65,12 @@ public class GlobalData
         using var reader = new BinaryReader(stream);
         
         var elementCount = reader.ReadInt32();
+        Elements.EnsureCapacity(elementCount);
+        
         for (var i = 0; i < elementCount; i++)
         {
-            var elementProperties = new ElementData(reader);
+            var elementProperties = new ElementData();
+            elementProperties.Load(reader);
             Elements.TryAdd(elementProperties.Id, elementProperties);
         }
     }

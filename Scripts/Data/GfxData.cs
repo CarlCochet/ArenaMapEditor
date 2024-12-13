@@ -15,10 +15,10 @@ public class GfxData
 
     public GfxData(string path, string id)
     {
-        LoadData(path, id);
+        Load(path, id);
     }
     
-    private void LoadData(string path, string id)
+    public void Load(string path, string id)
     {
         using var archive = ZipFile.OpenRead($"{path}/gfx/{id}.jar");
 
@@ -37,6 +37,11 @@ public class GfxData
             Partitions.Add(partition);
         }
         Partitions = Partitions.OrderBy(p => p.X).ThenBy(p => p.Y).ToList();
+    }
+
+    public void Save(string path, string id)
+    {
+        
     }
 
     public class Partition
@@ -63,10 +68,10 @@ public class GfxData
             Id = entry.FullName;
             X = x;
             Y = y;
-            LoadData(entry);
+            Load(entry);
         }
 
-        private void LoadData(ZipArchiveEntry entry)
+        public void Load(ZipArchiveEntry entry)
         {
             using var stream = entry.Open();
             using var reader = new BinaryReader(stream);
@@ -98,7 +103,7 @@ public class GfxData
                         {
                             var elementType = reader.ReadByte();
                             var element = new Element(elementType, x, y);
-                            element.LoadData(reader);
+                            element.Load(reader);
                             Elements.Add(element);
                             
                             if (element.Left < _minX)
@@ -120,6 +125,11 @@ public class GfxData
                 .ThenBy(x => x.Index)
                 .Select(x => x.Element)
                 .ToList();
+        }
+
+        public void Save()
+        {
+            
         }
     }
 
@@ -149,7 +159,7 @@ public class GfxData
             Colors = GetNewColors(type);
         }
 
-        public void LoadData(BinaryReader reader)
+        public void Load(BinaryReader reader)
         {
             CellZ = reader.ReadInt16();
             Height = reader.ReadByte();
@@ -166,6 +176,11 @@ public class GfxData
 
             ComputeHashCode();
             ReadColors(reader, Type);
+        }
+        
+        public void Save()
+        {
+            
         }
         
         public (int x, int y) IsoToScreen(int isoX, int isoY, int isoAltitude)

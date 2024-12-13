@@ -23,7 +23,7 @@ public class ElementData
     public bool BeforeMobile { get; set; }
     public bool Flip { get; set; }
 
-    public ElementData(BinaryReader reader)
+    public void Load(BinaryReader reader)
     {
         Id = reader.ReadInt32();
         OriginX = reader.ReadInt16();
@@ -44,13 +44,14 @@ public class ElementData
         BeforeMobile = (PropertiesFlag & 64) == 64;
         Walkable = (PropertiesFlag & 128) == 128;
 
-        AnimData = new AnimationData(reader, Flip, false); 
+        AnimData = new AnimationData(Flip, false); 
+        AnimData.Load(reader);
         Animated = AnimData != null;
 
         GroundSoundType = reader.ReadByte();
     }
     
-    public class AnimationData
+    public class AnimationData(bool flip, bool export)
     {
         public int Duration { get; set; }
         public short[] AnimationTimes { get; set; }
@@ -60,7 +61,10 @@ public class ElementData
         public short ImageWidthTotal { get; set; }
         public short ImageHeightTotal { get; set; }
 
-        public AnimationData(BinaryReader reader, bool flip, bool export)
+        private bool _flip = flip;
+        private bool _export = export;
+
+        public void Load(BinaryReader reader)
         {
             var animCount = reader.ReadByte() & 0xFF;
             if (animCount == 0)
@@ -85,6 +89,11 @@ public class ElementData
             {
                 TextureOffsets[i] = reader.ReadInt16();
             }
+        }
+
+        public void Save(BinaryWriter writer)
+        {
+            
         }
     }
 }
