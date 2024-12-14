@@ -21,6 +21,7 @@ public class GlobalData
     public RandomNumberGenerator Rng { get; private set; } = new();
     
     public Dictionary<int, ElementData> Elements { get; set; } 
+    public Dictionary<int, PlaylistData> Playlists { get; set; }
     
     private static GlobalData _instance;
     private static readonly Lock Lock = new();
@@ -73,5 +74,22 @@ public class GlobalData
             elementProperties.Load(reader);
             Elements.TryAdd(elementProperties.Id, elementProperties);
         }
+    }
+
+    public void LoadPlaylists(string path)
+    {
+        using var archive = ZipFile.OpenRead(path);
+        var entry = archive.GetEntry("maps/env/playlists.dat");
+        
+        if (entry == null)
+        {
+            GD.PrintErr("Can't find playlists.dat");
+            return;
+        }
+        
+        using var stream = entry.Open();
+        using var reader = new BinaryReader(stream);
+        
+        
     }
 }

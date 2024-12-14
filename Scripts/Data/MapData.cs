@@ -14,9 +14,7 @@ public class MapData
     public FightData Fight { get; set; }
     public EnvData Env { get; set; }
     public CoordsData Coords { get; set; }
-    
-    public static AmbianceData Ambiances { get; set; }
-    public static Dictionary<int, PlaylistData> Playlists { get; set; }
+    public AmbianceData Ambiances { get; set; }
     
     public MapData(string path, string id)
     {
@@ -30,7 +28,6 @@ public class MapData
         {
             LoadPartitions(path);
             LoadAmbiance(path + "maps.jar");
-            LoadPlaylists(path + "maps.jar");
         }
         catch (Exception ex)
         {
@@ -61,10 +58,5 @@ public class MapData
         
         Ambiances = new AmbianceData(entry.FullName);
         Ambiances.Load(reader);
-    }
-
-    private void LoadPlaylists(string path)
-    {
-        
     }
 }
