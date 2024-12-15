@@ -21,7 +21,7 @@ public class GlobalData
     public RandomNumberGenerator Rng { get; private set; } = new();
     
     public Dictionary<int, ElementData> Elements { get; set; } 
-    public Dictionary<int, PlaylistData> Playlists { get; set; }
+    public Dictionary<short, PlaylistData> Playlists { get; set; }
     
     private static GlobalData _instance;
     private static readonly Lock Lock = new();
@@ -89,7 +89,15 @@ public class GlobalData
         
         using var stream = entry.Open();
         using var reader = new BinaryReader(stream);
-        
-        
+
+        var playlistCount = reader.ReadInt16();
+        Playlists.EnsureCapacity(playlistCount);
+
+        for (var i = 0; i < playlistCount; i++)
+        {
+            var playlistData = new PlaylistData();
+            playlistData.Load(reader);
+            Playlists.TryAdd(playlistData.Id, playlistData);
+        }
     }
 }
