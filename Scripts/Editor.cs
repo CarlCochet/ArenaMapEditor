@@ -12,7 +12,8 @@ public partial class Editor : Node2D
 	[Export] private Overlay _overlay;
 	[Export] private FileDialog _fileDialog;
 
-	private string _path;
+	private string _mapPath;
+	private string _contentPath;
 	
 	public override void _Ready()
 	{
@@ -40,7 +41,7 @@ public partial class Editor : Node2D
 	
 	private void _OnMapSelected(object sender, Tools.MapSelectedEventArgs eventArgs)
 	{
-		var mapData = new MapData(_path, eventArgs.MapName);
+		var mapData = new MapData(_mapPath, eventArgs.MapName);
 		_map.LoadMap(mapData);
 	}
 
@@ -52,8 +53,9 @@ public partial class Editor : Node2D
 			return;
 		}
 		
-		_path = $"{dir}/game/contents/maps";
-		using var dirAccess = DirAccess.Open($"{_path}/gfx");
+		_mapPath = $"{dir}/game/contents/maps";
+		_contentPath = $"{dir}/game/contents";
+		using var dirAccess = DirAccess.Open($"{_mapPath}/gfx");
 		if (dirAccess == null)
 			return;
 		
@@ -72,12 +74,13 @@ public partial class Editor : Node2D
 		dirAccess.ListDirEnd();
 		
 		_tools.SetMapOptions(mapNames);
-		GlobalData.Instance.LoadElements($"{_path}/data.jar");
+		GlobalData.Instance.LoadElements($"{_mapPath}/data.jar");
+		GlobalData.Instance.LoadPlaylists($"{_contentPath}/maps.jar");
 	}
 	
 	private void _OnMapSelectedJson(object sender, Tools.MapSelectedEventArgs eventArgs)
 	{
-		using var file = FileAccess.Open($"{_path}/{eventArgs.MapName}.json", FileAccess.ModeFlags.Read);
+		using var file = FileAccess.Open($"{_mapPath}/{eventArgs.MapName}.json", FileAccess.ModeFlags.Read);
 		var text = file.GetAsText();
 		var mapInfo = JsonSerializer.Deserialize<MapInfo>(text);
 		_map.LoadMap(mapInfo);
@@ -85,8 +88,8 @@ public partial class Editor : Node2D
 
 	private void _OnDirectorySelectedJson(string dir)
 	{
-		_path = dir;
-		using var dirAccess = DirAccess.Open(_path);
+		_mapPath = dir;
+		using var dirAccess = DirAccess.Open(_mapPath);
 		if (dirAccess == null)
 			return;
 		
