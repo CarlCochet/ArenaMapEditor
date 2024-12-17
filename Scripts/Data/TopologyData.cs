@@ -95,6 +95,11 @@ public class TopologyData
             Z = reader.ReadInt16();
         }
 
+        public virtual void Save(BinaryWriter writer)
+        {
+            
+        }
+
         public bool IsInMap(int x, int y)
         {
             return x >= X && x < X + ChunkSize && y >= Y && y < Y + ChunkSize;
@@ -131,6 +136,11 @@ public class TopologyData
         {
             base.Load(reader);
             Cost = reader.ReadByte();
+        }
+
+        public override void Save(BinaryWriter writer)
+        {
+            
         }
 
         public override int GetPathData(int x, int y, CellPathData[] cellPathData, int index)
@@ -194,6 +204,11 @@ public class TopologyData
                 Cells[i] = reader.ReadByte();
             }
         }
+        
+        public override void Save(BinaryWriter writer)
+        {
+            
+        }
 
         public override int GetPathData(int x, int y, CellPathData[] cellPathData, int index)
         {
@@ -209,7 +224,9 @@ public class TopologyData
             var xDiff = x - X;
             var yDiff = y - Y;
             var index2 = yDiff * ChunkSize + xDiff;
-            var cell = (byte)((index2 & 1) != 0 ? Cells[index2 >>> 1] & 255 & 15 : (Cells[index2 >>> 1] & 255) >>> 4 & 15 );
+            var cell = (byte)((index2 & 1) != 0 ?
+                Cells[index2 >>> 1] & 255 & 15 :
+                (Cells[index2 >>> 1] & 255) >>> 4 & 15);
             
             pathData.Cost = Costs[cell & 1];
 
@@ -235,7 +252,9 @@ public class TopologyData
             var xDiff = x - X;
             var yDiff = y - Y;
             var index2 = yDiff * ChunkSize + xDiff;
-            var cell = (byte)((index2 & 1) != 0 ? Cells[index2 >>> 1] & 255 & 15 : (Cells[index2 >>> 1] & 255) >>> 4 & 15 );
+            var cell = (byte)((index2 & 1) != 0 ?
+                Cells[index2 >>> 1] & 255 & 15 :
+                (Cells[index2 >>> 1] & 255) >>> 4 & 15);
             
             visibilityData.Z = Properties[cell >>> 1];
             return 1;
@@ -272,6 +291,11 @@ public class TopologyData
             {
                 MurFins[i] = reader.ReadByte();
             }
+        }
+        
+        public override void Save(BinaryWriter writer)
+        {
+            
         }
 
         public override int GetPathData(int x, int y, CellPathData[] cellPathData, int index)
@@ -341,6 +365,11 @@ public class TopologyData
                 Cells[i] = reader.ReadByte();
             }
         }
+        
+        public override void Save(BinaryWriter writer)
+        {
+            
+        }
 
         public override int GetPathData(int x, int y, CellPathData[] cellPathData, int index)
         {
@@ -359,8 +388,8 @@ public class TopologyData
             var cell = Cells[index2];
             
             pathData.Cost = (byte)((cell & CostMask) >>> CostPosition);
-            var zModifier = (cell & ZMask) >>> ZPosition;
-            pathData.Z = (short)(zModifier != 0 ? Z - ZShift + zModifier : ZMin);
+            var zOffset = (cell & ZMask) >>> ZPosition;
+            pathData.Z = (short)(zOffset != 0 ? Z - ZShift + zOffset : ZMin);
             pathData.MurFinInfo = 0;
             return 1;
         }
@@ -427,6 +456,11 @@ public class TopologyData
             }
         }
         
+        public override void Save(BinaryWriter writer)
+        {
+            
+        }
+        
         public override int GetPathData(int x, int y, CellPathData[] cellPathData, int index)
         {
             if (!CheckPathData(x, y, cellPathData))
@@ -441,13 +475,13 @@ public class TopologyData
             {
                 var cell = Cells[index2 + index3];
                 var pathData = cellPathData[index + index3];
+                var zOffset = (cell & ZMask) >>> ZPosition;
+                
                 pathData.X = x;
                 pathData.Y = y;
-                var zModifier = (cell & ZMask) >>> ZPosition;
-                pathData.Z = (short)(zModifier != 0 ? Z - ZShift + zModifier : ZMin);
+                pathData.Z = (short)(zOffset != 0 ? Z - ZShift + zOffset : ZMin);
                 pathData.Cost = (byte)((cell & CostMask) >>> CostPosition);
-                if (pathData.Cost == 15)
-                    pathData.Cost = unchecked((byte)-1);
+                pathData.Cost = pathData.Cost == 15 ? unchecked((byte)-1) : pathData.Cost;
                 pathData.IsHollow = (cell & MoveMask) >>> MovePosition != 0;
                 pathData.Height = Heights[(cell & HeightMask) >>> HeightPosition];
                 pathData.MurFinInfo = 0;
@@ -470,6 +504,7 @@ public class TopologyData
             {
                 var cell = Cells[index2 + index3];
                 var pathData = cellVisibilityData[index + index3];
+                
                 pathData.X = x;
                 pathData.Y = y;
                 pathData.Z = (short)(Z - ZShift + ((cell & ZMask) >>> ZPosition));
@@ -569,6 +604,7 @@ public class TopologyData
         private const int YPosition = 5;
         private const int XPosition = 0;
         private const short ZShift = 512;
+        private const short ZMin = -32768;
         
         public int[] Cells { get; set; }
         public byte[] MoveAndVisibilities { get; set; }
@@ -599,14 +635,128 @@ public class TopologyData
             }
         }
         
+        public override void Save(BinaryWriter writer)
+        {
+            
+        }
+        
         public override int GetPathData(int x, int y, CellPathData[] cellPathData, int index)
         {
-            throw new NotImplementedException();
+            var index1 = 1;
+            var index2 = 0;
+            var index3 = Cells.Length - 1;
+            
+            while (index3 != index2)
+            {
+                (index1, index2, index3, var index4) = ComputeIndices1(x, y, index1, index2, index3);
+
+                if (index4 == -1) 
+                    continue;
+                
+                (index1, index2) = ComputeIndices2(x, y, index1, index4);
+
+                for (var index5 = 0; index5 < index1; index5++)
+                {
+                    var murFinIndex = index2 + index5;
+                    var cell = Cells[index4];
+                    var pathData = cellPathData[index + index5];
+                    var zOffset = (cell & ZMask) >>> ZPosition;
+                    
+                    pathData.X = x;
+                    pathData.Y = y;
+                    pathData.Z = (short)(zOffset != 0 ? Z - ZShift + zOffset : ZMin);
+                    pathData.Height = (byte)((cell & HeightMask) >>> HeightPosition);
+                    pathData.Cost = (byte)((cell & CostMask) >>> CostPosition);
+                    pathData.Cost = pathData.Cost == 15 ? unchecked((byte)-1) : pathData.Cost;
+                    pathData.IsHollow = (murFinIndex & 1) == 0 ?
+                        (MoveAndVisibilities[murFinIndex >>> 1] >>> 4 & 1) != 0 :
+                        (MoveAndVisibilities[murFinIndex >>> 1] & 1) != 0;
+                    pathData.MurFinInfo = MurFinInfo[murFinIndex];
+                }
+            }
+            
+            return 0;
         }
 
         public override int GetVisibilityData(int x, int y, CellVisibilityData[] cellVisibilityData, int index)
         {
             throw new NotImplementedException();
+        }
+
+        private (int index1, int index2, int index3, int index4) ComputeIndices1(int x, int y, int index1, int index2, int index3)
+        {
+            var index4 = -1;
+            var xDiff = x - X;
+            var yDiff = y - Y;
+            
+            var cellIndex = index3 + index2 >>> 1;
+            int cell, xTemp, yTemp;
+
+            if (index2 + 1 == index3)
+            {
+                cell = Cells[index2];
+                yTemp = (cell & YMask) >>> YPosition;
+                xTemp = (cell & XMask) >>> XPosition;
+                index4 = xDiff == xTemp && yDiff == yTemp ? index2 : index3; 
+                return (index1, index2, index3, index4);
+            }
+                
+            cell = Cells[cellIndex];
+            yTemp = (cell & YMask) >>> YPosition;
+            xTemp = (cell & XMask) >>> XPosition;
+
+            if (yTemp > yDiff)
+            {
+                index3 = cellIndex;
+                return (index1, index2, index3, index4);
+            }
+            if (yTemp < yDiff)
+            {
+                index2 = cellIndex;
+                return (index1, index2, index3, index4);
+            }
+            if (xTemp > xDiff)
+            {
+                index3 = cellIndex;
+                return (index1, index2, index3, index4);
+            }
+            if (xTemp < xDiff)
+            {
+                index2 = cellIndex;
+                return (index1, index2, index3, index4);
+            }
+            index4 = cellIndex;
+            
+            return (index1, index2, index3, index4);
+        }
+
+        private (int index1, int index2) ComputeIndices2(int x, int y, int index1, int index4)
+        {
+            var xDiff = x - X;
+            var yDiff = y - Y;
+            int index2;
+            
+            for (index2 = index4; index2 - index1 >= 0; index1++)
+            {
+                var cell = Cells[index4 - index1];
+                var yTemp = (cell & YMask) >>> YPosition;
+                var xTemp = (cell & XMask) >>> XPosition;
+                    
+                if (xTemp != xDiff || yTemp != yDiff)
+                    break;
+            }
+
+            for (index2 = index2 + 1 - index1; index4 + 1 < Cells.Length; index1++)
+            {
+                var cell = Cells[++index4];
+                var yTemp = (cell & YMask) >>> YPosition;
+                var xTemp = (cell & XMask) >>> XPosition;
+                    
+                if (xTemp != xDiff || yTemp != yDiff)
+                    break;
+            }
+            
+            return (index1, index2);
         }
     }
 
