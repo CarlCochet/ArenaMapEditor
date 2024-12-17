@@ -10,6 +10,7 @@ public class TopologyData
 {
     public int Id { get; set; }
     public List<Partition> Partitions { get; set; } = [];
+    public Dictionary<long, Partition> PartitionsMap { get; set; } = new();
 
     public TopologyData(string path, string id)
     {
@@ -77,7 +78,6 @@ public class TopologyData
     public abstract class Partition(int id)
     {
         public int Id { get; set; } = id;
-
         public int X { get; set; }
         public int Y { get; set; }
         public short Z { get; set; }
@@ -503,13 +503,13 @@ public class TopologyData
             for (var index3 = 0; index3 < index1; index3++)
             {
                 var cell = Cells[index2 + index3];
-                var pathData = cellVisibilityData[index + index3];
+                var visibilityData = cellVisibilityData[index + index3];
                 
-                pathData.X = x;
-                pathData.Y = y;
-                pathData.Z = (short)(Z - ZShift + ((cell & ZMask) >>> ZPosition));
-                pathData.Height = Heights[(cell & HeightMask) >>> HeightPosition];
-                pathData.IsHollow = (cell & ViewMask) >>> ViewPosition != 0;
+                visibilityData.X = x;
+                visibilityData.Y = y;
+                visibilityData.Z = (short)(Z - ZShift + ((cell & ZMask) >>> ZPosition));
+                visibilityData.Height = Heights[(cell & HeightMask) >>> HeightPosition];
+                visibilityData.IsHollow = (cell & ViewMask) >>> ViewPosition != 0;
             }
             
             return index1;
@@ -657,7 +657,7 @@ public class TopologyData
 
                 for (var index5 = 0; index5 < index1; index5++)
                 {
-                    var murFinIndex = index2 + index5;
+                    index4 = index2 + index5;
                     var cell = Cells[index4];
                     var pathData = cellPathData[index + index5];
                     var zOffset = (cell & ZMask) >>> ZPosition;
@@ -668,19 +668,50 @@ public class TopologyData
                     pathData.Height = (byte)((cell & HeightMask) >>> HeightPosition);
                     pathData.Cost = (byte)((cell & CostMask) >>> CostPosition);
                     pathData.Cost = pathData.Cost == 15 ? unchecked((byte)-1) : pathData.Cost;
-                    pathData.IsHollow = (murFinIndex & 1) == 0 ?
-                        (MoveAndVisibilities[murFinIndex >>> 1] >>> 4 & 1) != 0 :
-                        (MoveAndVisibilities[murFinIndex >>> 1] & 1) != 0;
-                    pathData.MurFinInfo = MurFinInfo[murFinIndex];
+                    pathData.IsHollow = (index4 & 1) == 0 ?
+                        (MoveAndVisibilities[index4 >>> 1] >>> 4 & 1) != 0 :
+                        (MoveAndVisibilities[index4 >>> 1] & 1) != 0;
+                    pathData.MurFinInfo = MurFinInfo[index4];
                 }
+
+                return index1;
             }
-            
             return 0;
         }
 
         public override int GetVisibilityData(int x, int y, CellVisibilityData[] cellVisibilityData, int index)
         {
-            throw new NotImplementedException();
+            var index1 = 1;
+            var index2 = 0;
+            var index3 = Cells.Length - 1;
+            
+            while (index3 != index2)
+            {
+                (index1, index2, index3, var index4) = ComputeIndices1(x, y, index1, index2, index3);
+
+                if (index4 == -1) 
+                    continue;
+                
+                (index1, index2) = ComputeIndices2(x, y, index1, index4);
+
+                for (var index5 = 0; index5 < index1; index5++)
+                {
+                    index4 = index2 + index5;
+                    var cell = Cells[index4];
+                    var visibilityData = cellVisibilityData[index + index5];
+
+                    visibilityData.X = x;
+                    visibilityData.Y = y;
+                    visibilityData.Z = (short)(Z - ZShift + (cell & ZMask) >>> ZPosition);
+                    visibilityData.Height = (byte)((cell & HeightMask) >>> HeightPosition);
+                    visibilityData.IsHollow = (index4 & 1) == 0 ?
+                        (MoveAndVisibilities[index4 >>> 1] >>> 4 & 2) != 0 :
+                        (MoveAndVisibilities[index4 >>> 1] & 2) != 0;
+                }
+
+                return index1;
+            }
+            return 0;
         }
 
         private (int index1, int index2, int index3, int index4) ComputeIndices1(int x, int y, int index1, int index2, int index3)

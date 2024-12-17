@@ -9,6 +9,7 @@ public class LightData
 {
     public int Id { get; set; }
     public List<Partition> Partitions { get; set; } = [];
+    public Dictionary<long, Partition> PartitionsMap { get; set; } = new();
 
     public LightData(string path, string id)
     {
@@ -35,6 +36,8 @@ public class LightData
             
             using var stream = entry.Open();
             using var reader = new BinaryReader(stream);
+            
+            var envVersion = reader.ReadByte();
 
             var partition = new Partition(Id);
             partition.Load(reader);
@@ -51,11 +54,10 @@ public class LightData
     public class Partition(int id)
     {
         public int Id { get; set; } = id;
-
         public int X { get; set; }
         public int Y { get; set; }
-        public List<CellLightDef> CellLights { get; set; } = [];
-        public Dictionary<long, CellLightDef> CellLightsById { get; set; } = new();
+        public List<CellLight> CellLights { get; set; } = [];
+        public Dictionary<long, CellLight> CellLightsById { get; set; } = new();
         
         private const int ChunkSize = 18;
 
@@ -74,15 +76,20 @@ public class LightData
                 var ambiance = reader.ReadInt32();
                 var shadows = reader.ReadInt32();
                 var lights = reader.ReadInt32();
-                var cellLight = new CellLightDef(ambiance, shadows, lights, allowOutdoorLighting);
+                var cellLight = new CellLight(ambiance, shadows, lights, allowOutdoorLighting);
                 CellLights.Add(cellLight);
                 CellLightsById.Add(id, cellLight);
             }
             CellLightsById.TrimExcess();
         }
+
+        public void Save(BinaryWriter writer)
+        {
+            
+        }
     }
 
-    public class CellLightDef
+    public class CellLight
     {
         private const int DefaultFactor = 128;
         public float AmbianceLightR { get; set; }
@@ -99,7 +106,7 @@ public class LightData
         public float[] Merged { get; set; } = [0.0f, 0.0f, 0.0f];
         public float[] NightLight { get; set; }
 
-        public CellLightDef(int ambianceLight, int shadows, int lights, bool allowOutdoorLighting)
+        public CellLight(int ambianceLight, int shadows, int lights, bool allowOutdoorLighting)
         {
             AmbianceLightR = GetRedFromInt(ambianceLight);
             AmbianceLightG = GetGreenFromInt(ambianceLight);

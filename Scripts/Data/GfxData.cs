@@ -10,6 +10,7 @@ public class GfxData
     public const int MapWidth = 1024;
     public const int MapHeight = 576;
     public List<Partition> Partitions = [];
+    public Dictionary<long, Partition> PartitionsMap = new();
     
     private const int ElevationStep = 10;
 
