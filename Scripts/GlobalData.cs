@@ -19,9 +19,9 @@ public class GlobalData
     public List<int> SelectedTiles = [];
     public List<TileData> Assets { get; private set; } = [];
     public RandomNumberGenerator Rng { get; private set; } = new();
-    
-    public Dictionary<int, ElementData> Elements { get; set; } 
-    public Dictionary<short, PlaylistData> Playlists { get; set; }
+
+    public Dictionary<int, ElementData> Elements { get; set; } = new();
+    public Dictionary<short, PlaylistData> Playlists { get; set; } = new();
     
     private static GlobalData _instance;
     private static readonly Lock Lock = new();

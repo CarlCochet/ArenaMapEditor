@@ -24,7 +24,18 @@ public class MapData
     {
         try
         {
-            LoadPartitions(path);
+            Topology = new TopologyData(Id);
+            Light = new LightData(Id);
+            Gfx = new GfxData(Id);
+            Fight = new FightData(Id);
+            Env = new EnvData(Id);
+            
+            Topology.Load(path);
+            Light.Load(path);
+            Gfx.Load(path);
+            Fight.Load(path);
+            Env.Load(path);
+            
             LoadAmbiance(path + "maps.jar");
         }
         catch (Exception ex)
@@ -36,21 +47,6 @@ public class MapData
     public void Save(string path)
     {
         
-    }
-
-    private void LoadPartitions(string path)
-    {
-        Topology = new TopologyData(Id);
-        Light = new LightData(Id);
-        Gfx = new GfxData(Id);
-        Fight = new FightData(Id);
-        Env = new EnvData(Id);
-        
-        Topology.Load(path);
-        Light.Load(path);
-        Gfx.Load(path);
-        Fight.Load(path);
-        Env.Load(path);
     }
 
     private void LoadAmbiance(string path)
@@ -66,5 +62,15 @@ public class MapData
         
         Ambiances = new AmbianceData(entry.FullName);
         Ambiances.Load(reader);
+    }
+
+    private void SavePartitions(string path)
+    {
+        
+    }
+
+    private void SaveAmbiance(string path)
+    {
+        
     }
 }
