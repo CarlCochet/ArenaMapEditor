@@ -7,21 +7,24 @@ using System.Linq;
 
 public class GfxData
 {
+    public int Id { get; set; }
     public const int MapWidth = 1024;
     public const int MapHeight = 576;
-    public List<Partition> Partitions = [];
-    public Dictionary<long, Partition> PartitionsMap = new();
+    public List<Partition> Partitions { get; set; } = [];
+    public Dictionary<long, Partition> PartitionsMap { get; set; } = new();
     
     private const int ElevationStep = 10;
 
-    public GfxData(string path, string id)
+    public GfxData(string id)
     {
-        Load(path, id);
+        if (!int.TryParse(id, out var worldId))
+            return;
+        Id = worldId;
     }
     
-    public void Load(string path, string id)
+    public void Load(string path)
     {
-        using var archive = ZipFile.OpenRead($"{path}/gfx/{id}.jar");
+        using var archive = ZipFile.OpenRead($"{path}/gfx/{Id}.jar");
 
         foreach (var entry in archive.Entries)
         {

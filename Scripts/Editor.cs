@@ -41,7 +41,8 @@ public partial class Editor : Node2D
 	
 	private void _OnMapSelected(object sender, Tools.MapSelectedEventArgs eventArgs)
 	{
-		var mapData = new MapData(_mapPath, eventArgs.MapName);
+		var mapData = new MapData(eventArgs.MapName);
+		mapData.Load(_mapPath);
 		_map.LoadMap(mapData);
 	}
 

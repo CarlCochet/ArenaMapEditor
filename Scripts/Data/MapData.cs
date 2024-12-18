@@ -13,16 +13,14 @@ public class MapData
     public GfxData Gfx { get; set; }
     public FightData Fight { get; set; }
     public EnvData Env { get; set; }
-    public CoordsData Coords { get; set; }
     public AmbianceData Ambiances { get; set; }
     
-    public MapData(string path, string id)
+    public MapData(string id)
     {
         Id = id;
-        LoadData(path);
     }
 
-    private void LoadData(string path)
+    public void Load(string path)
     {
         try
         {
@@ -35,14 +33,24 @@ public class MapData
         }
     }
 
+    public void Save(string path)
+    {
+        
+    }
+
     private void LoadPartitions(string path)
     {
-        Topology = new TopologyData(path, Id);
-        Light = new LightData(path, Id);
-        Gfx = new GfxData(path, Id);
-        Fight = new FightData(path, Id);
-        Env = new EnvData(path, Id);
-        Coords = new CoordsData(path, Id);
+        Topology = new TopologyData(Id);
+        Light = new LightData(Id);
+        Gfx = new GfxData(Id);
+        Fight = new FightData(Id);
+        Env = new EnvData(Id);
+        
+        Topology.Load(path);
+        Light.Load(path);
+        Gfx.Load(path);
+        Fight.Load(path);
+        Env.Load(path);
     }
 
     private void LoadAmbiance(string path)

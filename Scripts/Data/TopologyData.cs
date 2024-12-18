@@ -12,17 +12,16 @@ public class TopologyData
     public List<Partition> Partitions { get; set; } = [];
     public Dictionary<long, Partition> PartitionsMap { get; set; } = new();
 
-    public TopologyData(string path, string id)
+    public TopologyData(string id)
     {
-        Load(path, id);
-    }
-
-    public void Load(string path, string id)
-    {
-        using var archive = ZipFile.OpenRead($"{path}/tplg/{id}.jar");
         if (!int.TryParse(id, out var worldId))
             return;
         Id = worldId;
+    }
+
+    public void Load(string path)
+    {
+        using var archive = ZipFile.OpenRead($"{path}/tplg/{Id}.jar");
         
         foreach (var entry in archive.Entries)
         {

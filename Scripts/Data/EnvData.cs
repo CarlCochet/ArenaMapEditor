@@ -11,17 +11,16 @@ public class EnvData
     public List<Partition> Partitions { get; set; } = [];
     public Dictionary<long, Partition> PartitionsMap { get; set; } = new();
 
-    public EnvData(string path, string id)
+    public EnvData(string id)
     {
-        Load(path, id);
-    }
-
-    private void Load(string path, string id)
-    {
-        using var archive = ZipFile.OpenRead($"{path}/env/{id}.jar");
         if (!int.TryParse(id, out var worldId))
             return;
         Id = worldId;
+    }
+
+    public void Load(string path)
+    {
+        using var archive = ZipFile.OpenRead($"{path}/env/{Id}.jar");
         
         foreach (var entry in archive.Entries)
         {

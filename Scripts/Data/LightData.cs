@@ -11,17 +11,16 @@ public class LightData
     public List<Partition> Partitions { get; set; } = [];
     public Dictionary<long, Partition> PartitionsMap { get; set; } = new();
 
-    public LightData(string path, string id)
+    public LightData(string id)
     {
-        Load(path, id);
-    }
-
-    public void Load(string path, string id)
-    {
-        using var archive = ZipFile.OpenRead($"{path}/light/{id}.jar");
         if (!int.TryParse(id, out var worldId))
             return;
         Id = worldId;
+    }
+
+    public void Load(string path)
+    {
+        using var archive = ZipFile.OpenRead($"{path}/light/{Id}.jar");
         
         foreach (var entry in archive.Entries)
         {

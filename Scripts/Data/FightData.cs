@@ -11,13 +11,11 @@ public class FightData
     public List<int>[] StartPoints = new List<int>[2];
     public Dictionary<int, int> Bonus = new();
 
-    public FightData(string path, string id)
+    public FightData(string id)
     {
         if (!int.TryParse(id, out var worldId))
             return;
         Id = worldId;
-        
-        Load(path);
     }
 
     public int GetCoord(int x, int y, int z)
@@ -32,7 +30,7 @@ public class FightData
         return ((coord >>> 20 & 4095) - 2047, (coord >>> 8 & 4095) - 2047, (short)((coord & 0xFF) - 127)); 
     }
 
-    private void Load(string path)
+    public void Load(string path)
     {
         using var archive = ZipFile.OpenRead($"{path}/fight/{Id}.jar");
         var entry = archive.GetEntry($"{Id}.fmd");
