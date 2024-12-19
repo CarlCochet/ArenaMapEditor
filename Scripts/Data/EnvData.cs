@@ -243,7 +243,7 @@ public class EnvData
             Id = reader.ReadInt64();
             Type = reader.ReadInt16();
 
-            var viewCount = reader.ReadInt16() & 255;
+            var viewCount = reader.ReadByte() & 255;
             Views = new int[viewCount];
             for (var i = 0; i < viewCount; i++)
             {

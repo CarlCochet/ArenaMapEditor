@@ -69,7 +69,7 @@ public class FightData
         {
             var position = reader.ReadInt32();
             var type = reader.ReadInt32();
-            Bonus.Add(position, type);
+            Bonus.TryAdd(position, type);
         }
     }
 }

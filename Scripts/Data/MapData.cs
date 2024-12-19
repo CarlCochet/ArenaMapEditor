@@ -25,17 +25,55 @@ public class MapData
         try
         {
             Topology = new TopologyData(Id);
-            Light = new LightData(Id);
-            Gfx = new GfxData(Id);
-            Fight = new FightData(Id);
-            Env = new EnvData(Id);
-            
             Topology.Load($"{path}/maps/tplg");
+        }
+        catch (Exception e)
+        {
+            GD.PrintErr(e.Message);
+        }
+        
+        try
+        {
+            Light = new LightData(Id);
             Light.Load($"{path}/maps/light");
+        }
+        catch (Exception e)
+        {
+            GD.PrintErr(e.Message);
+        }
+        
+        try
+        {
+            Gfx = new GfxData(Id);
             Gfx.Load($"{path}/maps/gfx");
+        }
+        catch (Exception e)
+        {
+            GD.PrintErr(e.Message);
+        }
+        
+        try
+        {
+            Fight = new FightData(Id);
             Fight.Load($"{path}/maps/fight");
+        }
+        catch (Exception e)
+        {
+            GD.PrintErr(e.Message);
+        }
+        
+        try
+        {
+            Env = new EnvData(Id);
             Env.Load($"{path}/maps/env");
-            
+        }
+        catch (Exception ex)
+        {
+            GD.PrintErr(ex.Message);
+        }
+
+        try
+        {
             LoadAmbiance($"{path}/maps.jar");
         }
         catch (Exception ex)
