@@ -64,7 +64,7 @@ public class FightData
         StartPoints[0].Sort();
         StartPoints[1].Sort();
         
-        var bonusCount = reader.ReadInt16() & 255;
+        var bonusCount = reader.ReadByte() & 255;
         for (var i = 0; i < bonusCount; i++)
         {
             var position = reader.ReadInt32();

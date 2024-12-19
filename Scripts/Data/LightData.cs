@@ -36,8 +36,6 @@ public class LightData
             using var stream = entry.Open();
             using var reader = new BinaryReader(stream);
             
-            var envVersion = reader.ReadByte();
-
             var partition = new Partition(Id);
             partition.Load(reader);
             Partitions.Add(partition);

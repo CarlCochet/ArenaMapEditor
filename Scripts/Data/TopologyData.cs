@@ -89,8 +89,8 @@ public class TopologyData
 
         public virtual void Load(BinaryReader reader)
         {
-            X = reader.ReadInt32() * ChunkSize;
-            Y = reader.ReadInt32() * ChunkSize;
+            X = reader.ReadInt16() * ChunkSize;
+            Y = reader.ReadInt16() * ChunkSize;
             Z = reader.ReadInt16();
         }
 
