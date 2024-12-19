@@ -20,7 +20,7 @@ public class EnvData
 
     public void Load(string path)
     {
-        using var archive = ZipFile.OpenRead($"{path}/env/{Id}.jar");
+        using var archive = ZipFile.OpenRead($"{path}/{Id}.jar");
         
         foreach (var entry in archive.Entries)
         {
@@ -35,6 +35,8 @@ public class EnvData
             
             using var stream = entry.Open();
             using var reader = new BinaryReader(stream);
+
+            var version = reader.ReadByte();
 
             var partition = new Partition(Id);
             partition.Load(reader);

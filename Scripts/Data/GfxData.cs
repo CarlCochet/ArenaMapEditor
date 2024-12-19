@@ -24,7 +24,7 @@ public class GfxData
     
     public void Load(string path)
     {
-        using var archive = ZipFile.OpenRead($"{path}/gfx/{Id}.jar");
+        using var archive = ZipFile.OpenRead($"{path}/{Id}.jar");
 
         foreach (var entry in archive.Entries)
         {

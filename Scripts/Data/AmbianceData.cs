@@ -8,7 +8,7 @@ public class AmbianceData
 {
     public int Id { get; set; } = -1;
     public int AmbianceCount { get; set; }
-    public Dictionary<int, AmbianceProperties> Properties { get; set; }
+    public Dictionary<int, AmbianceProperties> Properties { get; set; } = new();
 
     public AmbianceData(string id)
     {

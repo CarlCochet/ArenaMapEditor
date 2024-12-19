@@ -42,7 +42,7 @@ public partial class Editor : Node2D
 	private void _OnMapSelected(object sender, Tools.MapSelectedEventArgs eventArgs)
 	{
 		var mapData = new MapData(eventArgs.MapName);
-		mapData.Load(_mapPath);
+		mapData.Load(_contentPath);
 		_map.LoadMap(mapData);
 	}
 
@@ -54,9 +54,8 @@ public partial class Editor : Node2D
 			return;
 		}
 		
-		_mapPath = $"{dir}/game/contents/maps";
 		_contentPath = $"{dir}/game/contents";
-		using var dirAccess = DirAccess.Open($"{_mapPath}/gfx");
+		using var dirAccess = DirAccess.Open($"{_contentPath}/maps/gfx");
 		if (dirAccess == null)
 			return;
 		
@@ -75,40 +74,8 @@ public partial class Editor : Node2D
 		dirAccess.ListDirEnd();
 		
 		_tools.SetMapOptions(mapNames);
-		GlobalData.Instance.LoadElements($"{_mapPath}/data.jar");
+		GlobalData.Instance.LoadElements($"{_contentPath}/maps/data.jar");
 		GlobalData.Instance.LoadPlaylists($"{_contentPath}/maps.jar");
-	}
-	
-	private void _OnMapSelectedJson(object sender, Tools.MapSelectedEventArgs eventArgs)
-	{
-		using var file = FileAccess.Open($"{_mapPath}/{eventArgs.MapName}.json", FileAccess.ModeFlags.Read);
-		var text = file.GetAsText();
-		var mapInfo = JsonSerializer.Deserialize<MapInfo>(text);
-		_map.LoadMap(mapInfo);
-	}
-
-	private void _OnDirectorySelectedJson(string dir)
-	{
-		_mapPath = dir;
-		using var dirAccess = DirAccess.Open(_mapPath);
-		if (dirAccess == null)
-			return;
-		
-		dirAccess.ListDirBegin();
-		var name = dirAccess.GetNext();
-		List<string> mapNames = [];
-		while (name != "")
-		{
-			if (dirAccess.CurrentIsDir())
-				continue;
-			if (!name.EndsWith(".json"))
-				continue;
-			mapNames.Add(name.Split(".")[0]);
-			name = dirAccess.GetNext();
-		}
-		dirAccess.ListDirEnd();
-		
-		_tools.SetMapOptions(mapNames);
 	}
 
 	private bool IsFolderArena(string path)

@@ -30,13 +30,13 @@ public class MapData
             Fight = new FightData(Id);
             Env = new EnvData(Id);
             
-            Topology.Load(path);
-            Light.Load(path);
-            Gfx.Load(path);
-            Fight.Load(path);
-            Env.Load(path);
+            Topology.Load($"{path}/maps/tplg");
+            Light.Load($"{path}/maps/light");
+            Gfx.Load($"{path}/maps/gfx");
+            Fight.Load($"{path}/maps/fight");
+            Env.Load($"{path}/maps/env");
             
-            LoadAmbiance(path + "maps.jar");
+            LoadAmbiance($"{path}/maps.jar");
         }
         catch (Exception ex)
         {

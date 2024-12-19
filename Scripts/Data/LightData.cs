@@ -20,7 +20,7 @@ public class LightData
 
     public void Load(string path)
     {
-        using var archive = ZipFile.OpenRead($"{path}/light/{Id}.jar");
+        using var archive = ZipFile.OpenRead($"{path}/{Id}.jar");
         
         foreach (var entry in archive.Entries)
         {

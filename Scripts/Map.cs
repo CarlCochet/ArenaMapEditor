@@ -20,28 +20,23 @@ public partial class Map : Node2D
 
     public void LoadMap(MapData mapData)
     {
-        
-    }
-
-    public void LoadMap(MapInfo mapInfo)
-    {
         var children = _assetContainer.GetChildren();
         foreach (var child in children)
         {
             child.QueueFree();
         }
         
-        var sortedTiles = mapInfo.Partitions
+        var sortedElements = mapData.Gfx.Partitions
             .SelectMany(p => p.Elements)
             .OrderBy(t => t.HashCode)
             .ToList();
 
-        foreach (var tileData in sortedTiles)
+        foreach (var element in sortedElements)
         {
             var tile = _tileScene.Instantiate<Tile>();
-            tile.SetData(tileData);
-            tile.PositionToIso(tileData.CellX, tileData.CellY, tileData.CellZ, tileData.Height, tileData.CommonData.OriginX, tileData.CommonData.OriginY);
-            tile.FlipH = tileData.CommonData.Flip;
+            tile.SetData(element);
+            tile.PositionToIso(element.CellX, element.CellY, element.CellZ, element.Height, element.CommonData.OriginX, element.CommonData.OriginY);
+            tile.FlipH = element.CommonData.Flip;
             _assetContainer.AddChild(tile);
         }
     }

@@ -1,4 +1,4 @@
-[gd_scene load_steps=27 format=3 uid="uid://d14hqwtpnn5ek"]
+[gd_scene load_steps=36 format=3 uid="uid://d14hqwtpnn5ek"]
 
 [ext_resource type="Script" path="res://Scripts/Tools.cs" id="1_6s3ac"]
 [ext_resource type="Texture2D" uid="uid://cr0hplinhgo3t" path="res://Assets/UI/ToolSelect.png" id="2_78btu"]
@@ -25,6 +25,15 @@
 [ext_resource type="Texture2D" uid="uid://dp5js65xl1ilg" path="res://Assets/UI/Redo.png" id="23_hwnd8"]
 [ext_resource type="Texture2D" uid="uid://bnjnag32bqy5i" path="res://Assets/UI/Redo_pressed.png" id="24_yuo05"]
 [ext_resource type="Texture2D" uid="uid://cn0xmqin56k55" path="res://Assets/UI/Redo_hover.png" id="25_v1ccl"]
+[ext_resource type="Texture2D" uid="uid://b2sac1mylxrt" path="res://Assets/UI/Add.png" id="26_t8hl2"]
+[ext_resource type="Texture2D" uid="uid://bd07wilcmrdi2" path="res://Assets/UI/Add_pressed.png" id="27_qpnmp"]
+[ext_resource type="Texture2D" uid="uid://chjogwjt0y365" path="res://Assets/UI/Add_hover.png" id="28_otwkm"]
+[ext_resource type="Texture2D" uid="uid://bb4rm86uowmkc" path="res://Assets/UI/Save.png" id="29_qco4g"]
+[ext_resource type="Texture2D" uid="uid://chbhgvxjnfom" path="res://Assets/UI/Save_pressed.png" id="30_sh4qp"]
+[ext_resource type="Texture2D" uid="uid://n8xdh2s6dw2" path="res://Assets/UI/Save_hover.png" id="31_el88t"]
+[ext_resource type="Texture2D" uid="uid://cq1uloofi3o7g" path="res://Assets/UI/Load.png" id="32_ad17n"]
+[ext_resource type="Texture2D" uid="uid://bf8jqg4ssrc3g" path="res://Assets/UI/Load_pressed.png" id="33_hqjf2"]
+[ext_resource type="Texture2D" uid="uid://dkyfnfx3jxkq8" path="res://Assets/UI/Load_hover.png" id="34_or3wh"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_kgn1q"]
 font_size = 14
@@ -168,23 +177,26 @@ theme_override_constants/margin_bottom = 10
 [node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer2"]
 layout_mode = 2
 
-[node name="NewMap" type="Button" parent="MarginContainer2/HBoxContainer"]
-custom_minimum_size = Vector2(130, 30)
+[node name="NewMap" type="TextureButton" parent="MarginContainer2/HBoxContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "Nouvelle carte"
+tooltip_text = "Nouvelle carte"
+texture_normal = ExtResource("26_t8hl2")
+texture_pressed = ExtResource("27_qpnmp")
+texture_hover = ExtResource("28_otwkm")
 
-[node name="ExportMap" type="Button" parent="MarginContainer2/HBoxContainer"]
-custom_minimum_size = Vector2(130, 30)
+[node name="ExportMap" type="TextureButton" parent="MarginContainer2/HBoxContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "Exporter carte"
+tooltip_text = "Exporter carte"
+texture_normal = ExtResource("29_qco4g")
+texture_pressed = ExtResource("30_sh4qp")
+texture_hover = ExtResource("31_el88t")
 
-[node name="LocateArena" type="Button" parent="MarginContainer2/HBoxContainer"]
-custom_minimum_size = Vector2(130, 30)
+[node name="LocateArena" type="TextureButton" parent="MarginContainer2/HBoxContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "Localiser Arena"
+tooltip_text = "Localiser dossier Arena"
+texture_normal = ExtResource("32_ad17n")
+texture_pressed = ExtResource("33_hqjf2")
+texture_hover = ExtResource("34_or3wh")
 
 [node name="LoadMap" type="OptionButton" parent="MarginContainer2/HBoxContainer"]
 custom_minimum_size = Vector2(130, 30)

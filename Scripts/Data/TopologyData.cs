@@ -21,7 +21,7 @@ public class TopologyData
 
     public void Load(string path)
     {
-        using var archive = ZipFile.OpenRead($"{path}/tplg/{Id}.jar");
+        using var archive = ZipFile.OpenRead($"{path}/{Id}.jar");
         
         foreach (var entry in archive.Entries)
         {
