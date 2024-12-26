@@ -9,16 +9,19 @@ public partial class Map : Node2D
     [Export] private Camera _camera;
     [Export] private PackedScene _tileScene;
 
-    private List<Chunk> _chunks = [];
+    private List<Tile> _tiles = [];
 
-    public override void _Ready() { }
+    public override void _Ready()
+    {
+        
+    }
 
     public void UpdateFocus(bool hasFocus)
     {
         _camera.HasFocus = hasFocus;
     }
 
-    public void LoadMap(MapData mapData)
+    public void Load(MapData mapData)
     {
         var children = _assetContainer.GetChildren();
         foreach (var child in children)
@@ -39,5 +42,10 @@ public partial class Map : Node2D
             tile.FlipH = element.CommonData.Flip;
             _assetContainer.AddChild(tile);
         }
+    }
+
+    private (int x, int y) PositionToCoord(Vector2 globalPosition)
+    {
+        return (0, 0);
     }
 }

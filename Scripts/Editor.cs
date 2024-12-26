@@ -43,7 +43,7 @@ public partial class Editor : Node2D
 	{
 		var mapData = new MapData(eventArgs.MapName);
 		mapData.Load(_contentPath);
-		_map.LoadMap(mapData);
+		_map.Load(mapData);
 	}
 
 	private void _OnDirectorySelected(string dir)
