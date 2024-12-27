@@ -10,6 +10,7 @@ public partial class Editor : Node2D
 	[Export] private Tools _tools;
 	[Export] private Overlay _overlay;
 	[Export] private FileDialog _fileDialog;
+	[Export] private Inspector _inspector;
 
 	private string _mapPath;
 	private string _contentPath;
