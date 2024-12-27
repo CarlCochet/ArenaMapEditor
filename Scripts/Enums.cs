@@ -55,4 +55,17 @@ public static class Enums
         Light = 3,
         Fight = 4,
     }
+
+    public enum Direction
+    {
+        None = 0,
+        Up = 1,
+        Down = 2,
+        Left = 3,
+        Right = 4,
+        UpLeft = 5,
+        UpRight = 6,
+        DownLeft = 7,
+        DownRight = 8,
+    }
 }

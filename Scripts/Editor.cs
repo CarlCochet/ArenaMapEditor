@@ -1,7 +1,6 @@
 using Godot;
 using System;
 using System.Collections.Generic;
-using System.Text.Json;
 
 public partial class Editor : Node2D
 {
@@ -14,14 +13,78 @@ public partial class Editor : Node2D
 
 	private string _mapPath;
 	private string _contentPath;
+	private int _x;
+	private int _y;
+	private int _z;
 	
 	public override void _Ready()
 	{
-		DisplayServer.WindowSetMinSize(new Vector2I(1400, 500));
+		DisplayServer.WindowSetMinSize(new Vector2I(1200, 600));
 		GlobalData.Instance.LoadAssets();
 		_assetsPreview.DisplayAssets(Enums.Biome.Global, Enums.Category.Global, false);
+		
 		_tools.MapSelected += _OnMapSelected;
 		_tools.LocateArenaPressed += _OnLocateArenaPressed;
+
+		_overlay.PreviewChangePressed += _OnPreviewChangePressed;
+		_overlay.OffsetChangeDown += _OnOffsetChangeDown;
+		_overlay.OffsetChangeUp += _OnOffsetChangeUp;
+		_overlay.CenterPressed += _OnCenterPressed;
+		_overlay.HeightChangePressed += _OnHeightChangePressed;
+		_overlay.HighlightHeightPressed += _OnHighlightHeightPressed;
+	}
+	
+	public override void _Input(InputEvent @event)
+	{
+		if (@event is InputEventMouseMotion eventMouseMotion)
+		{
+			(_x, _y) = _map.PositionToCoord(eventMouseMotion.GlobalPosition, _z);
+			_overlay.UpdatePosition(_x, _y, _z);
+			_map.HighlightTiles(eventMouseMotion.GlobalPosition);
+		}
+	}
+
+	private void _OnHighlightHeightPressed(object sender, EventArgs e)
+	{
+		
+	}
+
+	private void _OnHeightChangePressed(object sender, Overlay.HeightChangedEventArgs e)
+	{
+
+		switch (e.Direction)
+		{
+			case Enums.Direction.Up:
+				_z++;
+				_map.UpdateHeight(_z);
+				_overlay.UpdatePosition(_x, _y, _z);
+				break;
+			case Enums.Direction.Down:
+				_z--;
+				_map.UpdateHeight(_z);
+				_overlay.UpdatePosition(_x, _y, _z);
+				break;
+		}
+	}
+
+	private void _OnCenterPressed(object sender, EventArgs e)
+	{
+		
+	}
+
+	private void _OnOffsetChangeUp(object sender, Overlay.OffsetChangedEventArgs e)
+	{
+		
+	}
+
+	private void _OnOffsetChangeDown(object sender, Overlay.OffsetChangedEventArgs e)
+	{
+		
+	}
+
+	private void _OnPreviewChangePressed(object sender, Overlay.PreviewChangedEventArgs e)
+	{
+		
 	}
 	
 	private void _OnAssetPreviewEntered()
