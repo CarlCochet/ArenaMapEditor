@@ -17,6 +17,8 @@ public partial class Map : Node2D
 
     private List<Tile> _tiles = [];
     private List<Tile> _selectedTiles = [];
+    
+    private Color _highlightColor = new(0, 255, 0);
 
     public override void _Ready() { }
     
@@ -24,21 +26,8 @@ public partial class Map : Node2D
     {
         if (@event is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } eventMouseButton)
         {
-            foreach (var tile in _selectedTiles)
-            {
-                tile.ResetColor();
-            }
-            
-            _selectedTiles.Clear();
-            
-            foreach (var tile in _tiles)
-            {
-                var globalPosition = GetGlobalMousePosition();
-                if (!tile.GetRect().HasPoint(tile.ToLocal(globalPosition)))
-                    continue;
-                tile.SelfModulate = new Color(0, 255, 0);
-                _selectedTiles.Add(tile);
-            }
+            var globalPosition = GetGlobalMousePosition();
+            SelectTile(globalPosition);
         }
     }
 
@@ -98,5 +87,24 @@ public partial class Map : Node2D
         var x = position.X / CellWidth - position.Y / CellHeight;
         var y = -(position.X / CellWidth + position.Y / CellHeight);
         return ((int)x, (int)y);
+    }
+
+    private void SelectTile(Vector2 position)
+    {
+        foreach (var tile in _selectedTiles)
+        {
+            tile.ResetColor();
+        }
+        
+        _selectedTiles = _tiles
+            .FindAll(t => t.IsValidPixel(position))
+            .OrderBy(t => t.Element.HashCode)
+            .TakeLast(1)
+            .ToList();
+
+        foreach (var tile in _selectedTiles)
+        {
+            tile.SelfModulate = _highlightColor;
+        }
     }
 }
