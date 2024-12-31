@@ -10,7 +10,7 @@ public partial class AssetsPreview : Control
 	
 	public override void _Ready() { }
 
-	public void DisplayAssets(Enums.Biome biome, Enums.Category category, bool onlyInScene)
+	public void DisplayAssets(Enums.Biome biome, Enums.Category category, Enums.Mode mode)
 	{
 		for (var index = 0; index < GlobalData.Instance.Assets.Count; index++)
 		{

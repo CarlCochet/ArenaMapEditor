@@ -16,8 +16,31 @@ public partial class Map : Node2D
     private const int ElevationStep = 10;
 
     private List<Tile> _tiles = [];
+    private List<Tile> _selectedTiles = [];
 
     public override void _Ready() { }
+    
+    public override void _Input(InputEvent @event)
+    {
+        if (@event is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } eventMouseButton)
+        {
+            foreach (var tile in _selectedTiles)
+            {
+                tile.ResetColor();
+            }
+            
+            _selectedTiles.Clear();
+            
+            foreach (var tile in _tiles)
+            {
+                var globalPosition = GetGlobalMousePosition();
+                if (!tile.GetRect().HasPoint(tile.ToLocal(globalPosition)))
+                    continue;
+                tile.SelfModulate = new Color(0, 255, 0);
+                _selectedTiles.Add(tile);
+            }
+        }
+    }
 
     public void UpdateFocus(bool hasFocus)
     {

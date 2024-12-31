@@ -22,7 +22,7 @@ public partial class Editor : Node2D
 	{
 		DisplayServer.WindowSetMinSize(new Vector2I(1200, 600));
 		GlobalData.Instance.LoadAssets();
-		_assetsPreview.DisplayAssets(Enums.Biome.Global, Enums.Category.Global, false);
+		_assetsPreview.DisplayAssets(Enums.Biome.Global, Enums.Category.Global, Enums.Mode.Gfx);
 		
 		_tools.MapSelected += _OnMapSelected;
 		_tools.LocateArenaPressed += _OnLocateArenaPressed;

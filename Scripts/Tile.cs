@@ -3,6 +3,8 @@ using System;
 
 public partial class Tile : Sprite2D
 {
+	[Export] private CollisionShape2D _collisionShape;
+	
 	private TileData _data;
 	private GfxData.Element _element;
 	
@@ -17,10 +19,11 @@ public partial class Tile : Sprite2D
 		_data = GlobalData.Instance.Assets[element.CommonData.GfxId].Copy();
 		_element = element;
 		Texture = _data.Texture;
-		SelfModulate = _element.Colors.Length < 3 ? Colors.White : new Color(
-			0.7f + 0.3f * _element.Colors[0], 
-			0.7f + 0.3f * _element.Colors[1], 
-			0.7f + 0.3f * _element.Colors[2]);
+		// SelfModulate = _element.Colors.Length < 3 ? Colors.White : new Color(
+		// 	0.7f + 0.3f * _element.Colors[0], 
+		// 	0.7f + 0.3f * _element.Colors[1], 
+		// 	0.7f + 0.3f * _element.Colors[2]);
+		SelfModulate = new Color(_element.Colors[0], _element.Colors[1], _element.Colors[2]);
 	}
 	
 	public void PositionToIso(int x, int y, int z, int height, int originX, int originY)
@@ -29,5 +32,10 @@ public partial class Tile : Sprite2D
 		var newY = (x + y) * CellHeight / 2 - (z - height) * ElevationStep;
 		Offset = Offset with { X = -originX, Y = -originY };
 		Position = new Vector2(newX, newY);
+	}
+
+	public void ResetColor()
+	{
+		SelfModulate = new Color(_element.Colors[0], _element.Colors[1], _element.Colors[2]);
 	}
 }
