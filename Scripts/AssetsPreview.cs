@@ -29,6 +29,11 @@ public partial class AssetsPreview : Control
 		}
 	}
 
+	public void Update(GfxData.Element element)
+	{
+		
+	}
+
 	private void _OnAssetSelected(object sender, PreviewComponent.PressedEventArgs eventArgs)
 	{
 		foreach (var component in _components)

@@ -26,6 +26,11 @@ public partial class Overlay : Control
 		
 	}
 
+	public void Update(GfxData.Element element)
+	{
+		
+	}
+
 	private void _OnPreviousPressed()
 	{
 		PreviewChangePressed?.Invoke(this, new PreviewChangedEventArgs(Enums.Direction.Left));

@@ -33,8 +33,10 @@ public partial class Editor : Node2D
 		_overlay.CenterPressed += _OnCenterPressed;
 		_overlay.HeightChangePressed += _OnHeightChangePressed;
 		_overlay.HighlightHeightPressed += _OnHighlightHeightPressed;
+
+		_map.TileSelected += _OnTileSelected;
 	}
-	
+
 	public override void _Input(InputEvent @event)
 	{
 		if (@event is InputEventMouseMotion eventMouseMotion)
@@ -43,6 +45,11 @@ public partial class Editor : Node2D
 			_overlay.UpdatePosition(_x, _y, _z);
 			_map.HighlightTiles(eventMouseMotion.GlobalPosition);
 		}
+	}
+	
+	private void _OnTileSelected(object sender, Map.TileSelectedEventArgs e)
+	{
+		_inspector.Update(e.Element);
 	}
 
 	private void _OnHighlightHeightPressed(object sender, EventArgs e)

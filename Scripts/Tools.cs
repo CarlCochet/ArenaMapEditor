@@ -36,6 +36,11 @@ public partial class Tools : Control
 
 		_loadButton.Selected = -1;
 	}
+
+	public void Update(GfxData.Element element)
+	{
+		
+	}
 	
 	private void _OnSelectPressed()
 	{

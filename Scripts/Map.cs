@@ -19,6 +19,8 @@ public partial class Map : Node2D
     private List<Tile> _selectedTiles = [];
     
     private Color _highlightColor = new(0, 255, 0);
+    
+    public event EventHandler<TileSelectedEventArgs> TileSelected; 
 
     public override void _Ready() { }
     
@@ -47,15 +49,6 @@ public partial class Map : Node2D
         foreach (var child in children)
         {
             child.QueueFree();
-        }
-
-        foreach (var partition in mapData.Gfx.Partitions)
-        {
-            float[] colors = [GlobalData.Instance.Rng.Randf(), GlobalData.Instance.Rng.Randf(), GlobalData.Instance.Rng.Randf()];
-            foreach (var element in partition.Elements)
-            {
-                element.Colors = colors;
-            }
         }
         
         var sortedElements = mapData.Gfx.Partitions
@@ -93,7 +86,7 @@ public partial class Map : Node2D
     {
         foreach (var tile in _selectedTiles)
         {
-            tile.ResetColor();
+            tile.Unselect();
         }
         
         _selectedTiles = _tiles
@@ -104,7 +97,13 @@ public partial class Map : Node2D
 
         foreach (var tile in _selectedTiles)
         {
-            tile.SelfModulate = _highlightColor;
+            tile.Select();
+            TileSelected?.Invoke(this, new TileSelectedEventArgs(tile.Element));
         }
+    }
+
+    public class TileSelectedEventArgs(GfxData.Element element) : EventArgs
+    {
+        public GfxData.Element Element => element;
     }
 }
