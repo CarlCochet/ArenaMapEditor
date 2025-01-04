@@ -8,7 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://bs7nf7ebx8s4w" path="res://Scenes/Overlay.tscn" id="6_ehtoy"]
 [ext_resource type="PackedScene" uid="uid://btqhc3kx587xd" path="res://Scenes/Inspector.tscn" id="7_8t728"]
 
-[node name="Editor" type="Node2D" node_paths=PackedStringArray("_map", "_filter", "_assetsPreview", "_tools", "_overlay", "_fileDialog")]
+[node name="Editor" type="Node2D" node_paths=PackedStringArray("_map", "_filter", "_assetsPreview", "_tools", "_overlay", "_fileDialog", "_inspector")]
 script = ExtResource("1_c7qby")
 _map = NodePath("Map")
 _filter = NodePath("CanvasLayer/SplitContainer/SplitContainer/ColorRect/Filter")
@@ -16,6 +16,7 @@ _assetsPreview = NodePath("CanvasLayer/SplitContainer/SplitContainer/ColorRect2/
 _tools = NodePath("CanvasLayer/SplitContainer/SplitContainer2/ColorRect/Tools")
 _overlay = NodePath("CanvasLayer/SplitContainer/SplitContainer2/SplitContainer/ColorRect2/Overlay")
 _fileDialog = NodePath("CanvasLayer/FileDialog")
+_inspector = NodePath("CanvasLayer/SplitContainer/SplitContainer2/SplitContainer/ColorRect/Inspector")
 
 [node name="Map" parent="." instance=ExtResource("2_pkgv6")]
 

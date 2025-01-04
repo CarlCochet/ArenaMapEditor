@@ -1,0 +1,502 @@
+[gd_scene load_steps=7 format=3 uid="uid://btqhc3kx587xd"]
+
+[ext_resource type="Script" path="res://Scripts/Inspector.cs" id="1_1h3p3"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_68wyj"]
+outline_size = 1
+
+[sub_resource type="LabelSettings" id="LabelSettings_iqetc"]
+font_size = 12
+font_color = Color(0.618939, 0.38417, 0.435581, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_i7sm1"]
+font_size = 12
+font_color = Color(0.35596, 0.504772, 0.392635, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_fojw4"]
+font_size = 12
+font_color = Color(0.379557, 0.623797, 1, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_c8tcb"]
+font_size = 12
+
+[node name="Inspector" type="Control"]
+custom_minimum_size = Vector2(250, 550)
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_1h3p3")
+
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
+custom_minimum_size = Vector2(250, 550)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_scroll_mode = 0
+
+[node name="MarginContainer" type="MarginContainer" parent="ScrollContainer"]
+custom_minimum_size = Vector2(250, 550)
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 10
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ScrollContainer/MarginContainer"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Position" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Position"
+label_settings = SubResource("LabelSettings_68wyj")
+horizontal_alignment = 1
+
+[node name="PositionContainer" type="VBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 1
+
+[node name="X" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/PositionContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/PositionContainer/X"]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "X"
+label_settings = SubResource("LabelSettings_iqetc")
+
+[node name="LineEdit" type="LineEdit" parent="ScrollContainer/MarginContainer/VBoxContainer/PositionContainer/X"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+max_length = 9
+caret_blink = true
+
+[node name="Y" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/PositionContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/PositionContainer/Y"]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "Y"
+label_settings = SubResource("LabelSettings_i7sm1")
+
+[node name="LineEdit" type="LineEdit" parent="ScrollContainer/MarginContainer/VBoxContainer/PositionContainer/Y"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+max_length = 9
+caret_blink = true
+
+[node name="Z" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/PositionContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/PositionContainer/Z"]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "Z"
+label_settings = SubResource("LabelSettings_fojw4")
+
+[node name="LineEdit" type="LineEdit" parent="ScrollContainer/MarginContainer/VBoxContainer/PositionContainer/Z"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+max_length = 9
+caret_blink = true
+
+[node name="Offset" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Offsets"
+label_settings = SubResource("LabelSettings_68wyj")
+horizontal_alignment = 1
+
+[node name="OffsetContainer" type="VBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 1
+
+[node name="X" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/OffsetContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/OffsetContainer/X"]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "X"
+label_settings = SubResource("LabelSettings_iqetc")
+
+[node name="LineEdit" type="LineEdit" parent="ScrollContainer/MarginContainer/VBoxContainer/OffsetContainer/X"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_override_font_sizes/font_size = 12
+max_length = 9
+flat = true
+caret_blink = true
+
+[node name="Y" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/OffsetContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/OffsetContainer/Y"]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "Y"
+label_settings = SubResource("LabelSettings_i7sm1")
+
+[node name="LineEdit" type="LineEdit" parent="ScrollContainer/MarginContainer/VBoxContainer/OffsetContainer/Y"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_override_font_sizes/font_size = 12
+max_length = 9
+flat = true
+caret_blink = true
+
+[node name="Height" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/OffsetContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/OffsetContainer/Height"]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "Height"
+label_settings = SubResource("LabelSettings_c8tcb")
+
+[node name="LineEdit" type="LineEdit" parent="ScrollContainer/MarginContainer/VBoxContainer/OffsetContainer/Height"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+max_length = 9
+caret_blink = true
+
+[node name="Misc" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Misc"
+label_settings = SubResource("LabelSettings_68wyj")
+horizontal_alignment = 1
+
+[node name="MiscContainer" type="VBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 1
+
+[node name="GfxId" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/GfxId"]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "GfxId"
+label_settings = SubResource("LabelSettings_c8tcb")
+
+[node name="LineEdit" type="LineEdit" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/GfxId"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_override_font_sizes/font_size = 12
+max_length = 9
+flat = true
+caret_blink = true
+
+[node name="Order" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Order"]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "Order"
+label_settings = SubResource("LabelSettings_c8tcb")
+
+[node name="LineEdit" type="LineEdit" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Order"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+max_length = 9
+caret_blink = true
+
+[node name="Hash" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Hash"]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "Hashcode"
+label_settings = SubResource("LabelSettings_c8tcb")
+
+[node name="LineEdit" type="LineEdit" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Hash"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+max_length = 15
+flat = true
+caret_blink = true
+
+[node name="Group" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Group"]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "Group Id"
+label_settings = SubResource("LabelSettings_c8tcb")
+
+[node name="LineEdit" type="LineEdit" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Group"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+max_length = 9
+caret_blink = true
+
+[node name="Index" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Index"]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "Layer Index"
+label_settings = SubResource("LabelSettings_c8tcb")
+
+[node name="LineEdit" type="LineEdit" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Index"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+max_length = 9
+caret_blink = true
+
+[node name="Layer" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Layer"]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "Group Layer"
+label_settings = SubResource("LabelSettings_c8tcb")
+
+[node name="LineEdit" type="LineEdit" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Layer"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+max_length = 9
+caret_blink = true
+
+[node name="Properties" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Properties"]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "Properties"
+label_settings = SubResource("LabelSettings_c8tcb")
+
+[node name="LineEdit" type="LineEdit" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Properties"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_override_font_sizes/font_size = 12
+max_length = 9
+flat = true
+caret_blink = true
+
+[node name="Sound" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Sound"]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "Sound"
+label_settings = SubResource("LabelSettings_c8tcb")
+
+[node name="LineEdit" type="LineEdit" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Sound"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_override_font_sizes/font_size = 12
+max_length = 9
+flat = true
+caret_blink = true
+
+[node name="Slope" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Slope"]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "Slope"
+label_settings = SubResource("LabelSettings_c8tcb")
+
+[node name="LineEdit" type="LineEdit" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Slope"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_override_font_sizes/font_size = 12
+max_length = 9
+flat = true
+caret_blink = true
+
+[node name="Walkable" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Walkable"]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "Walkable"
+label_settings = SubResource("LabelSettings_c8tcb")
+
+[node name="CheckBox" type="CheckBox" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Walkable"]
+layout_mode = 2
+focus_mode = 0
+disabled = true
+flat = true
+
+[node name="Visuals" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Visuels"
+label_settings = SubResource("LabelSettings_68wyj")
+horizontal_alignment = 1
+
+[node name="VisualsContainer" type="VBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 1
+
+[node name="Color" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer/Color"]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "Color"
+label_settings = SubResource("LabelSettings_c8tcb")
+
+[node name="ColorPickerButton" type="ColorPickerButton" parent="ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer/Color"]
+custom_minimum_size = Vector2(25, 25)
+layout_mode = 2
+color = Color(1, 1, 1, 1)
+
+[node name="Shader" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer/Shader"]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "Shader"
+label_settings = SubResource("LabelSettings_c8tcb")
+
+[node name="LineEdit" type="LineEdit" parent="ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer/Shader"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_override_font_sizes/font_size = 12
+max_length = 9
+flat = true
+caret_blink = true
+
+[node name="Mask" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer/Mask"]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "Mask"
+label_settings = SubResource("LabelSettings_c8tcb")
+
+[node name="LineEdit" type="LineEdit" parent="ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer/Mask"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_override_font_sizes/font_size = 12
+max_length = 9
+flat = true
+caret_blink = true
+
+[node name="Occluder" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer/Occluder"]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "Occluder"
+label_settings = SubResource("LabelSettings_c8tcb")
+
+[node name="CheckBox" type="CheckBox" parent="ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer/Occluder"]
+layout_mode = 2
+
+[node name="Flip" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer/Flip"]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "Flip"
+label_settings = SubResource("LabelSettings_c8tcb")
+
+[node name="CheckBox" type="CheckBox" parent="ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer/Flip"]
+layout_mode = 2
+focus_mode = 0
+disabled = true
+
+[node name="Animated" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer/Animated"]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "Animated"
+label_settings = SubResource("LabelSettings_c8tcb")
+
+[node name="CheckBox" type="CheckBox" parent="ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer/Animated"]
+layout_mode = 2
+focus_mode = 0
+disabled = true
+
+[connection signal="text_submitted" from="ScrollContainer/MarginContainer/VBoxContainer/PositionContainer/X/LineEdit" to="." method="_OnXSubmitted"]
+[connection signal="text_submitted" from="ScrollContainer/MarginContainer/VBoxContainer/PositionContainer/Y/LineEdit" to="." method="_OnYSubmitted"]
+[connection signal="text_submitted" from="ScrollContainer/MarginContainer/VBoxContainer/PositionContainer/Z/LineEdit" to="." method="_OnZSubmitted"]
+[connection signal="text_submitted" from="ScrollContainer/MarginContainer/VBoxContainer/OffsetContainer/Height/LineEdit" to="." method="_OnHeightSubmitted"]
+[connection signal="text_submitted" from="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Order/LineEdit" to="." method="_OnOrderSubmitted"]
+[connection signal="text_submitted" from="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Group/LineEdit" to="." method="_OnGroupIdSubmitted"]
+[connection signal="text_submitted" from="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Index/LineEdit" to="." method="_OnLayerIndexSubmitted"]
+[connection signal="text_submitted" from="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Layer/LineEdit" to="." method="_OnGroupLayerSubmitted"]
+[connection signal="color_changed" from="ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer/Color/ColorPickerButton" to="." method="_OnColorChanged"]
+[connection signal="toggled" from="ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer/Occluder/CheckBox" to="." method="_OnOccluderToggled"]
