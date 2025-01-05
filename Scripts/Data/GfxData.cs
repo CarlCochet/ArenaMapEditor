@@ -153,6 +153,7 @@ public class GfxData
         public bool Occluder { get; set; }
         public long HashCode { get; set; }
         public float[] Colors { get; set; }
+        public Color Color { get; set; }
         public ElementData CommonData { get; set; }
 
         public Element(byte type, int x, int y)
@@ -161,6 +162,9 @@ public class GfxData
             CellX = x;
             CellY = y;
             Colors = GetNewColors(type);
+            Color = Colors.Length < 3 ? 
+                new Color(1, 1, 1) : 
+                new Color(Colors[0], Colors[1], Colors[2]);
         }
 
         public void Load(BinaryReader reader)

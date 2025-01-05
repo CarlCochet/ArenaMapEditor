@@ -31,11 +31,12 @@ public partial class Tile : Sprite2D
 		Data = GlobalData.Instance.Assets[element.CommonData.GfxId].Copy();
 		Element = element;
 		Texture = Data.Texture;
-		_baseColor = Element.Colors.Length < 3 ? Colors.White : new Color(
-			0.7f + 0.3f * Element.Colors[0], 
-			0.7f + 0.3f * Element.Colors[1], 
-			0.7f + 0.3f * Element.Colors[2]);
-		SelfModulate = _baseColor;
+		_baseColor = Colors.White;
+		// _baseColor = Element.Colors.Length < 3 ? Colors.White : new Color(
+		// 	0.7f + 0.3f * Element.Colors[0], 
+		// 	0.7f + 0.3f * Element.Colors[1], 
+		// 	0.7f + 0.3f * Element.Colors[2]);
+		// SelfModulate = _baseColor;
 	}
 	
 	public void PositionToIso(int x, int y, int z, int height, int originX, int originY)

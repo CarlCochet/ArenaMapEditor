@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using FileAccess = Godot.FileAccess;
@@ -99,5 +100,10 @@ public class GlobalData
             playlistData.Load(reader);
             Playlists.TryAdd(playlistData.Id, playlistData);
         }
+    }
+
+    public TileData GetAssetById(int gfxId)
+    {
+        return Assets.FirstOrDefault(a => a.Id == gfxId);
     }
 }

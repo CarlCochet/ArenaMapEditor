@@ -31,7 +31,10 @@ public partial class AssetsPreview : Control
 
 	public void Update(GfxData.Element element)
 	{
-		
+		foreach (var component in _components)
+		{
+			component.Select(component.GfxId == element.CommonData.GfxId);
+		}
 	}
 
 	private void _OnAssetSelected(object sender, PreviewComponent.PressedEventArgs eventArgs)

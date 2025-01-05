@@ -11,6 +11,7 @@ public partial class Tools : Control
 	[Export] private TextureButton _areaButton;
 	[Export] private LineEdit _sizeField;
 	[Export] private OptionButton _loadButton;
+	[Export] private ColorPickerButton _colorPickerButton;
 
 	public event EventHandler FlipPressed;
 	public event EventHandler<ColorChangedEventArgs> ColorChanged;
@@ -39,7 +40,7 @@ public partial class Tools : Control
 
 	public void Update(GfxData.Element element)
 	{
-		
+		_colorPickerButton.Color = element.Color;
 	}
 	
 	private void _OnSelectPressed()

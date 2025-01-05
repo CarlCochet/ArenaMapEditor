@@ -4,6 +4,7 @@ using System;
 public partial class PreviewComponent : Control
 {
     public int Index;
+    public int GfxId;
     
     [Export] private TextureRect _thumbnail;
     [Export] private TextureButton _button;
@@ -16,6 +17,7 @@ public partial class PreviewComponent : Control
     {
         _thumbnail.Texture = data.Texture;
         Index = index;
+        GfxId = data.Id;
     }
 
     public void Unselect()

@@ -28,7 +28,8 @@ public partial class Overlay : Control
 
 	public void Update(GfxData.Element element)
 	{
-		
+		_preview.Texture = GlobalData.Instance.GetAssetById(element.CommonData.GfxId).Texture;
+		_position.Text = $"({element.CellX}, {element.CellY}, {element.CellZ})";
 	}
 
 	private void _OnPreviousPressed()

@@ -50,6 +50,10 @@ public partial class Editor : Node2D
 	private void _OnTileSelected(object sender, Map.TileSelectedEventArgs e)
 	{
 		_inspector.Update(e.Element);
+		_assetsPreview.Update(e.Element);
+		_tools.Update(e.Element);
+		_overlay.Update(e.Element);
+		_z = e.Element.CellZ;
 	}
 
 	private void _OnHighlightHeightPressed(object sender, EventArgs e)

@@ -20,7 +20,7 @@ font_color = Color(0.379557, 0.623797, 1, 1)
 [sub_resource type="LabelSettings" id="LabelSettings_c8tcb"]
 font_size = 12
 
-[node name="Inspector" type="Control"]
+[node name="Inspector" type="Control" node_paths=PackedStringArray("_cellX", "_cellY", "_cellZ", "_offsetX", "_offsetY", "_height", "_gfxId", "_order", "_hashcode", "_groupId", "_layerIndex", "_groupLayer", "_properties", "_sound", "_slope", "_shader", "_mask", "_walkable", "_occluder", "_flip", "_animated", "_color")]
 custom_minimum_size = Vector2(250, 550)
 layout_mode = 3
 anchors_preset = 15
@@ -29,6 +29,28 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_1h3p3")
+_cellX = NodePath("ScrollContainer/MarginContainer/VBoxContainer/PositionContainer/X/LineEdit")
+_cellY = NodePath("ScrollContainer/MarginContainer/VBoxContainer/PositionContainer/Y/LineEdit")
+_cellZ = NodePath("ScrollContainer/MarginContainer/VBoxContainer/PositionContainer/Z/LineEdit")
+_offsetX = NodePath("ScrollContainer/MarginContainer/VBoxContainer/OffsetContainer/X/LineEdit")
+_offsetY = NodePath("ScrollContainer/MarginContainer/VBoxContainer/OffsetContainer/Y/LineEdit")
+_height = NodePath("ScrollContainer/MarginContainer/VBoxContainer/OffsetContainer/Height/LineEdit")
+_gfxId = NodePath("ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/GfxId/LineEdit")
+_order = NodePath("ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Order/LineEdit")
+_hashcode = NodePath("ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Hash/LineEdit")
+_groupId = NodePath("ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Group/LineEdit")
+_layerIndex = NodePath("ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Index/LineEdit")
+_groupLayer = NodePath("ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Layer/LineEdit")
+_properties = NodePath("ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Properties/LineEdit")
+_sound = NodePath("ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Sound/LineEdit")
+_slope = NodePath("ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Slope/LineEdit")
+_shader = NodePath("ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer/Shader/LineEdit")
+_mask = NodePath("ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer/Mask/LineEdit")
+_walkable = NodePath("ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Walkable/CheckBox")
+_occluder = NodePath("ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer/Occluder/CheckBox")
+_flip = NodePath("ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer/Flip/CheckBox")
+_animated = NodePath("ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer/Animated/CheckBox")
+_color = NodePath("ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer/Color/ColorPickerButton")
 
 [node name="ScrollContainer" type="ScrollContainer" parent="."]
 custom_minimum_size = Vector2(250, 550)
