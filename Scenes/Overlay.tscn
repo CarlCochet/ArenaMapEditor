@@ -34,6 +34,8 @@
 
 [sub_resource type="LabelSettings" id="LabelSettings_t0xsw"]
 font_size = 24
+outline_size = 3
+outline_color = Color(0, 0, 0, 1)
 
 [node name="Overlay" type="Control" node_paths=PackedStringArray("_preview", "_position")]
 layout_mode = 3

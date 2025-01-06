@@ -20,6 +20,7 @@ public class GlobalData
     public List<int> SelectedTiles = [];
     public List<TileData> Assets { get; private set; } = [];
     public RandomNumberGenerator Rng { get; private set; } = new();
+    public Settings Settings { get; set; }
 
     public Dictionary<int, ElementData> Elements { get; set; } = new();
     public Dictionary<short, PlaylistData> Playlists { get; set; } = new();
@@ -105,5 +106,21 @@ public class GlobalData
     public TileData GetAssetById(int gfxId)
     {
         return Assets.FirstOrDefault(a => a.Id == gfxId);
+    }
+    
+    public void SaveSettings()
+    {
+		using var settingsFile = FileAccess.Open("user://settings.json", FileAccess.ModeFlags.Write);
+        
+        settingsFile.StoreString(JsonSerializer.Serialize(Settings));
+    }
+	
+    public void LoadSettings()
+    {
+        using var settingsFile = FileAccess.Open("user://settings.json", FileAccess.ModeFlags.Read);
+        if (settingsFile == null)
+            return;
+		
+		Settings = JsonSerializer.Deserialize<Settings>(settingsFile.GetAsText());
     }
 }

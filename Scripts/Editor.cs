@@ -22,6 +22,8 @@ public partial class Editor : Node2D
 	{
 		DisplayServer.WindowSetMinSize(new Vector2I(1200, 600));
 		GlobalData.Instance.LoadAssets();
+		GlobalData.Instance.LoadSettings();
+		
 		_assetsPreview.DisplayAssets(Enums.Biome.Global, Enums.Category.Global, Enums.Mode.Gfx);
 		
 		_tools.MapSelected += _OnMapSelected;
@@ -35,17 +37,21 @@ public partial class Editor : Node2D
 		_overlay.HighlightHeightPressed += _OnHighlightHeightPressed;
 
 		_map.TileSelected += _OnTileSelected;
+		if (GlobalData.Instance.Settings != null)
+			_OnDirectorySelected(GlobalData.Instance.Settings.ArenaPath);
 	}
 
 	public override void _Input(InputEvent @event)
 	{
-		if (@event is InputEventMouseMotion eventMouseMotion)
+		if (@event is InputEventMouseMotion)
 		{
-			(_x, _y) = _map.PositionToCoord(eventMouseMotion.GlobalPosition, _z);
+			(_x, _y) = _map.PositionToCoord(GetGlobalMousePosition(), _z);
 			_overlay.UpdatePosition(_x, _y, _z);
-			_map.HighlightTiles(eventMouseMotion.GlobalPosition);
+			_map.HighlightTiles(GetGlobalMousePosition());
 		}
 	}
+
+	
 	
 	private void _OnTileSelected(object sender, Map.TileSelectedEventArgs e)
 	{
@@ -63,7 +69,6 @@ public partial class Editor : Node2D
 
 	private void _OnHeightChangePressed(object sender, Overlay.HeightChangedEventArgs e)
 	{
-
 		switch (e.Direction)
 		{
 			case Enums.Direction.Up:
@@ -128,8 +133,11 @@ public partial class Editor : Node2D
 			GD.PrintErr("Invalid directory");
 			return;
 		}
+
+		GlobalData.Instance.Settings ??= new Settings();
+		GlobalData.Instance.Settings.ArenaPath = dir;
 		
-		_contentPath = $"{dir}/game/contents";
+		_contentPath = $"{GlobalData.Instance.Settings.ArenaPath}/game/contents";
 		using var dirAccess = DirAccess.Open($"{_contentPath}/maps/gfx");
 		if (dirAccess == null)
 			return;
@@ -151,6 +159,7 @@ public partial class Editor : Node2D
 		_tools.SetMapOptions(mapNames);
 		GlobalData.Instance.LoadElements($"{_contentPath}/maps/data.jar");
 		GlobalData.Instance.LoadPlaylists($"{_contentPath}/maps.jar");
+		GlobalData.Instance.SaveSettings();
 	}
 
 	private bool IsFolderArena(string path)

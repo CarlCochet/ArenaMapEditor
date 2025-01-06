@@ -77,8 +77,11 @@ public partial class Map : Node2D
 
     public (int x, int y) PositionToCoord(Vector2 position, int height)
     {
-        var x = position.X / CellWidth - position.Y / CellHeight;
-        var y = -(position.X / CellWidth + position.Y / CellHeight);
+        var posX = position.X + CellWidth * 0.5f;
+        var posY = position.Y + CellHeight * 0.5f - height * ElevationStep;
+        
+        var x = posX / CellWidth + posY / CellHeight;
+        var y = posY / CellHeight - posX / CellWidth;
         return ((int)x, (int)y);
     }
 
