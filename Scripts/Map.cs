@@ -55,6 +55,9 @@ public partial class Map : Node2D
 
     public void Load(MapData mapData)
     {
+        _tiles.Clear();
+        SelectedTiles.Clear();
+        
         var children = _assetContainer.GetChildren();
         foreach (var child in children)
         {

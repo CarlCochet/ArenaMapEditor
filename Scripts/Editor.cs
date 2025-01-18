@@ -47,7 +47,7 @@ public partial class Editor : Node2D
 		if (_map.SelectedTiles.Count == 0)
 			return;
 		
-		_gizmo.Position = GetViewport().GetCanvasTransform().BasisXform(_map.SelectedTiles[0].GlobalPosition);
+		_gizmo.Position = _map.SelectedTiles[0].GetGlobalTransformWithCanvas().Origin;
 	}
 
 	public override void _Input(InputEvent @event)

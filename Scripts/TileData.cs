@@ -24,6 +24,12 @@ public class TileData
         Image = Texture.GetImage();
     }
 
+    public Image GetImage()
+    {
+        Image ??= Texture.GetImage();
+        return Image;
+    }
+
     public TileData Copy()
     {
         return new TileData

@@ -24,6 +24,14 @@ _gizmo = NodePath("CanvasLayer/Gizmo")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
+[node name="Gizmo" parent="CanvasLayer" instance=ExtResource("8_vbhsn")]
+anchors_preset = 15
+offset_left = 778.0
+offset_top = 385.0
+offset_right = -497.0
+offset_bottom = -246.0
+scale = Vector2(0.5, 0.5)
+
 [node name="SplitContainer" type="SplitContainer" parent="CanvasLayer"]
 custom_minimum_size = Vector2(1200, 600)
 anchors_preset = 15
@@ -96,14 +104,6 @@ color = Color(0.172833, 0.172833, 0.172833, 1)
 
 [node name="Inspector" parent="CanvasLayer/SplitContainer/SplitContainer2/SplitContainer/ColorRect" instance=ExtResource("7_8t728")]
 layout_mode = 1
-
-[node name="Gizmo" parent="CanvasLayer" instance=ExtResource("8_vbhsn")]
-anchors_preset = 15
-offset_left = 778.0
-offset_top = 385.0
-offset_right = -497.0
-offset_bottom = -246.0
-scale = Vector2(0.5, 0.5)
 
 [node name="FileDialog" type="FileDialog" parent="CanvasLayer"]
 title = "Open a Directory"

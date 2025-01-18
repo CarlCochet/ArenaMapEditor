@@ -68,6 +68,6 @@ public partial class Tile : Sprite2D
 		var pos = localPos - Offset;
 		var point = new Vector2I((int)pos.X, (int)pos.Y);
 		
-		return Data.Image.GetPixelv(point).A > 0.1f;
+		return Data.GetImage().GetPixelv(point).A > 0.1f;
 	}
 }
