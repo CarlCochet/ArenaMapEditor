@@ -1,0 +1,59 @@
+[gd_scene load_steps=5 format=3 uid="uid://7w02tr37xxmq"]
+
+[ext_resource type="Script" path="res://Scripts/Gizmo.cs" id="1_2a1i4"]
+[ext_resource type="Texture2D" uid="uid://dmfevkoydqo16" path="res://Assets/UI/gizmo.png" id="1_klo48"]
+[ext_resource type="Texture2D" uid="uid://k6elf288hp35" path="res://Assets/UI/gizmo_pressed.png" id="2_ui037"]
+[ext_resource type="Texture2D" uid="uid://b4ur2l47aauas" path="res://Assets/UI/gizmo_hover.png" id="3_0cdhl"]
+
+[node name="Gizmo" type="Control" node_paths=PackedStringArray("_xButton", "_yButton", "_zButton")]
+layout_mode = 3
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -1275.0
+offset_bottom = -631.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+script = ExtResource("1_2a1i4")
+_xButton = NodePath("X")
+_yButton = NodePath("Y")
+_zButton = NodePath("Z")
+
+[node name="Y" type="TextureButton" parent="."]
+self_modulate = Color(0.356863, 0.886275, 0.392157, 1)
+layout_mode = 0
+offset_left = 26.3257
+offset_top = 270.0
+offset_right = 85.3257
+offset_bottom = 447.0
+rotation = -2.03331
+texture_normal = ExtResource("1_klo48")
+texture_pressed = ExtResource("2_ui037")
+texture_hover = ExtResource("3_0cdhl")
+
+[node name="X" type="TextureButton" parent="."]
+self_modulate = Color(1, 0.384314, 0.435294, 1)
+layout_mode = 0
+offset_left = 323.326
+offset_top = 215.0
+offset_right = 382.326
+offset_bottom = 392.0
+rotation = 2.03331
+texture_normal = ExtResource("1_klo48")
+texture_pressed = ExtResource("2_ui037")
+texture_hover = ExtResource("3_0cdhl")
+
+[node name="Z" type="TextureButton" parent="."]
+self_modulate = Color(0.380392, 0.623529, 1, 1)
+layout_mode = 0
+offset_left = 131.326
+offset_right = 190.326
+offset_bottom = 177.0
+texture_normal = ExtResource("1_klo48")
+texture_pressed = ExtResource("2_ui037")
+texture_hover = ExtResource("3_0cdhl")
+
+[connection signal="button_down" from="Y" to="." method="_OnYDown"]
+[connection signal="button_up" from="Y" to="." method="_OnYUp"]
+[connection signal="pressed" from="X" to="." method="_OnXPressed"]
+[connection signal="pressed" from="Z" to="." method="_OnZPressed"]
