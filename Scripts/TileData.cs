@@ -14,12 +14,14 @@ public class TileData
     [JsonPropertyName("is_labeled")] public bool IsLabeled { get; set; }
     
     public CompressedTexture2D Texture { get; set; }
+    public Image Image { get; set; }
 
     public void LoadTexture()
     {
         if (!IsValid)
             return;
         Texture = GD.Load<CompressedTexture2D>($"res://Assets/GFX/{Id}.tgam.png");
+        Image = Texture.GetImage();
     }
 
     public TileData Copy()

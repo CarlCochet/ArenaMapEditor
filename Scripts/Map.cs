@@ -6,26 +6,36 @@ using System.Linq;
 public partial class Map : Node2D
 {
     public int CurrentHeight { get; set; }
+    public List<Tile> SelectedTiles = [];
+    
+    [Export] public Camera CustomCamera;
     
     [Export] private Node2D _assetContainer;
-    [Export] private Camera _camera;
     [Export] private PackedScene _tileScene;
+    [Export] private Sprite2D _grid;
     
     private const int CellWidth = 86;
     private const int CellHeight = 43;
     private const int ElevationStep = 10;
 
     private List<Tile> _tiles = [];
-    private List<Tile> _selectedTiles = [];
-    
     private Color _highlightColor = new(0, 255, 0);
+    private ShaderMaterial _gridMaterial;
     
-    public event EventHandler<TileSelectedEventArgs> TileSelected; 
+    public event EventHandler<TileSelectedEventArgs> TileSelected;
 
-    public override void _Ready() { }
-    
+    public override void _Ready()
+    {
+        _gridMaterial = (ShaderMaterial)_grid.Material;
+        CustomCamera.ZoomUpdated += _OnZoomUpdated;
+    }
+
     public override void _Input(InputEvent @event)
     {
+        if (@event is InputEventMouseMotion)
+        {
+            _gridMaterial.SetShaderParameter("mouse_position", GetGlobalMousePosition());
+        }
         if (@event is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } eventMouseButton)
         {
             var globalPosition = GetGlobalMousePosition();
@@ -35,7 +45,7 @@ public partial class Map : Node2D
 
     public void UpdateFocus(bool hasFocus)
     {
-        _camera.HasFocus = hasFocus;
+        CustomCamera.HasFocus = hasFocus;
     }
 
     public void UpdateHeight(int height)
@@ -87,20 +97,21 @@ public partial class Map : Node2D
 
     private void SelectTile(Vector2 position)
     {
-        foreach (var tile in _selectedTiles)
+        foreach (var tile in SelectedTiles)
         {
             tile.Unselect();
         }
         
-        _selectedTiles = _tiles
+        SelectedTiles = _tiles
             .FindAll(t => t.IsValidPixel(position))
             .OrderBy(t => t.Element.HashCode)
             .TakeLast(1)
             .ToList();
 
-        foreach (var tile in _selectedTiles)
+        foreach (var tile in SelectedTiles)
         {
             tile.Select();
+            _gridMaterial.SetShaderParameter("elevation", (float)(tile.Element.CellZ * ElevationStep));
             TileSelected?.Invoke(this, new TileSelectedEventArgs(tile.Element));
         }
     }
@@ -108,5 +119,10 @@ public partial class Map : Node2D
     public class TileSelectedEventArgs(GfxData.Element element) : EventArgs
     {
         public GfxData.Element Element => element;
+    }
+    
+    private void _OnZoomUpdated(object sender, Camera.ZoomUpdatedEventArgs e)
+    {
+        _gridMaterial.SetShaderParameter("zoom", e.Zoom);
     }
 }

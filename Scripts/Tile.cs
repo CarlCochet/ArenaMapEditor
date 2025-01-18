@@ -64,11 +64,10 @@ public partial class Tile : Sprite2D
 		var localPos = ToLocal(position);
 		if (!GetRect().HasPoint(localPos))
 			return false;
-
-		var img = Texture.GetImage();
+		
 		var pos = localPos - Offset;
 		var point = new Vector2I((int)pos.X, (int)pos.Y);
 		
-		return img.GetPixelv(point).A > 0.1f;
+		return Data.Image.GetPixelv(point).A > 0.1f;
 	}
 }

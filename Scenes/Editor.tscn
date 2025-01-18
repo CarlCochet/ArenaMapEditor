@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://cvasy00hsj0lk"]
+[gd_scene load_steps=9 format=3 uid="uid://cvasy00hsj0lk"]
 
 [ext_resource type="Script" path="res://Scripts/Editor.cs" id="1_c7qby"]
 [ext_resource type="PackedScene" uid="uid://5k8sgg41ctpm" path="res://Scenes/Map.tscn" id="2_pkgv6"]
@@ -7,8 +7,9 @@
 [ext_resource type="PackedScene" uid="uid://d14hqwtpnn5ek" path="res://Scenes/Tools.tscn" id="5_uvmdi"]
 [ext_resource type="PackedScene" uid="uid://bs7nf7ebx8s4w" path="res://Scenes/Overlay.tscn" id="6_ehtoy"]
 [ext_resource type="PackedScene" uid="uid://btqhc3kx587xd" path="res://Scenes/Inspector.tscn" id="7_8t728"]
+[ext_resource type="PackedScene" uid="uid://7w02tr37xxmq" path="res://Scenes/Gizmo.tscn" id="8_vbhsn"]
 
-[node name="Editor" type="Node2D" node_paths=PackedStringArray("_map", "_filter", "_assetsPreview", "_tools", "_overlay", "_fileDialog", "_inspector")]
+[node name="Editor" type="Node2D" node_paths=PackedStringArray("_map", "_filter", "_assetsPreview", "_tools", "_overlay", "_fileDialog", "_inspector", "_gizmo")]
 script = ExtResource("1_c7qby")
 _map = NodePath("Map")
 _filter = NodePath("CanvasLayer/SplitContainer/SplitContainer/ColorRect/Filter")
@@ -17,6 +18,7 @@ _tools = NodePath("CanvasLayer/SplitContainer/SplitContainer2/ColorRect/Tools")
 _overlay = NodePath("CanvasLayer/SplitContainer/SplitContainer2/SplitContainer/ColorRect2/Overlay")
 _fileDialog = NodePath("CanvasLayer/FileDialog")
 _inspector = NodePath("CanvasLayer/SplitContainer/SplitContainer2/SplitContainer/ColorRect/Inspector")
+_gizmo = NodePath("CanvasLayer/Gizmo")
 
 [node name="Map" parent="." instance=ExtResource("2_pkgv6")]
 
@@ -40,7 +42,7 @@ vertical = true
 [node name="ColorRect" type="ColorRect" parent="CanvasLayer/SplitContainer/SplitContainer"]
 custom_minimum_size = Vector2(300, 150)
 layout_mode = 2
-color = Color(0.341176, 0.341176, 0.341176, 0.509804)
+color = Color(0.172833, 0.172833, 0.172833, 1)
 
 [node name="Filter" parent="CanvasLayer/SplitContainer/SplitContainer/ColorRect" instance=ExtResource("3_a4ic1")]
 custom_minimum_size = Vector2(300, 150)
@@ -49,7 +51,7 @@ layout_mode = 1
 [node name="ColorRect2" type="ColorRect" parent="CanvasLayer/SplitContainer/SplitContainer"]
 custom_minimum_size = Vector2(300, 450)
 layout_mode = 2
-color = Color(0.341176, 0.341176, 0.341176, 0.509804)
+color = Color(0.172833, 0.172833, 0.172833, 1)
 
 [node name="AssetsPreview" parent="CanvasLayer/SplitContainer/SplitContainer/ColorRect2" instance=ExtResource("4_7hrj1")]
 custom_minimum_size = Vector2(300, 450)
@@ -65,7 +67,7 @@ vertical = true
 [node name="ColorRect" type="ColorRect" parent="CanvasLayer/SplitContainer/SplitContainer2"]
 custom_minimum_size = Vector2(900, 50)
 layout_mode = 2
-color = Color(0.341176, 0.341176, 0.341176, 0.509804)
+color = Color(0.172833, 0.172833, 0.172833, 1)
 
 [node name="Tools" parent="CanvasLayer/SplitContainer/SplitContainer2/ColorRect" instance=ExtResource("5_uvmdi")]
 custom_minimum_size = Vector2(900, 50)
@@ -90,10 +92,18 @@ layout_mode = 1
 custom_minimum_size = Vector2(250, 550)
 layout_mode = 2
 size_flags_horizontal = 8
-color = Color(0.341176, 0.341176, 0.341176, 0.509804)
+color = Color(0.172833, 0.172833, 0.172833, 1)
 
 [node name="Inspector" parent="CanvasLayer/SplitContainer/SplitContainer2/SplitContainer/ColorRect" instance=ExtResource("7_8t728")]
 layout_mode = 1
+
+[node name="Gizmo" parent="CanvasLayer" instance=ExtResource("8_vbhsn")]
+anchors_preset = 15
+offset_left = 778.0
+offset_top = 385.0
+offset_right = -497.0
+offset_bottom = -246.0
+scale = Vector2(0.5, 0.5)
 
 [node name="FileDialog" type="FileDialog" parent="CanvasLayer"]
 title = "Open a Directory"

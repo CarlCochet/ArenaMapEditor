@@ -1,15 +1,27 @@
-[gd_scene load_steps=5 format=3 uid="uid://5k8sgg41ctpm"]
+[gd_scene load_steps=7 format=3 uid="uid://5k8sgg41ctpm"]
 
 [ext_resource type="Script" path="res://Scripts/Map.cs" id="1_h4evd"]
 [ext_resource type="PackedScene" uid="uid://bnepr33hnfesr" path="res://Scenes/Tile.tscn" id="2_d05hl"]
 [ext_resource type="Texture2D" uid="uid://b3pfja02ihinv" path="res://Assets/Misc/blackBackground.png" id="2_ftqb4"]
 [ext_resource type="Script" path="res://Scripts/Camera.cs" id="2_iuwis"]
+[ext_resource type="Shader" path="res://Shaders/IsoGrid.gdshader" id="5_blgyc"]
 
-[node name="Map" type="Node2D" node_paths=PackedStringArray("_assetContainer", "_camera")]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_wj3mp"]
+shader = ExtResource("5_blgyc")
+shader_parameter/mouse_position = null
+shader_parameter/zoom = 1.0
+shader_parameter/line_intensity = 5.0
+shader_parameter/border_size = 0.468
+shader_parameter/line_blur = 0.2
+shader_parameter/grid_scale = 1.163
+shader_parameter/elevation = 0.0
+
+[node name="Map" type="Node2D" node_paths=PackedStringArray("CustomCamera", "_assetContainer", "_grid")]
 script = ExtResource("1_h4evd")
+CustomCamera = NodePath("Camera")
 _assetContainer = NodePath("AssetContainer")
-_camera = NodePath("Camera")
 _tileScene = ExtResource("2_d05hl")
+_grid = NodePath("Grid")
 
 [node name="Camera" type="Camera2D" parent="."]
 script = ExtResource("2_iuwis")
@@ -17,7 +29,14 @@ script = ExtResource("2_iuwis")
 [node name="Background" type="Sprite2D" parent="Camera"]
 z_index = -4096
 position = Vector2(-6.10352e-05, 0)
-scale = Vector2(4679.87, 3293.62)
+scale = Vector2(4700, 3300)
+texture = ExtResource("2_ftqb4")
+
+[node name="Grid" type="Sprite2D" parent="."]
+z_index = 1
+material = SubResource("ShaderMaterial_wj3mp")
+position = Vector2(7.85589e-05, 3.15309e-05)
+scale = Vector2(4700, 3300)
 texture = ExtResource("2_ftqb4")
 
 [node name="AssetContainer" type="Node2D" parent="."]

@@ -11,6 +11,7 @@ public partial class Editor : Node2D
 	[Export] private Overlay _overlay;
 	[Export] private FileDialog _fileDialog;
 	[Export] private Inspector _inspector;
+	[Export] private Gizmo _gizmo;
 
 	private string _mapPath;
 	private string _contentPath;
@@ -41,6 +42,14 @@ public partial class Editor : Node2D
 			_OnDirectorySelected(GlobalData.Instance.Settings.ArenaPath);
 	}
 
+	public override void _Process(double delta)
+	{
+		if (_map.SelectedTiles.Count == 0)
+			return;
+		
+		_gizmo.Position = GetViewport().GetCanvasTransform().BasisXform(_map.SelectedTiles[0].GlobalPosition);
+	}
+
 	public override void _Input(InputEvent @event)
 	{
 		if (@event is InputEventMouseMotion)
@@ -55,6 +64,7 @@ public partial class Editor : Node2D
 	
 	private void _OnTileSelected(object sender, Map.TileSelectedEventArgs e)
 	{
+		GD.Print("Selected tile: " + e.Element.CommonData.Id);
 		_inspector.Update(e.Element);
 		_assetsPreview.Update(e.Element);
 		_tools.Update(e.Element);
