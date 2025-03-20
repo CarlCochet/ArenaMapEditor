@@ -1,6 +1,6 @@
 [gd_scene load_steps=7 format=3 uid="uid://btqhc3kx587xd"]
 
-[ext_resource type="Script" path="res://Scripts/Inspector.cs" id="1_1h3p3"]
+[ext_resource type="Script" uid="uid://bkc8hhgl2prly" path="res://Scripts/Inspector.cs" id="1_1h3p3"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_68wyj"]
 outline_size = 1

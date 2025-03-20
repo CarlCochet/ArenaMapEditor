@@ -1,6 +1,6 @@
 [gd_scene load_steps=36 format=3 uid="uid://d14hqwtpnn5ek"]
 
-[ext_resource type="Script" path="res://Scripts/Tools.cs" id="1_6s3ac"]
+[ext_resource type="Script" uid="uid://crnbjwqytq5gu" path="res://Scripts/Tools.cs" id="1_6s3ac"]
 [ext_resource type="Texture2D" uid="uid://cr0hplinhgo3t" path="res://Assets/UI/ToolSelect.png" id="2_78btu"]
 [ext_resource type="Texture2D" uid="uid://bq8iuh80f1tm3" path="res://Assets/UI/ToolSelect_pressed.png" id="3_c31eb"]
 [ext_resource type="Texture2D" uid="uid://nal35cjovp7s" path="res://Assets/UI/ToolSelect_hover.png" id="4_0mtuu"]

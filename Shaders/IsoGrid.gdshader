@@ -43,17 +43,17 @@ float elliptical_distance(vec2 p1, vec2 p2){
 void fragment() {
 	vec2 coords = global_coords.xy * grid_scale * 0.01;
 	coords.y += elevation * 0.01;
-	
+
 	float dist_to_mouse = elliptical_distance(global_coords, mouse_position);
 	float mouse_factor = smoothstep(mouse_influence_radius, 0.0, dist_to_mouse);
-	
+
 	float alos = small_los(a_grid(coords));
 	float blos = small_los(b_grid(coords));
 
 	float small_grid = min(alos, blos);
-	
+
 	float zoom_factor = smoothstep(zoom_fade_end, zoom_fade_start, zoom);
 	float final_small = mix(min_grid_alpha, 1.0, mouse_factor) * small_grid * zoom_factor;
-	
+
 	COLOR = vec4(pow(final_small, 1.0 / line_intensity));
 }

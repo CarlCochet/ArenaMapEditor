@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://b4nf4nw6chsmc"]
 
-[ext_resource type="Script" path="res://Scripts/AssetsPreview.cs" id="1_11bbo"]
+[ext_resource type="Script" uid="uid://toa7iauhnlnc" path="res://Scripts/AssetsPreview.cs" id="1_11bbo"]
 [ext_resource type="PackedScene" uid="uid://bogtigjjsearp" path="res://Scenes/PreviewComponent.tscn" id="2_7i1jo"]
 
 [node name="AssetsPreview" type="Control" node_paths=PackedStringArray("_container")]
