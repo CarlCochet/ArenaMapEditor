@@ -21,6 +21,7 @@ public partial class Map : Node2D
     private List<Tile> _tiles = [];
     private Color _highlightColor = new(0, 255, 0);
     private ShaderMaterial _gridMaterial;
+    private MapData _mapData;
     
     public event EventHandler<TileSelectedEventArgs> TileSelected;
 
@@ -53,31 +54,30 @@ public partial class Map : Node2D
         
     }
 
-    public void Load(MapData mapData)
+    public void UpdateDisplay(Enums.Mode mode)
     {
-        _tiles.Clear();
-        SelectedTiles.Clear();
-        
-        var children = _assetContainer.GetChildren();
-        foreach (var child in children)
+        switch (mode)
         {
-            child.QueueFree();
+            case Enums.Mode.Gfx:
+            case Enums.Mode.GfxPresent:
+                DisplayGfx();
+                break;
+            case Enums.Mode.Topology:
+                DisplayTopology();
+                break;
+            case Enums.Mode.Light:
+                DisplayLight();
+                break;
+            case Enums.Mode.Fight:
+                DisplayFight();
+                break;
         }
-        
-        var sortedElements = mapData.Gfx.Partitions
-            .SelectMany(p => p.Elements)
-            .OrderBy(t => t.HashCode)
-            .ToList();
+    }
 
-        foreach (var element in sortedElements)
-        {
-            var tile = _tileScene.Instantiate<Tile>();
-            tile.SetData(element);
-            tile.PositionToIso(element.CellX, element.CellY, element.CellZ, element.Height, element.CommonData.OriginX, element.CommonData.OriginY);
-            tile.FlipH = element.CommonData.Flip;
-            _assetContainer.AddChild(tile);
-            _tiles.Add(tile);
-        }
+    public void Load(MapData mapData, Enums.Mode mode)
+    {
+        _mapData = mapData;
+        UpdateDisplay(mode);
     }
 
     public void HighlightTiles(Vector2 position)
@@ -127,5 +127,65 @@ public partial class Map : Node2D
     private void _OnZoomUpdated(object sender, Camera.ZoomUpdatedEventArgs e)
     {
         _gridMaterial.SetShaderParameter("zoom", e.Zoom);
+    }
+
+    private void DisplayGfx()
+    {
+        _tiles.Clear();
+        SelectedTiles.Clear();
+        _assetContainer.QueueFree();
+        _assetContainer = new Node2D();
+        AddChild(_assetContainer);
+
+        var sortedElements = _mapData.Gfx.Partitions
+            .SelectMany(p => p.Elements)
+            .OrderBy(t => t.HashCode)
+            .ToList();
+
+        foreach (var element in sortedElements)
+        {
+            var tile = _tileScene.Instantiate<Tile>();
+            tile.SetData(element);
+            tile.PositionToIso(element.CellX, element.CellY, element.CellZ, element.Height, element.CommonData.OriginX, element.CommonData.OriginY);
+            tile.FlipH = element.CommonData.Flip;
+            _assetContainer.AddChild(tile);
+            _tiles.Add(tile);
+        }
+    }
+
+    private void DisplayTopology()
+    {
+        _tiles.Clear();
+        SelectedTiles.Clear();
+        
+        var children = _assetContainer.GetChildren();
+        foreach (var child in children)
+        {
+            child.QueueFree();
+        }
+    }
+
+    private void DisplayLight()
+    {
+        _tiles.Clear();
+        SelectedTiles.Clear();
+        
+        var children = _assetContainer.GetChildren();
+        foreach (var child in children)
+        {
+            child.QueueFree();
+        }
+    }
+
+    private void DisplayFight()
+    {
+        _tiles.Clear();
+        SelectedTiles.Clear();
+        
+        var children = _assetContainer.GetChildren();
+        foreach (var child in children)
+        {
+            child.QueueFree();
+        }
     }
 }
