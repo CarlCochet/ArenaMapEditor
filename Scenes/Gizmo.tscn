@@ -1,13 +1,12 @@
 [gd_scene load_steps=5 format=3 uid="uid://7w02tr37xxmq"]
 
-[ext_resource type="Script" uid="uid://cu7y3xi8pj5qh" path="res://Scripts/Gizmo.cs" id="1_2a1i4"]
+[ext_resource type="Script" path="res://Scripts/Gizmo.cs" id="1_2a1i4"]
 [ext_resource type="Texture2D" uid="uid://dmfevkoydqo16" path="res://Assets/UI/gizmo.png" id="1_klo48"]
 [ext_resource type="Texture2D" uid="uid://k6elf288hp35" path="res://Assets/UI/gizmo_pressed.png" id="2_ui037"]
 [ext_resource type="Texture2D" uid="uid://b4ur2l47aauas" path="res://Assets/UI/gizmo_hover.png" id="3_0cdhl"]
 
 [node name="Gizmo" type="Control" node_paths=PackedStringArray("_xButton", "_yButton", "_zButton")]
 layout_mode = 3
-anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_right = -1275.0

@@ -25,10 +25,7 @@ public partial class Editor : Node2D
 		GlobalData.Instance.LoadAssets();
 		GlobalData.Instance.LoadSettings();
 		
-		_assetsPreview.DisplayAssets(_filter.Biome, _filter.Category, _filter.Mode);
-
-		_filter.FilterUpdated += _OnFilterUpdated;
-		_filter.ModeUpdated += _OnModeUpdated;
+		_assetsPreview.DisplayAssets(Enums.Biome.Global, Enums.Category.Global, Enums.Mode.Gfx);
 		
 		_tools.MapSelected += _OnMapSelected;
 		_tools.LocateArenaPressed += _OnLocateArenaPressed;
@@ -39,7 +36,7 @@ public partial class Editor : Node2D
 		_overlay.CenterPressed += _OnCenterPressed;
 		_overlay.HeightChangePressed += _OnHeightChangePressed;
 		_overlay.HighlightHeightPressed += _OnHighlightHeightPressed;
-		
+
 		_map.TileSelected += _OnTileSelected;
 		if (GlobalData.Instance.Settings != null)
 			_OnDirectorySelected(GlobalData.Instance.Settings.ArenaPath);
@@ -63,15 +60,7 @@ public partial class Editor : Node2D
 		}
 	}
 
-	private void _OnFilterUpdated(object sender, EventArgs e)
-	{
-		_assetsPreview.DisplayAssets(_filter.Biome, _filter.Category, _filter.Mode);
-	}
 	
-	private void _OnModeUpdated(object sender, EventArgs e)
-	{
-		_map.UpdateDisplay(_filter.Mode);
-	}
 	
 	private void _OnTileSelected(object sender, Map.TileSelectedEventArgs e)
 	{
@@ -144,7 +133,7 @@ public partial class Editor : Node2D
 	{
 		var mapData = new MapData(eventArgs.MapName);
 		mapData.Load(_contentPath);
-		_map.Load(mapData, _filter.Mode);
+		_map.Load(mapData);
 	}
 
 	private void _OnDirectorySelected(string dir)

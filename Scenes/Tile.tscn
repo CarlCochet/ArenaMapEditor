@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://bnepr33hnfesr"]
 
-[ext_resource type="Script" uid="uid://3pgpbo7x12a" path="res://Scripts/Tile.cs" id="1_bn515"]
+[ext_resource type="Script" path="res://Scripts/Tile.cs" id="1_bn515"]
 
 [node name="Tile" type="Sprite2D"]
 centered = false

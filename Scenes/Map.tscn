@@ -1,14 +1,14 @@
 [gd_scene load_steps=7 format=3 uid="uid://5k8sgg41ctpm"]
 
-[ext_resource type="Script" uid="uid://duaejtgfjkhg0" path="res://Scripts/Map.cs" id="1_h4evd"]
+[ext_resource type="Script" path="res://Scripts/Map.cs" id="1_h4evd"]
 [ext_resource type="PackedScene" uid="uid://bnepr33hnfesr" path="res://Scenes/Tile.tscn" id="2_d05hl"]
 [ext_resource type="Texture2D" uid="uid://b3pfja02ihinv" path="res://Assets/Misc/blackBackground.png" id="2_ftqb4"]
-[ext_resource type="Script" uid="uid://c7itjtlgr186f" path="res://Scripts/Camera.cs" id="2_iuwis"]
-[ext_resource type="Shader" uid="uid://rsuwg3umwqk8" path="res://Shaders/IsoGrid.gdshader" id="5_blgyc"]
+[ext_resource type="Script" path="res://Scripts/Camera.cs" id="2_iuwis"]
+[ext_resource type="Shader" path="res://Shaders/IsoGrid.gdshader" id="5_blgyc"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_wj3mp"]
 shader = ExtResource("5_blgyc")
-shader_parameter/mouse_position = Vector2(0, 0)
+shader_parameter/mouse_position = null
 shader_parameter/zoom = 1.0
 shader_parameter/line_intensity = 5.0
 shader_parameter/border_size = 0.468
