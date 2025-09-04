@@ -60,8 +60,8 @@ public class ExtendedDataInputStream
         if (n <= 0)
             return 0;
 
-        int remaining = Available();
-        int toSkip = Math.Min(remaining, n);
+        var remaining = Available();
+        var toSkip = Math.Min(remaining, n);
         _position += toSkip;
         return toSkip;
     }
@@ -73,10 +73,10 @@ public class ExtendedDataInputStream
 
     public int ReadBytes(sbyte[] buffer, int offset, int size)
     {
-        int available = Available();
-        int toRead = Math.Min(available, Math.Min(buffer.Length - offset, size));
+        var available = Available();
+        var toRead = Math.Min(available, Math.Min(buffer.Length - offset, size));
         
-        for (int i = 0; i < toRead; i++)
+        for (var i = 0; i < toRead; i++)
         {
             buffer[offset + i] = (sbyte)_buffer[_position + i];
         }
@@ -87,10 +87,10 @@ public class ExtendedDataInputStream
 
     public int ReadBytes(sbyte[] buffer)
     {
-        int available = Available();
-        int toRead = Math.Min(available, buffer.Length);
+        var available = Available();
+        var toRead = Math.Min(available, buffer.Length);
         
-        for (int i = 0; i < toRead; i++)
+        for (var i = 0; i < toRead; i++)
         {
             buffer[i] = (sbyte)_buffer[_position + i];
         }
@@ -105,7 +105,7 @@ public class ExtendedDataInputStream
             throw new EndOfStreamException("Not enough data in buffer");
 
         var result = new sbyte[length];
-        for (int i = 0; i < length; i++)
+        for (var i = 0; i < length; i++)
         {
             result[i] = (sbyte)_buffer[_position + i];
         }
@@ -119,7 +119,7 @@ public class ExtendedDataInputStream
         if (_position + 4 > _buffer.Length)
             throw new EndOfStreamException("Not enough data for float");
 
-        byte[] bytes = new byte[4];
+        var bytes = new byte[4];
         Array.Copy(_buffer, _position, bytes, 0, 4);
         
         if (_littleEndian != BitConverter.IsLittleEndian)
@@ -134,7 +134,7 @@ public class ExtendedDataInputStream
         if (_position + 2 > _buffer.Length)
             throw new EndOfStreamException("Not enough data for short");
 
-        byte[] bytes = new byte[2];
+        var bytes = new byte[2];
         Array.Copy(_buffer, _position, bytes, 0, 2);
         
         if (_littleEndian != BitConverter.IsLittleEndian)
@@ -154,7 +154,7 @@ public class ExtendedDataInputStream
         if (_position + 4 > _buffer.Length)
             throw new EndOfStreamException("Not enough data for int");
 
-        byte[] bytes = new byte[4];
+        var bytes = new byte[4];
         Array.Copy(_buffer, _position, bytes, 0, 4);
         
         if (_littleEndian != BitConverter.IsLittleEndian)
@@ -174,7 +174,7 @@ public class ExtendedDataInputStream
         if (_position + 8 > _buffer.Length)
             throw new EndOfStreamException("Not enough data for long");
 
-        byte[] bytes = new byte[8];
+        var bytes = new byte[8];
         Array.Copy(_buffer, _position, bytes, 0, 8);
         
         if (_littleEndian != BitConverter.IsLittleEndian)
@@ -199,7 +199,7 @@ public class ExtendedDataInputStream
 
     public bool ReadBooleanBit()
     {
-        int currentPosition = _position;
+        var currentPosition = _position;
         
         if (currentPosition == _lastBooleanBitFieldPosition && _lastBooleanBitFieldIndex <= 6)
         {
@@ -218,8 +218,8 @@ public class ExtendedDataInputStream
 
     public string ReadString()
     {
-        int startPosition = _position;
-        int endPosition = startPosition;
+        var startPosition = _position;
+        var endPosition = startPosition;
         
         // Find null terminator
         while (endPosition < _buffer.Length && _buffer[endPosition] != 0)
@@ -230,11 +230,11 @@ public class ExtendedDataInputStream
         if (endPosition >= _buffer.Length)
             throw new EndOfStreamException("Unable to find a valid null terminated UTF-8 string end.");
             
-        int length = endPosition - startPosition;
+        var length = endPosition - startPosition;
         
         if (length > 0)
         {
-            byte[] stringBytes = new byte[length];
+            var stringBytes = new byte[length];
             Array.Copy(_buffer, _position, stringBytes, 0, length);
             _position = endPosition + 1; // Skip null terminator
             return Encoding.UTF8.GetString(stringBytes);

@@ -1,12 +1,26 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Threading;
+using System.Transactions;
 
 public class TopologyData
 {
+    public const sbyte VersionMask = -16;
+    public const sbyte MethodMask = 15;
+    public const int VersionNumberPosition = 4;
+    public const int MethodNumberPosition = 0;
+    public const sbyte MethodA = 0;
+    public const sbyte MethodB = 1;
+    public const sbyte MethodBi = 2;
+    public const sbyte MethodC = 3;
+    public const sbyte MethodCi = 4;
+    public const sbyte MethodDi = 5;
+    
     public int Id { get; set; }
     public List<Partition> Partitions { get; set; } = [];
     public Dictionary<long, Partition> PartitionsMap { get; set; } = [];
@@ -38,16 +52,17 @@ public class TopologyData
             using var stream = entry.Open();
             var reader = new ExtendedDataInputStream(stream);
             var header = reader.ReadByte();
-            var topologyType = (byte)((header & 15) >> 0);
+            var version = (sbyte)((header & VersionMask) >> VersionNumberPosition);
+            var topologyMethod = (sbyte)((header & MethodMask) >> MethodNumberPosition);
 
-            Partition partition = topologyType switch
+            Partition partition = topologyMethod switch
             {
-                0 => new TopologyMapA(Id),
-                1 => new TopologyMapB(Id),
-                2 => new TopologyMapBi(Id),
-                3 => new TopologyMapM3(Id),
-                5 => new TopologyMapM5(Id),
-                6 => new TopologyMapM6(Id),
+                MethodA => new TopologyMapA(),
+                MethodB => new TopologyMapB(),
+                MethodBi => new TopologyMapBi(),
+                MethodC => new TopologyMapC(),
+                MethodCi => new TopologyMapCi(),
+                MethodDi => new TopologyMapDi(),
                 _ => null
             };
             if (partition == null)
@@ -73,14 +88,15 @@ public class TopologyData
                (long)(instanceId & 65535);
     }
 
-    public abstract class Partition(int id)
+    public abstract class Partition
     {
-        public int Id { get; set; } = id;
+        public const int MaxZPerCells = 32;
+        public const sbyte InfiniteCost = -1;
+        public const sbyte DefaultCost = 7;
+            
         public int X { get; set; }
         public int Y { get; set; }
         public short Z { get; set; }
-        
-        protected const int ChunkSize = 18;
         
         public abstract int GetPathData(int x, int y, CellPathData[] cellPathData, int index);
         
@@ -88,8 +104,8 @@ public class TopologyData
 
         public virtual void Load(ExtendedDataInputStream reader)
         {
-            X = reader.ReadShort() * ChunkSize;
-            Y = reader.ReadShort() * ChunkSize;
+            X = reader.ReadShort() * MapConstants.MapWidth;
+            Y = reader.ReadShort() * MapConstants.MapLength;
             Z = reader.ReadShort();
         }
 
@@ -100,7 +116,7 @@ public class TopologyData
 
         public bool IsInMap(int x, int y)
         {
-            return x >= X && x < X + ChunkSize && y >= Y && y < Y + ChunkSize;
+            return x >= X && x < X + MapConstants.MapWidth && y >= Y && y < Y + MapConstants.MapLength;
         }
 
         public bool CheckPathData(int x, int y, CellPathData[] cellPathData)
@@ -126,14 +142,43 @@ public class TopologyData
         }
     }
 
-    public class TopologyMapA(int id) : Partition(id)
+    public abstract class TopologyMapBlockedCells : Partition
+    {
+        private readonly sbyte[] _blockedCells = new sbyte[ByteArrayBitSet.GetDataLength(MapConstants.NumCells)];
+        
+        public override void Load(ExtendedDataInputStream reader)
+        {
+            base.Load(reader);
+            
+            reader.ReadBytes(_blockedCells);
+        }
+        
+        public void FillBlockedCells(ByteArrayBitSet bitSet)
+        {
+            Array.Copy(_blockedCells, 0, bitSet.GetByteArray(), 0, _blockedCells.Length);
+        }
+
+        public bool IsCellBlocked(int x, int y)
+        {
+            return ByteArrayBitSet.Get(_blockedCells, (y - Y) * MapConstants.MapWidth + x - X);
+        }
+        
+        
+    }
+
+    public class TopologyMapA : Partition
     {
         private sbyte Cost { get; set; }
+        private sbyte MurFin { get; set; }
+        private sbyte Property { get; set; }
 
         public override void Load(ExtendedDataInputStream reader)
         {
             base.Load(reader);
+            
             Cost = reader.ReadByte();
+            MurFin = reader.ReadByte();
+            Property = reader.ReadByte();
         }
 
         public override void Save(BinaryWriter writer)
@@ -151,9 +196,10 @@ public class TopologyData
             pathData.Y = y;
             pathData.Z = Z;
             pathData.Cost = Cost;
-            pathData.IsHollow = false;
+            pathData.CanMoveThrough = false;
             pathData.Height = 0;
-            pathData.MurFinInfo = 0;
+            pathData.MurFinInfo = MurFin;
+            pathData.MiscProperties = Property;
             return 1;
         }
 
@@ -166,40 +212,37 @@ public class TopologyData
             visibilityData.X = x;
             visibilityData.Y = y;
             visibilityData.Z = Z;
-            visibilityData.IsHollow = false;
+            visibilityData.CanViewThrough = false;
             visibilityData.Height = 0;
             return 1;
         }
+
+        public void FillBlockedCells(ByteArrayBitSet bitSet)
+        {
+            bitSet.SetAll(Cost == InfiniteCost);
+        }
+
+        public bool IsCellBlocked(int x, int y)
+        {
+            return Cost == InfiniteCost;
+        }
     }
 
-    public class TopologyMapB(int id) : Partition(id)
+    public class TopologyMapB : TopologyMapBlockedCells
     {
-        private const byte NumZValues = 8;
-        private const byte NumCosts = 2;
-        
-        public short[] Properties { get; set; } = new short[NumZValues];
-        public sbyte[] Costs { get; set; } = new sbyte[NumCosts];
-        public sbyte[] Cells { get; set; } = new sbyte[MapConstants.NumCells / 2];
-
-        
+        public sbyte[] Costs { get; set; } = new sbyte[MapConstants.NumCells];
+        public sbyte[] MurFins { get; set; } = new sbyte[MapConstants.NumCells];
+        public sbyte[] Properties { get; set; } = new sbyte[MapConstants.NumCells];
         
         public override void Load(ExtendedDataInputStream reader)
         {
             base.Load(reader);
-
-            for (var i = 0; i < Properties.Length; i++)
-            {
-                Properties[i] = (short)(reader.ReadShort() + Z);
-            }
-
-            for (var i = 0; i < Costs.Length; i++)
+            
+            for (var i = 0; i < MapConstants.NumCells; ++i)
             {
                 Costs[i] = reader.ReadByte();
-            }
-
-            for (var i = 0; i < Cells.Length; i++)
-            {
-                Cells[i] = reader.ReadByte();
+                MurFins[i] = reader.ReadByte();
+                Properties[i] = reader.ReadByte();
             }
         }
         
@@ -216,23 +259,14 @@ public class TopologyData
             var pathData = cellPathData[index];
             pathData.X = x;
             pathData.Y = y;
-            pathData.IsHollow = false;
+            pathData.Z = Z;
+            pathData.CanMoveThrough = false;
             pathData.Height = 0;
 
-            var xDiff = x - X;
-            var yDiff = y - Y;
-            var index2 = yDiff * ChunkSize + xDiff;
-            var cell = (byte)((index2 & 1) != 0 ?
-                Cells[index2 >>> 1] & 255 & 15 :
-                (Cells[index2 >>> 1] & 255) >>> 4 & 15);
-            
-            pathData.Cost = Costs[cell & 1];
-
-            if (cell >>> 1 >= NumZValues)
-                return 0;
-
-            pathData.Z = Properties[cell >>> 1];
-            pathData.MurFinInfo = 0;
+            var cellIndex = GetIndex(x, y);
+            pathData.Cost = Costs[cellIndex];
+            pathData.MurFinInfo = MurFins[cellIndex];
+            pathData.MiscProperties = Properties[cellIndex];
             return 1;
         }
 
@@ -244,22 +278,21 @@ public class TopologyData
             var visibilityData = cellVisibilityData[index];
             visibilityData.X = x;
             visibilityData.Y = y;
-            visibilityData.IsHollow = false;
+            visibilityData.Z = Z;
+            visibilityData.CanViewThrough = false;
             visibilityData.Height = 0;
-
-            var xDiff = x - X;
-            var yDiff = y - Y;
-            var index2 = yDiff * ChunkSize + xDiff;
-            var cell = (byte)((index2 & 1) != 0 ?
-                Cells[index2 >>> 1] & 255 & 15 :
-                (Cells[index2 >>> 1] & 255) >>> 4 & 15);
-            
-            visibilityData.Z = Properties[cell >>> 1];
             return 1;
+        }
+
+        private int GetIndex(int x, int y)
+        {
+            var xIndex = x - X;
+            var yIndex = y - Y;
+            return yIndex * MapConstants.MapWidth + xIndex;
         }
     }
 
-    public class TopologyMapBi(int id) : Partition(id)
+    public class TopologyMapBi : TopologyMapBlockedCells
     {
         private const int ZPosition = 0;
         private const byte CostMask = 48;
@@ -267,28 +300,29 @@ public class TopologyData
         private const byte NumZValues = 16;
         private const byte NumCosts = 4;
         
-        public short[] Properties { get; set; } = new short[NumZValues];
-        public sbyte[] Costs { get; set; } = new sbyte[NumCosts];
-        public sbyte[] MurFins { get; set; } = new sbyte[MapConstants.NumCells];
+        public sbyte[] Costs { get; set; }
+        public sbyte[] MurFins { get; set; }
+        public sbyte[] Properties { get; set; }
+        public int[] Cells { get; set; }
         
         public override void Load(ExtendedDataInputStream reader)
         {
             base.Load(reader);
 
-            for (var i = 0; i < Properties.Length; i++)
-            {
-                Properties[i] = (short)(reader.ReadShort() + Z);
-            }
+            var indexSize = reader.ReadByte();
+            Costs = new sbyte[indexSize];
+            MurFins = new sbyte[indexSize];
+            Properties = new sbyte[indexSize];
 
-            for (var i = 0; i < Costs.Length; i++)
+            for (var i = 0; i < indexSize; ++i)
             {
                 Costs[i] = reader.ReadByte();
-            }
-
-            for (var i = 0; i < MurFins.Length; i++)
-            {
                 MurFins[i] = reader.ReadByte();
+                Properties[i] = reader.ReadByte();
             }
+            
+            var cellSize = reader.ReadByte() & 0xFF;
+            Cells = TopologyIndexerHelper.CreateFor(Cells, cellSize, reader);
         }
         
         public override void Save(BinaryWriter writer)
@@ -304,17 +338,14 @@ public class TopologyData
             var pathData = cellPathData[index];
             pathData.X = x;
             pathData.Y = y;
-            pathData.IsHollow = false;
+            pathData.Z = Z;
+            pathData.CanMoveThrough = false;
             pathData.Height = 0;
 
-            var xDiff = x - X;
-            var yDiff = y - Y;
-            var index2 = yDiff * ChunkSize + xDiff;
-            var murFin = MurFins[index2];
-            
-            pathData.Z = Properties[(murFin & ZMask) >>> ZPosition];
-            pathData.Cost = Costs[(murFin & CostMask) >>> NumCosts];
-            pathData.MurFinInfo = 0;
+            var tab = GetIndex(x, y);
+            pathData.Cost = Costs[tab];
+            pathData.MurFinInfo = MurFins[tab];
+            pathData.MiscProperties = Properties[tab];
             return 1;
         }
 
@@ -326,132 +357,132 @@ public class TopologyData
             var visibilityData = cellVisibilityData[index];
             visibilityData.X = x;
             visibilityData.Y = y;
-            visibilityData.IsHollow = false;
+            visibilityData.Z = Z;
+            visibilityData.CanViewThrough = false;
             visibilityData.Height = 0;
-
-            var xDiff = x - X;
-            var yDiff = y - Y;
-            var index2 = yDiff * ChunkSize + xDiff;
-            var murFin = MurFins[index2];
-            
-            visibilityData.Z = Properties[(murFin & ZMask) >>> ZPosition];
             return 1;
+        }
+
+        private int GetIndex(int x, int y)
+        {
+            var xIndex = x - X;
+            var yIndex = y - Y;
+            var cellIndex = yIndex * MapConstants.MapWidth + xIndex;
+            return TopologyIndexerHelper.GetIndex(Cells, cellIndex, Costs.Length);
         }
     }
 
-    public class TopologyMapM3(int id) : Partition(id)
+    public class TopologyMapC : TopologyMapBlockedCells
     {
-        private const short CostMask = -4096;
-        private const short ViewMask = 2048;
-        private const short MoveMask = 1024;
-        private const short ZMask = 1023;
-        private const int CostPosition = 12;
-        private const int VisibilityPosition = 11;
-        private const int MovePosition = 10;
-        private const int ZPosition = 0;
-        private const short ZShift = 512;
-        private const short ZMin = -32768;
+        public const sbyte MovMask = 0x01;
+        public const sbyte LosMask = 0x02;
         
-        public short[] Cells { get; set; } = new short[MapConstants.NumCells];
+        public sbyte[] Costs { get; set; } = new sbyte[MapConstants.NumCells];
+        public sbyte[] MurFins { get; set; } = new sbyte[MapConstants.NumCells];
+        public sbyte[] Properties { get; set; } = new sbyte[MapConstants.NumCells];
+        public short[] Zs { get; set; } = new short[MapConstants.NumCells];
+        public sbyte[] Heights { get; set; } = new sbyte[MapConstants.NumCells];
+        public sbyte[] MovLos { get; set; } = new sbyte[MapConstants.NumCells];
         
         public override void Load(ExtendedDataInputStream reader)
         {
             base.Load(reader);
 
-            for (var i = 0; i < Cells.Length; i++)
+            for (var i = 0; i < MapConstants.NumCells; ++i)
             {
-                Cells[i] = reader.ReadByte();
-            }
-        }
-        
-        public override void Save(BinaryWriter writer)
-        {
-            
-        }
-
-        public override int GetPathData(int x, int y, CellPathData[] cellPathData, int index)
-        {
-            if (!CheckPathData(x, y, cellPathData))
-                return 0;
-            
-            var pathData = cellPathData[index];
-            pathData.X = x;
-            pathData.Y = y;
-            pathData.IsHollow = false;
-            pathData.Height = 0;
-
-            var xDiff = x - X;
-            var yDiff = y - Y;
-            var index2 = yDiff * ChunkSize + xDiff;
-            var cell = Cells[index2];
-            
-            pathData.Cost = (sbyte)((cell & CostMask) >>> CostPosition);
-            var zOffset = (cell & ZMask) >>> ZPosition;
-            pathData.Z = (short)(zOffset != 0 ? Z - ZShift + zOffset : ZMin);
-            pathData.MurFinInfo = 0;
-            return 1;
-        }
-
-        public override int GetVisibilityData(int x, int y, CellVisibilityData[] cellVisibilityData, int index)
-        {
-            if (!CheckVisibilityData(x, y, cellVisibilityData))
-                return 0;
-            
-            var visibilityData = cellVisibilityData[index];
-            visibilityData.X = x;
-            visibilityData.Y = y;
-            visibilityData.IsHollow = false;
-            visibilityData.Height = 0;
-
-            var xDiff = x - X;
-            var yDiff = y - Y;
-            var index2 = yDiff * ChunkSize + xDiff;
-            var cell = Cells[index2];
-
-            visibilityData.Z = (short)(Z - ZShift + ((cell & ZMask) >>> ZPosition));
-            return 1;
-        }
-    }
-
-    public class TopologyMapM5(int id) : Partition(id)
-    {
-        private const int HeightMask = -67108864;
-        private const int CostMask = 62914560;
-        private const int ViewMask = 2097152;
-        private const int MoveMask = 1048576;
-        private const int ZMask = 1047552;
-        private const int YMask = 992;
-        private const int XMask = 31;
-        private const int HeightPosition = 26;
-        private const int CostPosition = 22;
-        private const int ViewPosition = 21;
-        private const int MovePosition = 20;
-        private const int ZPosition = 10;
-        private const int YPosition = 5;
-        private const int XPosition = 0;
-        private const short ZShift = 512;
-        private const byte NumHeights = 64;
-        private const short ZMin = -32768;
-        
-        public sbyte[] Heights { get; set; } = new sbyte[NumHeights];
-        public int[] Cells { get; set; }
-        
-        public override void Load(ExtendedDataInputStream reader)
-        {
-            base.Load(reader);
-
-            for (var i = 0; i < Heights.Length; i++)
-            {
+                Costs[i] = reader.ReadByte();
+                MurFins[i] = reader.ReadByte();
+                Properties[i] = reader.ReadByte();
+                Zs[i] = reader.ReadShort();
                 Heights[i] = reader.ReadByte();
+                MovLos[i] = reader.ReadByte();
             }
+        }
+        
+        public override void Save(BinaryWriter writer)
+        {
             
-            var cellCount = reader.ReadShort();
-            Cells = new int[cellCount];
+        }
+
+        public override int GetPathData(int x, int y, CellPathData[] cellPathData, int index)
+        {
+            if (!CheckPathData(x, y, cellPathData))
+                return 0;
             
-            for (var i = 0; i < Cells.Length; i++)
+            var pathData = cellPathData[index];
+            pathData.X = x;
+            pathData.Y = y;
+            
+            var cellIndex = GetIndex(x, y);
+            pathData.Z = Zs[cellIndex];
+            pathData.CanMoveThrough = (MovLos[cellIndex] & MovMask) == MovMask;
+            pathData.Height = Heights[cellIndex];
+            pathData.Cost = Costs[cellIndex];
+            pathData.MurFinInfo = MurFins[cellIndex];
+            pathData.MiscProperties = Properties[cellIndex];
+            return 1;
+        }
+
+        public override int GetVisibilityData(int x, int y, CellVisibilityData[] cellVisibilityData, int index)
+        {
+            if (!CheckVisibilityData(x, y, cellVisibilityData))
+                return 0;
+            
+            var visibilityData = cellVisibilityData[index];
+            visibilityData.X = x;
+            visibilityData.Y = y;
+            
+            var cellIndex = GetIndex(x, y);
+            visibilityData.Z = Zs[cellIndex];
+            visibilityData.CanViewThrough = (MovLos[cellIndex] & LosMask) == LosMask;
+            visibilityData.Height = Heights[cellIndex];
+            return 1;
+        }
+
+        private int GetIndex(int x, int y)
+        {
+            var xIndex = x - X;
+            var yIndex = y - Y;
+            return yIndex * MapConstants.MapWidth + xIndex;
+        }
+    }
+
+    public class TopologyMapCi : TopologyMapBlockedCells
+    {
+        public const sbyte MovMask = 0x01;
+        public const sbyte LosMask = 0x02;
+        
+        public sbyte[] Costs { get; set; }
+        public sbyte[] MurFins { get; set; }
+        public sbyte[] Properties { get; set; }
+        public short[] Zs { get; set; }
+        public sbyte[] Heights { get; set; }
+        public sbyte[] MovLos { get; set; }
+        public long[] Cells { get; set; }
+        
+        public override void Load(ExtendedDataInputStream reader)
+        {
+            base.Load(reader);
+
+            var indexSize = reader.ReadByte() & 0xFF;
+            Costs = new sbyte[indexSize];
+            MurFins = new sbyte[indexSize];
+            Properties = new sbyte[indexSize];
+            Zs = new short[indexSize];
+            Heights = new sbyte[indexSize];
+            MovLos = new sbyte[indexSize];
+            for (var i = 0; i < indexSize; ++i)
             {
-                Cells[i] = reader.ReadInt();
+                Costs[i] = reader.ReadByte();
+                MurFins[i] = reader.ReadByte();
+                Properties[i] = reader.ReadByte();
+                Zs[i] = reader.ReadShort();
+                Heights[i] = reader.ReadByte();
+                MovLos[i] = reader.ReadByte();
             }
+            
+            var cellSize = reader.ReadByte() & 0xFF;
+            Cells = TopologyIndexerHelper.CreateFor(Cells, cellSize, reader);
         }
         
         public override void Save(BinaryWriter writer)
@@ -464,328 +495,204 @@ public class TopologyData
             if (!CheckPathData(x, y, cellPathData))
                 return 0;
 
-            var (index1, index2) = ComputeIndices(x, y);
+            var pathData = cellPathData[index];
+            pathData.X = x;
+            pathData.Y = y;
+            
+            var tab = GetIndex(x, y);
+            pathData.Z = Zs[tab];
+            pathData.CanMoveThrough = (MovLos[tab] & MovMask) == MovMask;
+            pathData.Height = Heights[tab];
+            pathData.Cost = Costs[tab];
+            pathData.MurFinInfo = MurFins[tab];
+            pathData.MiscProperties = Properties[tab];
+            return 1;
+        }
 
-            if (index1 + index < cellPathData.Length)
+        public override int GetVisibilityData(int x, int y, CellVisibilityData[] cellVisibilityData, int index)
+        {
+            if (!CheckVisibilityData(x, y, cellVisibilityData))
                 return 0;
+            
+            var visibilityData = cellVisibilityData[index];
+            visibilityData.X = x;
+            visibilityData.Y = y;
+            
+            var tab = GetIndex(x, y);
+            visibilityData.Z = Zs[tab];
+            visibilityData.CanViewThrough = (MovLos[tab] & LosMask) == LosMask;
+            visibilityData.Height = Heights[tab];
+            return 1;
+        }
 
-            for (var index3 = 0; index3 < index1; index3++)
+        private int GetIndex(int x, int y)
+        {
+            var xIndex = x - X;
+            var yIndex = y - Y;
+            var cellIndex = yIndex * MapConstants.MapWidth + xIndex;
+            return TopologyIndexerHelper.GetIndex(Cells, cellIndex, Costs.Length);
+        }
+    }
+
+    public class TopologyMapDi : TopologyMapBlockedCells
+    {
+        private static List<int> _list = [];
+        private static readonly Lock Mutex = new();
+        
+        public const sbyte MovMask = 0x01;
+        public const sbyte LosMask = 0x02;
+        public const int IndexOffset = 1;
+        
+        public sbyte[] Costs { get; set; }
+        public sbyte[] MurFins { get; set; }
+        public sbyte[] Properties { get; set; }
+        public short[] Zs { get; set; }
+        public sbyte[] Heights { get; set; }
+        public sbyte[] MovLos { get; set; }
+        public long[] Cells { get; set; }
+        public int[] CellsWithMultiZ { get; set; }
+        
+        public override void Load(ExtendedDataInputStream reader)
+        {
+            base.Load(reader);
+            
+            var indexSize = reader.ReadByte() & 0xFF;
+            Costs = new sbyte[indexSize];
+            MurFins = new sbyte[indexSize];
+            Properties = new sbyte[indexSize];
+            Zs = new short[indexSize];
+            Heights = new sbyte[indexSize];
+            MovLos = new sbyte[indexSize];
+            for (var i = 0; i < indexSize; ++i)
             {
-                var cell = Cells[index2 + index3];
-                var pathData = cellPathData[index + index3];
-                var zOffset = (cell & ZMask) >>> ZPosition;
-                
+                Costs[i] = reader.ReadByte();
+                MurFins[i] = reader.ReadByte();
+                Properties[i] = reader.ReadByte();
+                Zs[i] = reader.ReadShort();
+                Heights[i] = reader.ReadByte();
+                MovLos[i] = reader.ReadByte();
+            }
+            
+            var cellCount = reader.ReadByte() & 0xFF;
+            Cells = TopologyIndexerHelper.CreateFor(Cells, cellCount, reader); 
+            
+            var remainsCount = reader.ReadShort() & 0xFFFF;
+            CellsWithMultiZ = new int[remainsCount];
+            for (var i = 0; i < remainsCount; ++i)
+            {
+                CellsWithMultiZ[i] = reader.ReadInt();
+            }
+        }
+        
+        public override void Save(BinaryWriter writer)
+        {
+            
+        }
+        
+        public override int GetPathData(int x, int y, CellPathData[] cellPathData, int index)
+        {
+            var cellIndex = GetIndex(x, y);
+            if (cellIndex != 0)
+            {
+                var pathData = cellPathData[index];
                 pathData.X = x;
                 pathData.Y = y;
-                pathData.Z = (short)(zOffset != 0 ? Z - ZShift + zOffset : ZMin);
-                pathData.Cost = (sbyte)((cell & CostMask) >>> CostPosition);
-                pathData.Cost = pathData.Cost == 15 ? unchecked((sbyte)-1) : pathData.Cost;
-                pathData.IsHollow = (cell & MoveMask) >>> MovePosition != 0;
-                pathData.Height = Heights[(cell & HeightMask) >>> HeightPosition];
-                pathData.MurFinInfo = 0;
+                FillPathData(pathData, cellIndex - IndexOffset);
+                return 1;
             }
-            
-            return index1;
-        }
 
-        public override int GetVisibilityData(int x, int y, CellVisibilityData[] cellVisibilityData, int index)
-        {
-            if (!CheckVisibilityData(x, y, cellVisibilityData))
-                return 0;
-            
-            var (index1, index2) = ComputeIndices(x, y);
-
-            if (index1 + index < cellVisibilityData.Length)
-                return 0;
-
-            for (var index3 = 0; index3 < index1; index3++)
+            using (Mutex.EnterScope())
             {
-                var cell = Cells[index2 + index3];
-                var visibilityData = cellVisibilityData[index + index3];
-                
-                visibilityData.X = x;
-                visibilityData.Y = y;
-                visibilityData.Z = (short)(Z - ZShift + ((cell & ZMask) >>> ZPosition));
-                visibilityData.Height = Heights[(cell & HeightMask) >>> HeightPosition];
-                visibilityData.IsHollow = (cell & ViewMask) >>> ViewPosition != 0;
-            }
-            
-            return index1;
-        }
-
-        private (int index1, int index2) ComputeIndices(int x, int y)
-        {
-            var xDiff = x - X;
-            var yDiff = y - Y;
-            
-            var index1 = 1;
-            var index2 = 0;
-            var index3 = Cells.Length - 1;
-            var index4 = -1;
-
-            do
-            {
-                var cellIndex = index3 + index2 >>> 1;
-                int cell, xTemp, yTemp;
-
-                if (index2 + 1 == index3)
+                var tab = GetMultiIndex(x - X, y - Y, _list);
+                var zCount = tab.Count;
+                for (var i = 0; i < zCount; ++i)
                 {
-                    cell = Cells[index2];
-                    yTemp = (cell & YMask) >>> YPosition;
-                    xTemp = (cell & XMask) >>> XPosition;
-                    index4 = xDiff == xTemp && yDiff == yTemp ? index2 : index3; 
-                    continue;
-                }
-                
-                cell = Cells[cellIndex];
-                yTemp = (cell & YMask) >>> YPosition;
-                xTemp = (cell & XMask) >>> XPosition;
-
-                if (yTemp > yDiff)
-                {
-                    index3 = cellIndex;
-                    continue;
-                }
-                if (yTemp < yDiff)
-                {
-                    index2 = cellIndex;
-                    continue;
-                }
-                if (xTemp > xDiff)
-                {
-                    index3 = cellIndex;
-                    continue;
-                }
-                if (xTemp < xDiff)
-                {
-                    index2 = cellIndex;
-                    continue;
-                }
-                index4 = cellIndex;
-            } 
-            while (index4 == -1);
-
-            for (index2 = index4; index2 - index1 >= 0; index1++)
-            {
-                var cell = Cells[index4 - index1];
-                var yTemp = (cell & YMask) >>> YPosition;
-                var xTemp = (cell & XMask) >>> XPosition;
-                
-                if (xTemp != xDiff || yTemp != yDiff)
-                    break;
-            }
-
-            for (index2 = index2 + 1 - index1; index4 + 1 < Cells.Length; index1++)
-            {
-                var cell = Cells[++index4];
-                var yTemp = (cell & YMask) >>> YPosition;
-                var xTemp = (cell & XMask) >>> XPosition;
-                
-                if (xTemp != xDiff || yTemp != yDiff)
-                    break;
-            }
-            
-            return (index1, index2);
-        }
-    }
-
-    public class TopologyMapM6(int id) : Partition(id)
-    {
-        private const int HeightMask = -16777216;
-        private const int CostMask = 15728640;
-        private const int ZMask = 1047552;
-        private const int YMask = 992;
-        private const int XMask = 31;
-        private const int HeightPosition = 24;
-        private const int CostPosition = 20;
-        private const int ZPosition = 10;
-        private const int YPosition = 5;
-        private const int XPosition = 0;
-        private const short ZShift = 512;
-        private const short ZMin = -32768;
-        
-        public int[] Cells { get; set; }
-        public sbyte[] MoveAndVisibilities { get; set; }
-        public sbyte[] MurFinInfo { get; set; }
-        
-        public override void Load(ExtendedDataInputStream reader)
-        {
-            base.Load(reader);
-            
-            var cellCount = reader.ReadShort();
-            Cells = new int[cellCount];
-            MoveAndVisibilities = new sbyte[cellCount + 1 >>> 1];
-            MurFinInfo = new sbyte[cellCount];
-            
-            for (var i = 0; i < Cells.Length; i++)
-            {
-                Cells[i] = reader.ReadInt();
-            }
-
-            for (var i = 0; i < MoveAndVisibilities.Length; i++)
-            {
-                MoveAndVisibilities[i] = reader.ReadByte();
-            }
-
-            for (var i = 0; i < MurFinInfo.Length; i++)
-            {
-                MurFinInfo[i] = reader.ReadByte();
-            }
-        }
-        
-        public override void Save(BinaryWriter writer)
-        {
-            
-        }
-        
-        public override int GetPathData(int x, int y, CellPathData[] cellPathData, int index)
-        {
-            var index1 = 1;
-            var index2 = 0;
-            var index3 = Cells.Length - 1;
-            
-            while (index3 != index2)
-            {
-                (index1, index2, index3, var index4) = ComputeIndices1(x, y, index1, index2, index3);
-
-                if (index4 == -1) 
-                    continue;
-                
-                (index1, index2) = ComputeIndices2(x, y, index1, index4);
-
-                for (var index5 = 0; index5 < index1; index5++)
-                {
-                    index4 = index2 + index5;
-                    var cell = Cells[index4];
-                    var pathData = cellPathData[index + index5];
-                    var zOffset = (cell & ZMask) >>> ZPosition;
-                    
+                    var pathData = cellPathData[index + i];
                     pathData.X = x;
                     pathData.Y = y;
-                    pathData.Z = (short)(zOffset != 0 ? Z - ZShift + zOffset : ZMin);
-                    pathData.Height = (sbyte)((cell & HeightMask) >>> HeightPosition);
-                    pathData.Cost = (sbyte)((cell & CostMask) >>> CostPosition);
-                    pathData.Cost = pathData.Cost == 15 ? unchecked((sbyte)-1) : pathData.Cost;
-                    pathData.IsHollow = (index4 & 1) == 0 ?
-                        (MoveAndVisibilities[index4 >>> 1] >>> 4 & 1) != 0 :
-                        (MoveAndVisibilities[index4 >>> 1] & 1) != 0;
-                    pathData.MurFinInfo = MurFinInfo[index4];
+                    FillPathData(pathData, tab[i]);
                 }
-
-                return index1;
+                return zCount;
             }
-            return 0;
         }
 
         public override int GetVisibilityData(int x, int y, CellVisibilityData[] cellVisibilityData, int index)
         {
-            var index1 = 1;
-            var index2 = 0;
-            var index3 = Cells.Length - 1;
-            
-            while (index3 != index2)
+            var cellIndex = GetIndex(x, y);
+            if (cellIndex != 0)
             {
-                (index1, index2, index3, var index4) = ComputeIndices1(x, y, index1, index2, index3);
+                var visibilityData = cellVisibilityData[index];
+                visibilityData.X = x;
+                visibilityData.Y = y;
+                FillVisibilityData(visibilityData, cellIndex - IndexOffset);
+                return 1;
+            }
 
-                if (index4 == -1) 
-                    continue;
-                
-                (index1, index2) = ComputeIndices2(x, y, index1, index4);
-
-                for (var index5 = 0; index5 < index1; index5++)
+            using (Mutex.EnterScope())
+            {
+                var tab = GetMultiIndex(x - X, y - Y, _list);
+                var zCount = tab.Count;
+                for (var i = 0; i < zCount; ++i)
                 {
-                    index4 = index2 + index5;
-                    var cell = Cells[index4];
-                    var visibilityData = cellVisibilityData[index + index5];
-
+                    var visibilityData = cellVisibilityData[index + i];
                     visibilityData.X = x;
                     visibilityData.Y = y;
-                    visibilityData.Z = (short)(Z - ZShift + (cell & ZMask) >>> ZPosition);
-                    visibilityData.Height = (sbyte)((cell & HeightMask) >>> HeightPosition);
-                    visibilityData.IsHollow = (index4 & 1) == 0 ?
-                        (MoveAndVisibilities[index4 >>> 1] >>> 4 & 2) != 0 :
-                        (MoveAndVisibilities[index4 >>> 1] & 2) != 0;
+                    FillVisibilityData(visibilityData, tab[i]);
                 }
-
-                return index1;
+                return zCount;
             }
-            return 0;
+        }
+        
+        private int GetIndex(int x, int y)
+        {
+            var xIndex = x - X;
+            var yIndex = y - Y;
+            var cellIndex = yIndex * MapConstants.MapWidth + xIndex;
+            return TopologyIndexerHelper.GetIndex(Cells, cellIndex, Costs.Length);
         }
 
-        private (int index1, int index2, int index3, int index4) ComputeIndices1(int x, int y, int index1, int index2, int index3)
+        private List<int> GetMultiIndex(int x, int y, List<int> list)
         {
-            var index4 = -1;
-            var xDiff = x - X;
-            var yDiff = y - Y;
-            
-            var cellIndex = index3 + index2 >>> 1;
-            int cell, xTemp, yTemp;
+            list.Clear();
+            var multiCount = CellsWithMultiZ.Length;
 
-            if (index2 + 1 == index3)
+            for (var i = 0; i < multiCount; ++i)
             {
-                cell = Cells[index2];
-                yTemp = (cell & YMask) >>> YPosition;
-                xTemp = (cell & XMask) >>> XPosition;
-                index4 = xDiff == xTemp && yDiff == yTemp ? index2 : index3; 
-                return (index1, index2, index3, index4);
-            }
+                var cellData = CellsWithMultiZ[i];
+                var cy = (cellData >> 8) & 0xFF;
+                if (cy < y)
+                    continue;
+                if (cy > y)
+                    break;
                 
-            cell = Cells[cellIndex];
-            yTemp = (cell & YMask) >>> YPosition;
-            xTemp = (cell & XMask) >>> XPosition;
-
-            if (yTemp > yDiff)
-            {
-                index3 = cellIndex;
-                return (index1, index2, index3, index4);
+                var cx = cellData & 0xFF;
+                if (cx < x)
+                    continue;
+                if (cx > x)
+                    break;
+                
+                var index = (cellData >> 16) & 0xFFFF;
+                list.Add(index);
             }
-            if (yTemp < yDiff)
-            {
-                index2 = cellIndex;
-                return (index1, index2, index3, index4);
-            }
-            if (xTemp > xDiff)
-            {
-                index3 = cellIndex;
-                return (index1, index2, index3, index4);
-            }
-            if (xTemp < xDiff)
-            {
-                index2 = cellIndex;
-                return (index1, index2, index3, index4);
-            }
-            index4 = cellIndex;
             
-            return (index1, index2, index3, index4);
+            return list;
         }
 
-        private (int index1, int index2) ComputeIndices2(int x, int y, int index1, int index4)
+        private void FillPathData(CellPathData data, int cellIndex)
         {
-            var xDiff = x - X;
-            var yDiff = y - Y;
-            int index2;
-            
-            for (index2 = index4; index2 - index1 >= 0; index1++)
-            {
-                var cell = Cells[index4 - index1];
-                var yTemp = (cell & YMask) >>> YPosition;
-                var xTemp = (cell & XMask) >>> XPosition;
-                    
-                if (xTemp != xDiff || yTemp != yDiff)
-                    break;
-            }
-
-            for (index2 = index2 + 1 - index1; index4 + 1 < Cells.Length; index1++)
-            {
-                var cell = Cells[++index4];
-                var yTemp = (cell & YMask) >>> YPosition;
-                var xTemp = (cell & XMask) >>> XPosition;
-                    
-                if (xTemp != xDiff || yTemp != yDiff)
-                    break;
-            }
-            
-            return (index1, index2);
+            data.Z = Zs[cellIndex];
+            data.CanMoveThrough = (MovLos[cellIndex] & MovMask) == MovMask;
+            data.Height = Heights[cellIndex];
+            data.Cost = Costs[cellIndex];
+            data.MurFinInfo = MurFins[cellIndex];
+            data.MiscProperties = Properties[cellIndex];
+        }
+        
+        private void FillVisibilityData(CellVisibilityData data, int cellIndex)
+        {
+            data.Z = Zs[cellIndex];
+            data.CanViewThrough = (MovLos[cellIndex] & LosMask) == LosMask;
+            data.Height = Heights[cellIndex];
         }
     }
 
@@ -794,10 +701,11 @@ public class TopologyData
         public int X { get; set; }
         public int Y { get; set; }
         public short Z { get; set; }
-        public bool IsHollow { get; set; }
+        public bool CanMoveThrough { get; set; }
         public sbyte Cost { get; set; }
         public sbyte Height { get; set; }
-        public sbyte MurFinInfo { get; set; } = 0;
+        public sbyte MurFinInfo { get; set; }
+        public sbyte MiscProperties { get; set; }
         
         public CellPathData(){}
 
@@ -811,7 +719,7 @@ public class TopologyData
             X = data.X;
             Y = data.Y;
             Z = data.Z;
-            IsHollow = data.IsHollow;
+            CanMoveThrough = data.CanMoveThrough;
             Cost = data.Cost;
             Height = data.Height;
             MurFinInfo = data.MurFinInfo;
@@ -838,7 +746,7 @@ public class TopologyData
 
             for (var i = 0; i < pathData; i++)
             {
-                if (cellPathData[i].Z != z || cellPathData[i].IsHollow)
+                if (cellPathData[i].Z != z || cellPathData[i].CanMoveThrough)
                     continue;
                 return (short)i;
             }
@@ -867,7 +775,7 @@ public class TopologyData
         public int X { get; set; }
         public int Y { get; set; }
         public short Z { get; set; }
-        public bool IsHollow { get; set; }
+        public bool CanViewThrough { get; set; }
         public sbyte Height { get; set; }
     }
 }
