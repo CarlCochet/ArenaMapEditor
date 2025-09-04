@@ -34,7 +34,7 @@ public class LightData
                 y = 0;
             
             using var stream = entry.Open();
-            using var reader = new BinaryReader(stream);
+            var reader = new ExtendedDataInputStream(stream);
             
             var partition = new Partition(Id);
             partition.Load(reader);
@@ -53,25 +53,36 @@ public class LightData
         public int Id { get; set; } = id;
         public int X { get; set; }
         public int Y { get; set; }
-        public List<CellLight> CellLights { get; set; } = [];
+        public List<CellLightDef> CellLightDef { get; set; } = [];
+        public CellLightDef[] layerColors;
         
         private const int ChunkSize = 18;
 
-        public void Load(BinaryReader reader)
+        public void Load(ExtendedDataInputStream reader)
         {
-            X = reader.ReadInt16() * ChunkSize;
-            Y = reader.ReadInt16() * ChunkSize;
-            var count = reader.ReadInt16() & 0xFFFF;
-            CellLights.EnsureCapacity(300);
+            X = reader.ReadShort() * ChunkSize;
+            Y = reader.ReadShort() * ChunkSize;
+            var count = reader.ReadShort() & 0xFFFF;
+            CellLightDef.EnsureCapacity(count);
 
             for (var i = 0; i < count; i++)
             {
-                var allowOutdoorLighting = reader.ReadBoolean();
-                var ambiance = reader.ReadInt32();
-                var shadows = reader.ReadInt32();
-                var lights = reader.ReadInt32();
-                var cellLight = new CellLight(ambiance, shadows, lights, allowOutdoorLighting);
-                CellLights.Add(cellLight);
+                var allowOutdoorLighting = reader.ReadBooleanBit();
+                var ambiance = reader.ReadInt();
+                var shadow = reader.ReadInt();
+                var light = reader.ReadInt();
+                var def = new CellLightDef(ambiance, shadow, light, allowOutdoorLighting);
+                CellLightDef.Add(def);
+            }
+
+            var layerCount = reader.ReadByte() & 0xFF;
+            count = reader.ReadShort() & 0xFFFF;
+            layerColors = new CellLightDef[MapConstants.NumCells * layerCount];
+            for (var i = 0; i < count; i++)
+            {
+                var k = reader.ReadShort() & 0xFFFF;
+                var idx = reader.ReadShort() & 0xFFFF;
+                layerColors[k] = CellLightDef[idx];
             }
         }
 
@@ -81,54 +92,40 @@ public class LightData
         }
     }
 
-    public class CellLight
+    public class CellLightDef
     {
-        private const int DefaultFactor = 128;
+        private const float ColorFactor = 2.0f;
+        private readonly int _defaultColor = ArenaColor.Gray.Get();
         public float AmbianceLightR { get; set; }
         public float AmbianceLightG { get; set; }
         public float AmbianceLightB { get; set; }
-        public float ShadowR { get; set; }
-        public float ShadowG { get; set; }
-        public float ShadowB { get; set; }
-        public float LightR { get; set; }
-        public float LightG { get; set; }
-        public float LightB { get; set; }
+        public float ShadowsR { get; set; }
+        public float ShadowsG { get; set; }
+        public float ShadowsB { get; set; }
+        public float LightsR { get; set; }
+        public float LightsG { get; set; }
+        public float LightsB { get; set; }
         public bool AllowOutdoorLighting { get; set; }
         public bool HasShadows { get; set; }
         public float[] Merged { get; set; } = [0.0f, 0.0f, 0.0f];
         public float[] NightLight { get; set; }
 
-        public CellLight(int ambianceLight, int shadows, int lights, bool allowOutdoorLighting)
+        public CellLightDef(int ambianceLight, int shadows, int lights, bool allowOutdoorLighting)
         {
-            AmbianceLightR = GetRedFromInt(ambianceLight);
-            AmbianceLightG = GetGreenFromInt(ambianceLight);
-            AmbianceLightB = GetBlueFromInt(ambianceLight);
+            AmbianceLightR = ArenaColor.GetRedFromARGB(ambianceLight) * ColorFactor;
+            AmbianceLightG = ArenaColor.GetGreenFromARGB(ambianceLight) * ColorFactor;
+            AmbianceLightB = ArenaColor.GetBlueFromARGB(ambianceLight) * ColorFactor;
             
-            HasShadows = shadows != DefaultFactor;
-            ShadowR = GetRedFromInt(shadows);
-            ShadowG = GetGreenFromInt(shadows);
-            ShadowB = GetBlueFromInt(shadows);
+            HasShadows = shadows != _defaultColor;
+            ShadowsR = ArenaColor.GetRedFromARGB(shadows);
+            ShadowsG = ArenaColor.GetGreenFromARGB(shadows);
+            ShadowsB = ArenaColor.GetBlueFromARGB(shadows);
             
-            NightLight = lights != DefaultFactor ? [0.0f, 0.0f, 0.0f] : null;
-            LightR = GetRedFromInt(lights);
-            LightG = GetGreenFromInt(lights);
-            LightB = GetBlueFromInt(lights);
+            NightLight = lights != _defaultColor ? [0.0f, 0.0f, 0.0f] : null;
+            LightsR = ArenaColor.GetRedFromARGB(lights) - 0.5f;
+            LightsG = ArenaColor.GetGreenFromARGB(lights) - 0.5f;
+            LightsB = ArenaColor.GetBlueFromARGB(lights) - 0.5f;
             AllowOutdoorLighting = allowOutdoorLighting;
-        }
-
-        private float GetRedFromInt(int value)
-        {
-            return (value & 0xFF) / 255.0f;
-        }
-        
-        private float GetGreenFromInt(int value)
-        {
-            return (value >> 8 & 0xFF) / 255.0f;
-        }
-        
-        private float GetBlueFromInt(int value)
-        {
-            return (value >> 16 & 0xFF) / 255.0f;
         }
     }
 }

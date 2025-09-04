@@ -5,39 +5,33 @@ using System.Text;
 
 public class ExtendedDataInputStream
 {
-    public static readonly bool DefaultLittleEndian = true;
-    
+    public static readonly bool DefaultOrderingLittleEndian = true;
     private readonly byte[] _buffer;
     private int _position;
-    private bool _isLittleEndian;
     private int _lastBooleanBitFieldPosition = -1;
-    private byte _lastBooleanBitFieldIndex = 255; // -1 as byte
-    private byte _lastBooleanBitFieldValue;
+    private sbyte _lastBooleanBitFieldIndex = -1;
+    private sbyte _lastBooleanBitFieldValue;
+    private readonly bool _littleEndian;
 
-    protected ExtendedDataInputStream(byte[] buffer)
+    protected ExtendedDataInputStream(byte[] buffer, bool littleEndian = true)
     {
-        _buffer = buffer ?? throw new ArgumentException("Buffer can't be null");
+        _buffer = buffer ?? throw new ArgumentNullException(nameof(buffer), "Buffer can't be null");
+        _littleEndian = littleEndian;
         _position = 0;
-        _isLittleEndian = DefaultLittleEndian;
     }
 
-    public ExtendedDataInputStream(Stream stream)
+    public ExtendedDataInputStream(Stream stream) : this(ReadFullStream(stream))
     {
-        var buffer = ReadFullStream(stream);
-        _buffer = buffer;
-        _position = 0;
-        _isLittleEndian = DefaultLittleEndian;
     }
 
-    public static ExtendedDataInputStream Wrap(byte[] buffer)
+    public static ExtendedDataInputStream Wrap(byte[] data)
     {
-        return new ExtendedDataInputStream(buffer);
+        return new ExtendedDataInputStream(data);
     }
 
-    public static ExtendedDataInputStream Wrap(byte[] buffer, bool littleEndian)
+    public static ExtendedDataInputStream Wrap(byte[] data, bool littleEndian)
     {
-        var stream = new ExtendedDataInputStream(buffer) { _isLittleEndian = littleEndian };
-        return stream;
+        return new ExtendedDataInputStream(data, littleEndian);
     }
 
     public static ExtendedDataInputStream Wrap(Stream stream)
@@ -49,8 +43,7 @@ public class ExtendedDataInputStream
     public static ExtendedDataInputStream Wrap(Stream stream, bool littleEndian)
     {
         var buffer = ReadFullStream(stream);
-        var dataStream = new ExtendedDataInputStream(buffer) { _isLittleEndian = littleEndian };
-        return dataStream;
+        return new ExtendedDataInputStream(buffer, littleEndian);
     }
 
     private static byte[] ReadFullStream(Stream stream)
@@ -60,27 +53,17 @@ public class ExtendedDataInputStream
         return memoryStream.ToArray();
     }
 
-    public void Order(bool littleEndian)
-    {
-        _isLittleEndian = littleEndian;
-    }
-
-    public bool Order()
-    {
-        return _isLittleEndian;
-    }
+    public bool LittleEndian => _littleEndian;
 
     public int Skip(int n)
     {
         if (n <= 0)
-        {
             return 0;
-        }
-        
+
         int remaining = Available();
-        int skipped = Math.Min(remaining, n);
-        _position += skipped;
-        return skipped;
+        int toSkip = Math.Min(remaining, n);
+        _position += toSkip;
+        return toSkip;
     }
 
     public int Available()
@@ -88,31 +71,45 @@ public class ExtendedDataInputStream
         return _buffer.Length - _position;
     }
 
-    public int ReadBytes(byte[] b, int offset, int size)
+    public int ReadBytes(sbyte[] buffer, int offset, int size)
     {
-        var bytesToRead = Math.Min(Available(), Math.Min(b.Length - offset, size));
-        Array.Copy(_buffer, _position, b, offset, bytesToRead);
-        _position += bytesToRead;
-        return bytesToRead;
-    }
-
-    public int ReadBytes(byte[] b)
-    {
-        var bytesToRead = Math.Min(Available(), b.Length);
-        Array.Copy(_buffer, _position, b, 0, bytesToRead);
-        _position += bytesToRead;
-        return bytesToRead;
-    }
-
-    public byte[] ReadBytes(int length)
-    {
-        if (_position + length > _buffer.Length)
+        int available = Available();
+        int toRead = Math.Min(available, Math.Min(buffer.Length - offset, size));
+        
+        for (int i = 0; i < toRead; i++)
         {
-            throw new EndOfStreamException("Not enough data in buffer");
+            buffer[offset + i] = (sbyte)_buffer[_position + i];
         }
         
-        var result = new byte[length];
-        Array.Copy(_buffer, _position, result, 0, length);
+        _position += toRead;
+        return toRead;
+    }
+
+    public int ReadBytes(sbyte[] buffer)
+    {
+        int available = Available();
+        int toRead = Math.Min(available, buffer.Length);
+        
+        for (int i = 0; i < toRead; i++)
+        {
+            buffer[i] = (sbyte)_buffer[_position + i];
+        }
+        
+        _position += toRead;
+        return toRead;
+    }
+
+    public sbyte[] ReadBytes(int length)
+    {
+        if (_position + length > _buffer.Length)
+            throw new EndOfStreamException("Not enough data in buffer");
+
+        var result = new sbyte[length];
+        for (int i = 0; i < length; i++)
+        {
+            result[i] = (sbyte)_buffer[_position + i];
+        }
+        
         _position += length;
         return result;
     }
@@ -120,18 +117,14 @@ public class ExtendedDataInputStream
     public float ReadFloat()
     {
         if (_position + 4 > _buffer.Length)
-        {
-            throw new EndOfStreamException("Not enough data in buffer");
-        }
-        
-        var bytes = new byte[4];
+            throw new EndOfStreamException("Not enough data for float");
+
+        byte[] bytes = new byte[4];
         Array.Copy(_buffer, _position, bytes, 0, 4);
         
-        if (_isLittleEndian != BitConverter.IsLittleEndian)
-        {
+        if (_littleEndian != BitConverter.IsLittleEndian)
             Array.Reverse(bytes);
-        }
-        
+            
         _position += 4;
         return BitConverter.ToSingle(bytes, 0);
     }
@@ -139,18 +132,14 @@ public class ExtendedDataInputStream
     public short ReadShort()
     {
         if (_position + 2 > _buffer.Length)
-        {
-            throw new EndOfStreamException("Not enough data in buffer");
-        }
-        
-        var bytes = new byte[2];
+            throw new EndOfStreamException("Not enough data for short");
+
+        byte[] bytes = new byte[2];
         Array.Copy(_buffer, _position, bytes, 0, 2);
         
-        if (_isLittleEndian != BitConverter.IsLittleEndian)
-        {
+        if (_littleEndian != BitConverter.IsLittleEndian)
             Array.Reverse(bytes);
-        }
-        
+            
         _position += 2;
         return BitConverter.ToInt16(bytes, 0);
     }
@@ -163,18 +152,14 @@ public class ExtendedDataInputStream
     public int ReadInt()
     {
         if (_position + 4 > _buffer.Length)
-        {
-            throw new EndOfStreamException("Not enough data in buffer");
-        }
-        
-        var bytes = new byte[4];
+            throw new EndOfStreamException("Not enough data for int");
+
+        byte[] bytes = new byte[4];
         Array.Copy(_buffer, _position, bytes, 0, 4);
         
-        if (_isLittleEndian != BitConverter.IsLittleEndian)
-        {
+        if (_littleEndian != BitConverter.IsLittleEndian)
             Array.Reverse(bytes);
-        }
-        
+            
         _position += 4;
         return BitConverter.ToInt32(bytes, 0);
     }
@@ -187,27 +172,24 @@ public class ExtendedDataInputStream
     public long ReadLong()
     {
         if (_position + 8 > _buffer.Length)
-        {
-            throw new EndOfStreamException("Not enough data in buffer");
-        }
-        
-        var bytes = new byte[8];
+            throw new EndOfStreamException("Not enough data for long");
+
+        byte[] bytes = new byte[8];
         Array.Copy(_buffer, _position, bytes, 0, 8);
         
-        if (_isLittleEndian != BitConverter.IsLittleEndian)
-        {
+        if (_littleEndian != BitConverter.IsLittleEndian)
             Array.Reverse(bytes);
-        }
-        
+            
         _position += 8;
         return BitConverter.ToInt64(bytes, 0);
     }
 
-    public byte ReadByte()
+    public sbyte ReadByte()
     {
-        return _position >= _buffer.Length 
-            ? throw new EndOfStreamException("Not enough data in buffer")
-            : _buffer[_position++];
+        if (_position >= _buffer.Length)
+            throw new EndOfStreamException("Not enough data for byte");
+            
+        return (sbyte)_buffer[_position++];
     }
 
     public short ReadUnsignedByte()
@@ -217,7 +199,7 @@ public class ExtendedDataInputStream
 
     public bool ReadBooleanBit()
     {
-        var currentPosition = _position;
+        int currentPosition = _position;
         
         if (currentPosition == _lastBooleanBitFieldPosition && _lastBooleanBitFieldIndex <= 6)
         {
@@ -229,36 +211,45 @@ public class ExtendedDataInputStream
             _lastBooleanBitFieldIndex = 0;
             _lastBooleanBitFieldPosition = currentPosition + 1;
             _lastBooleanBitFieldValue = ReadByte();
-            var firstBit = _lastBooleanBitFieldValue & 128;
-            return firstBit != 0;
+            int bit = _lastBooleanBitFieldValue & 0x80;
+            return bit != 0;
         }
     }
 
     public string ReadString()
     {
-        var startPosition = _position;
-        var endPosition = startPosition;
+        int startPosition = _position;
+        int endPosition = startPosition;
         
+        // Find null terminator
         while (endPosition < _buffer.Length && _buffer[endPosition] != 0)
         {
             endPosition++;
         }
         
         if (endPosition >= _buffer.Length)
-        {
-            throw new EndOfStreamException("Unable to find a valid Null terminated UTF-8 string end.");
-        }
+            throw new EndOfStreamException("Unable to find a valid null terminated UTF-8 string end.");
+            
+        int length = endPosition - startPosition;
         
-        var stringLength = endPosition - startPosition;
-        if (stringLength > 0)
+        if (length > 0)
         {
-            var stringBytes = new byte[stringLength];
-            Array.Copy(_buffer, _position, stringBytes, 0, stringLength);
-            _position = endPosition + 1; 
+            byte[] stringBytes = new byte[length];
+            Array.Copy(_buffer, _position, stringBytes, 0, length);
+            _position = endPosition + 1; // Skip null terminator
             return Encoding.UTF8.GetString(stringBytes);
         }
-        _position++; 
-        return string.Empty;
+        else
+        {
+            _position++; // Skip null terminator
+            return string.Empty;
+        }
+    }
+
+    public int Offset
+    {
+        get => _position;
+        set => _position = value;
     }
 
     public int GetOffset()
@@ -269,10 +260,7 @@ public class ExtendedDataInputStream
     public void SetOffset(int offset)
     {
         if (offset < 0 || offset > _buffer.Length)
-        {
             throw new ArgumentOutOfRangeException(nameof(offset));
-        }
         _position = offset;
     }
-
 }
