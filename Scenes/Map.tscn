@@ -1,10 +1,11 @@
-[gd_scene load_steps=7 format=3 uid="uid://5k8sgg41ctpm"]
+[gd_scene load_steps=10 format=3 uid="uid://5k8sgg41ctpm"]
 
 [ext_resource type="Script" path="res://Scripts/Map.cs" id="1_h4evd"]
 [ext_resource type="PackedScene" uid="uid://bnepr33hnfesr" path="res://Scenes/Tile.tscn" id="2_d05hl"]
 [ext_resource type="Texture2D" uid="uid://b3pfja02ihinv" path="res://Assets/Misc/blackBackground.png" id="2_ftqb4"]
 [ext_resource type="Script" path="res://Scripts/Camera.cs" id="2_iuwis"]
 [ext_resource type="Shader" path="res://Shaders/IsoGrid.gdshader" id="5_blgyc"]
+[ext_resource type="Shader" path="res://Shaders/IsoGrid2.gdshader" id="6_36b2w"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_wj3mp"]
 shader = ExtResource("5_blgyc")
@@ -13,14 +14,27 @@ shader_parameter/zoom = 1.0
 shader_parameter/line_intensity = 5.0
 shader_parameter/border_size = 0.468
 shader_parameter/line_blur = 0.2
-shader_parameter/grid_scale = 1.163
+shader_parameter/grid_scale = 1.17
 shader_parameter/elevation = 0.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_38poy"]
+shader = ExtResource("6_36b2w")
+shader_parameter/mouse_position = null
+shader_parameter/zoom = 1.0
+shader_parameter/line_intensity = 5.875
+shader_parameter/border_size = 0.493
+shader_parameter/line_blur = 0.04
+shader_parameter/grid_scale = 1.17
+shader_parameter/elevation = 0.0
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_g5138"]
+load_path = "res://.godot/imported/blackBackground.png-e8eafb64790ac4dfa3e369ac4f67a5b5.ctex"
 
 [node name="Map" type="Node2D" node_paths=PackedStringArray("CustomCamera", "_assetContainer", "_grid")]
 script = ExtResource("1_h4evd")
+_tileScene = ExtResource("2_d05hl")
 CustomCamera = NodePath("Camera")
 _assetContainer = NodePath("AssetContainer")
-_tileScene = ExtResource("2_d05hl")
 _grid = NodePath("Grid")
 
 [node name="Camera" type="Camera2D" parent="."]
@@ -38,5 +52,12 @@ material = SubResource("ShaderMaterial_wj3mp")
 position = Vector2(7.85589e-05, 3.15309e-05)
 scale = Vector2(4700, 3300)
 texture = ExtResource("2_ftqb4")
+
+[node name="Grid2" type="Sprite2D" parent="."]
+z_index = 1
+material = SubResource("ShaderMaterial_38poy")
+position = Vector2(7.85589e-05, 3.15309e-05)
+scale = Vector2(4700, 3300)
+texture = SubResource("CompressedTexture2D_g5138")
 
 [node name="AssetContainer" type="Node2D" parent="."]

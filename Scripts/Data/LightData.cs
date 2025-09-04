@@ -54,7 +54,6 @@ public class LightData
         public int X { get; set; }
         public int Y { get; set; }
         public List<CellLight> CellLights { get; set; } = [];
-        public Dictionary<long, CellLight> CellLightsById { get; set; } = new();
         
         private const int ChunkSize = 18;
 
@@ -62,22 +61,18 @@ public class LightData
         {
             X = reader.ReadInt16() * ChunkSize;
             Y = reader.ReadInt16() * ChunkSize;
-            var lightCount = reader.ReadInt16() & 0xFFFF;
+            var count = reader.ReadInt16() & 0xFFFF;
             CellLights.EnsureCapacity(300);
-            CellLightsById.EnsureCapacity(300);
 
-            for (var i = 0; i < lightCount; i++)
+            for (var i = 0; i < count; i++)
             {
-                var id = reader.ReadInt64();
                 var allowOutdoorLighting = reader.ReadBoolean();
                 var ambiance = reader.ReadInt32();
                 var shadows = reader.ReadInt32();
                 var lights = reader.ReadInt32();
                 var cellLight = new CellLight(ambiance, shadows, lights, allowOutdoorLighting);
                 CellLights.Add(cellLight);
-                CellLightsById.Add(id, cellLight);
             }
-            CellLightsById.TrimExcess();
         }
 
         public void Save(BinaryWriter writer)

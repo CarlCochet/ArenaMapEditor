@@ -10,7 +10,7 @@ public class TopologyData
 {
     public int Id { get; set; }
     public List<Partition> Partitions { get; set; } = [];
-    public Dictionary<long, Partition> PartitionsMap { get; set; } = new();
+    public Dictionary<long, Partition> PartitionsMap { get; set; } = [];
 
     public TopologyData(string id)
     {

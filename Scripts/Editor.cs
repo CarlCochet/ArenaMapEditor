@@ -179,15 +179,14 @@ public partial class Editor : Node2D
 		
 		_tools.SetMapOptions(mapNames);
 		GlobalData.Instance.LoadElements($"{_contentPath}/maps/data.jar");
-		GlobalData.Instance.LoadPlaylists($"{_contentPath}/maps.jar");
+		GlobalData.Instance.LoadPlaylists($"{_contentPath}/maps_sounds.jar");
 		GlobalData.Instance.SaveSettings();
 	}
 
 	private bool IsFolderArena(string path)
 	{
 		using var dirAccess = DirAccess.Open(path);
-		return dirAccess.DirExists("game/contents/maps/coords") &&
-		       dirAccess.DirExists("game/contents/maps/env") &&
+		return dirAccess.DirExists("game/contents/maps/env") &&
 		       dirAccess.DirExists("game/contents/maps/fight") &&
 		       dirAccess.DirExists("game/contents/maps/gfx") &&
 		       dirAccess.DirExists("game/contents/maps/light") &&

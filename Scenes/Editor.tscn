@@ -25,6 +25,7 @@ _gizmo = NodePath("CanvasLayer/Gizmo")
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
 [node name="Gizmo" parent="CanvasLayer" instance=ExtResource("8_vbhsn")]
+visible = false
 anchors_preset = 15
 offset_left = 778.0
 offset_top = 385.0

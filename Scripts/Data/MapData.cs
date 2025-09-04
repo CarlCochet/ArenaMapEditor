@@ -29,7 +29,7 @@ public class MapData
         }
         catch (Exception e)
         {
-            GD.PrintErr(e.Message);
+            GD.PrintErr($"Error loading TOPOLOGY for map {Id}: {e.Message}");
         }
         
         try
@@ -39,7 +39,7 @@ public class MapData
         }
         catch (Exception e)
         {
-            GD.PrintErr(e.Message);
+            GD.PrintErr($"Error loading LIGHT for map {Id}: {e.Message}");
         }
         
         try
@@ -49,7 +49,7 @@ public class MapData
         }
         catch (Exception e)
         {
-            GD.PrintErr(e.Message);
+            GD.PrintErr($"Error loading GFX for map {Id}: {e.Message}");
         }
         
         try
@@ -59,7 +59,7 @@ public class MapData
         }
         catch (Exception e)
         {
-            GD.PrintErr(e.Message);
+            GD.PrintErr($"Error loading FIGHT for map {Id}: {e.Message}");
         }
         
         try
@@ -67,18 +67,18 @@ public class MapData
             Env = new EnvData(Id);
             Env.Load($"{path}/maps/env");
         }
-        catch (Exception ex)
+        catch (Exception e)
         {
-            GD.PrintErr(ex.Message);
+            GD.PrintErr($"Error loading ENV for map {Id}: {e.Message}");
         }
 
         try
         {
-            LoadAmbiance($"{path}/maps.jar");
+            LoadAmbiance($"{path}/maps_sounds.jar");
         }
-        catch (Exception ex)
+        catch (Exception e)
         {
-            GD.PrintErr(ex.Message);
+            GD.PrintErr($"Error loading AMBIANCE for map {Id}: {e.Message}");
         }
     }
 

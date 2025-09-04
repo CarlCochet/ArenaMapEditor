@@ -86,28 +86,60 @@ public class GfxData
             _coordMaxX = reader.ReadInt32();
             _coordMaxY = reader.ReadInt32();
             _coordMaxZ = reader.ReadInt16();
-        
-            var baseX = reader.ReadInt32();
-            var baseY = reader.ReadInt32();
-            var maxZ = reader.ReadInt16() & 0xFFFF;
 
-            for (var z = 0; z < maxZ; z++)
+            var count = reader.ReadInt16() & 0xFFFF;
+            
+            var groupKeys = new int[count];
+            var layerIndexes = new byte[count];
+            var groupIds = new int[count];
+
+            for (var i = 0; i < count; ++i)
             {
-                var minX = baseX + (reader.ReadByte() & 0xFF);
-                var maxX = baseX + (reader.ReadByte() & 0xFF);
-                var minY = baseY + (reader.ReadByte() & 0xFF);
-                var maxY = baseY + (reader.ReadByte() & 0xFF);
+                groupKeys[i] = reader.ReadInt32();
+                layerIndexes[i] = reader.ReadByte();
+                groupIds[i] = reader.ReadInt32();
+            }
+            
+            var colorCount = reader.ReadInt16() & 0xFFFF;
+            var colors = new float[colorCount][];
+            for (var i = 0; i < colorCount; ++i)
+            {
+                var type = reader.ReadByte();
+                colors[i] = Element.GetNewColors(type);
+                Element.ReadColors(reader, type, colors[i]);
+            }
 
-                for (var x = minX; x < maxX; x++)
+            var mapX = reader.ReadInt32();
+            var mapY = reader.ReadInt32();
+            var numRects = reader.ReadInt16() & 0xFFFF;
+            
+            for (var i = 0; i < numRects; i++)
+            {
+                var minX = mapX + (reader.ReadByte() & 0xFF);
+                var maxX = mapX + (reader.ReadByte() & 0xFF);
+                var minY = mapY + (reader.ReadByte() & 0xFF);
+                var maxY = mapY + (reader.ReadByte() & 0xFF);
+
+                for (var cx = minX; cx < maxX; cx++)
                 {
-                    for (var y = minY; y < maxY; y++)
+                    for (var cy = minY; cy < maxY; cy++)
                     {
-                        var elementCount = reader.ReadByte() & 0xFF;
-                        for (var elementIndex = 0; elementIndex < elementCount; elementIndex++)
+                        var numElements = reader.ReadByte() & 0xFF;
+                        for (var elementIndex = 0; elementIndex < numElements; elementIndex++)
                         {
-                            var elementType = reader.ReadByte();
-                            var element = new Element(elementType, x, y);
+                            var element = new Element(cx, cy);
                             element.Load(reader);
+                            
+                            var groupIndex = reader.ReadInt16() & 0xFFFF;
+                            element.GroupKey = groupKeys[groupIndex];
+                            element.LayerIndex = layerIndexes[groupIndex];
+                            element.GroupId = groupIds[groupIndex];
+                            
+                            var colorIndex = reader.ReadInt16() & 0xFFFF;
+                            element.Colors = colors[colorIndex];
+                            element.Color = element.Colors.Length < 3
+                                ? new Color(1, 1, 1)
+                                : new Color(element.Colors[0], element.Colors[1], element.Colors[2]);
                             Elements.Add(element);
                             
                             if (element.Left < _minX)
@@ -139,6 +171,14 @@ public class GfxData
 
     public class Element
     {
+        public const int TeintMask = 0x1;
+        public const int AlphaMask = 0x2;
+        public const int GradientMask = 0x4;
+
+        private const float DefaultTeint = 0.5f;
+        private const float DefaultLight = 1.0f;
+        private const float DefaultAlpha = 1.0f;
+        
         public byte Type { get; set; }
         public int CellX { get; set; }
         public int CellY { get; set; }
@@ -149,22 +189,18 @@ public class GfxData
         public byte Height { get; set; }
         public int GroupId { get; set; }
         public byte LayerIndex { get; set; }
-        public int GroupLayer { get; set; }
+        public int GroupKey { get; set; }
         public bool Occluder { get; set; }
+        public byte TypeMask { get; set; }
         public long HashCode { get; set; }
         public float[] Colors { get; set; }
         public Color Color { get; set; }
         public ElementData CommonData { get; set; }
 
-        public Element(byte type, int x, int y)
+        public Element(int x, int y)
         {
-            Type = type;
             CellX = x;
             CellY = y;
-            Colors = GetNewColors(type);
-            Color = Colors.Length < 3 ? 
-                new Color(1, 1, 1) : 
-                new Color(Colors[0], Colors[1], Colors[2]);
         }
 
         public void Load(BinaryReader reader)
@@ -172,18 +208,28 @@ public class GfxData
             CellZ = reader.ReadInt16();
             Height = reader.ReadByte();
             AltitudeOrder = reader.ReadByte();
-            GroupId = reader.ReadInt32();
-            LayerIndex = reader.ReadByte();
-            GroupLayer = reader.ReadInt32();
-            Occluder = reader.ReadBoolean();
+            
+            var flags = reader.ReadByte();
+            Occluder = (flags & 0x01) != 0;
+
+            TypeMask = 0;
+            TypeMask |= (flags & 0x02) != 0 ? (byte)TeintMask : (byte)0;
+            TypeMask |= (flags & 0x04) != 0 ? (byte)AlphaMask : (byte)0;
+            TypeMask |= (flags & 0x08) != 0 ? (byte)GradientMask : (byte)0;
             
             var elementId = reader.ReadInt32();
-            CommonData = GlobalData.Instance.Elements[elementId];
-            (Left, Top) = IsoToScreen(CellX, CellY, CellZ - Height);
-            Top += CommonData.OriginY;
-
+            if (GlobalData.Instance.Elements.TryGetValue(elementId, out var data))
+            {
+                CommonData = data;
+                (Left, Top) = IsoToScreen(CellX, CellY, CellZ - Height);
+                Top += CommonData.OriginY;
+            }
+            else
+            {
+                GD.PrintErr($"Element {elementId} not found");
+            }
+            
             ComputeHashCode();
-            ReadColors(reader, Type);
         }
         
         public void Save()
@@ -205,58 +251,42 @@ public class GfxData
                        (AltitudeOrder & 0x1FFFL) << 6 | 0;
         }
 
-        private float[] GetNewColors(int type)
+        public static float[] GetNewColors(int type)
         {
-            var value = (type & 2) == 2 ? 3 : 0;
-            value += (type & 8) == 8 ? 1 : 0;
-            value *= (type & 16) == 16 ? 2 : 1;
-            value += (type & 1) == 1 ? 3 : 0;
-            value += (type & 4) == 4 ? 3 : 0;
-            return new float[value];
+            var size = 0;
+            size += (type & TeintMask) == TeintMask ? 3 : 0;
+            size += (type & AlphaMask) == AlphaMask ? 1 : 0;
+            size *= (type & GradientMask) == GradientMask ? 2 : 1;
+            return new float[size];
         }
 
-        private void ReadColors(BinaryReader reader, int type)
+        public static void ReadColors(BinaryReader reader, int type, float[] colors)
         {
-            var index = 0;
-
-            if ((type & 1) == 1)
+            var i = 0;
+            if ((type & TeintMask) == TeintMask)
             {
-                Colors[index++] = 2.0f * (reader.ReadByte() / 255.0f) + 1.0f;
-                Colors[index++] = 2.0f * (reader.ReadByte() / 255.0f) + 1.0f;
-                Colors[index++] = 2.0f * (reader.ReadByte() / 255.0f) + 1.0f;
+                colors[i++] = reader.ReadSByte() / 255.0f + DefaultTeint;
+                colors[i++] = reader.ReadSByte() / 255.0f + DefaultTeint;
+                colors[i++] = reader.ReadSByte() / 255.0f + DefaultTeint;
             }
 
-            if ((type & 2) == 2)
+            if ((type & AlphaMask) == AlphaMask)
             {
-                Colors[index++] = reader.ReadByte() / 255.0f + 0.5f;
-                Colors[index++] = reader.ReadByte() / 255.0f + 0.5f;
-                Colors[index++] = reader.ReadByte() / 255.0f + 0.5f;
+                colors[i++] = reader.ReadSByte() / 255.0f + DefaultTeint;
             }
 
-            if ((type & 4) == 4)
+            if ((type & GradientMask) == GradientMask)
             {
-                Colors[index++] = reader.ReadByte() / 255.0f;
-                Colors[index++] = reader.ReadByte() / 255.0f;
-                Colors[index++] = reader.ReadByte() / 255.0f;
-            }
-
-            if ((type & 8) == 8)
-            {
-                Colors[index++] = reader.ReadByte() / 255.0f + 0.5f;
-            }
-
-            if ((type & 16) == 16)
-            {
-                if ((type & 2) == 2)
+                if ((type & TeintMask) == TeintMask)
                 {
-                    Colors[index++] = reader.ReadByte() / 255.0f + 0.5f;
-                    Colors[index++] = reader.ReadByte() / 255.0f + 0.5f;
-                    Colors[index++] = reader.ReadByte() / 255.0f + 0.5f;
+                    colors[i++] = reader.ReadSByte() / 255.0f + DefaultTeint;
+                    colors[i++] = reader.ReadSByte() / 255.0f + DefaultTeint;
+                    colors[i++] = reader.ReadSByte() / 255.0f + DefaultTeint;
                 }
 
-                if ((type & 8) == 8)
+                if ((type & AlphaMask) == AlphaMask)
                 {
-                    Colors[index] = reader.ReadByte() / 255.0f + 0.5f;
+                    colors[i++] = reader.ReadSByte() / 255.0f + DefaultTeint;;
                 }
             }
         }

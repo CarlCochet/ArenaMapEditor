@@ -43,7 +43,7 @@ public partial class Inspector : Control
         _hashcode.Text = element.HashCode.ToString();
         _groupId.Text = element.GroupId.ToString();
         _layerIndex.Text = element.LayerIndex.ToString();
-        _groupLayer.Text = element.GroupLayer.ToString();
+        _groupLayer.Text = element.GroupKey.ToString();
         _properties.Text = element.CommonData.PropertiesFlag.ToString();
         _sound.Text = element.CommonData.GroundSoundType.ToString();
         _slope.Text = element.CommonData.Slope.ToString();

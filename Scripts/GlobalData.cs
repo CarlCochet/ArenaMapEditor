@@ -81,7 +81,7 @@ public class GlobalData
     public void LoadPlaylists(string path)
     {
         using var archive = ZipFile.OpenRead(path);
-        var entry = archive.GetEntry("maps/env/playlists.dat");
+        var entry = archive.GetEntry("maps_sounds/env/playlists.dat");
         
         if (entry == null)
         {
