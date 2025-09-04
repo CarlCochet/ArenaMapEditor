@@ -33,8 +33,8 @@ public class EnvData
             if (!int.TryParse(splitName[1], out var y))
                 y = 0;
             
-            using var stream = entry.Open();
-            using var reader = new BinaryReader(stream);
+            using var stream = entry.Open(); 
+            var reader = new ExtendedDataInputStream(stream);
 
             var version = reader.ReadByte();
 
@@ -51,23 +51,23 @@ public class EnvData
         public int X { get; set; }
         public int Y { get; set; }
         
-        public Particle[] Particles { get; set; }
+        public ParticleDef[] ParticleData { get; set; }
         public Sound[] Sounds { get; set; }
         public int[] AmbiancesId { get; set; }
-        public byte[] Ambiances { get; set; }
+        public sbyte[] Ambiances { get; set; }
         public InteractiveElement[] InteractiveElements { get; set; }
         public DynamicElement[] DynamicElements { get; set; }
         
         private const int ChunkSize = 18;
 
-        public void Load(BinaryReader reader)
+        public void Load(ExtendedDataInputStream reader)
         {
-            X = reader.ReadInt16();
-            Y = reader.ReadInt16();
+            X = reader.ReadShort();
+            Y = reader.ReadShort();
 
-            LoadParticles(reader);
-            LoadSounds(reader);
-            LoadAmbiances(reader);
+            LoadParticleData(reader);
+            LoadSoundData(reader);
+            LoadAmbianceData(reader);
             LoadInteractiveElements(reader);
             LoadDynamicElements(reader);
         }
@@ -77,22 +77,22 @@ public class EnvData
             
         }
 
-        private void LoadParticles(BinaryReader reader)
+        private void LoadParticleData(ExtendedDataInputStream reader)
         {
             var particleCount = reader.ReadByte() & 255;
             if (particleCount <= 0) 
                 return;
             
-            Particles = new Particle[particleCount];
+            ParticleData = new ParticleDef[particleCount];
             for (var i = 0; i < particleCount; i++)
             {
-                var particle = new Particle();
+                var particle = new ParticleDef();
                 particle.Load(reader);
-                Particles[i] = particle;
+                ParticleData[i] = particle;
             }
         }
 
-        private void LoadSounds(BinaryReader reader)
+        private void LoadSoundData(ExtendedDataInputStream reader)
         {
             var soundCount = reader.ReadByte() & 255;
             if (soundCount <= 0) 
@@ -107,7 +107,7 @@ public class EnvData
             }
         }
 
-        private void LoadAmbiances(BinaryReader reader)
+        private void LoadAmbianceData(ExtendedDataInputStream reader)
         {
             var ambianceCount = reader.ReadByte() & 255;
             if (ambianceCount <= 0)
@@ -120,7 +120,7 @@ public class EnvData
             AmbiancesId = new int[ambianceCount];
             for (var i = 0; i < ambianceCount; i++)
             {
-                AmbiancesId[i] = reader.ReadInt32();
+                AmbiancesId[i] = reader.ReadInt();
             }
             
             var ambianceSize = reader.ReadByte() & 255;
@@ -132,7 +132,7 @@ public class EnvData
             Ambiances = reader.ReadBytes(ambianceSize);
         }
 
-        private void LoadInteractiveElements(BinaryReader reader)
+        private void LoadInteractiveElements(ExtendedDataInputStream reader)
         {
             var elementCount = reader.ReadByte() & 255;
             if (elementCount <= 0)
@@ -150,7 +150,7 @@ public class EnvData
             }
         }
 
-        private void LoadDynamicElements(BinaryReader reader)
+        private void LoadDynamicElements(ExtendedDataInputStream reader)
         {
             var elementCount = reader.ReadByte() & 255;
             if (elementCount <= 0) 
@@ -168,15 +168,15 @@ public class EnvData
 
     public class Element
     {
-        public byte X { get; set; }
-        public byte Y { get; set; }
+        public sbyte X { get; set; }
+        public sbyte Y { get; set; }
         public short Z { get; set; }
         
-        public virtual void Load(BinaryReader reader)
+        public virtual void Load(ExtendedDataInputStream reader)
         {
             X = reader.ReadByte();
             Y = reader.ReadByte();
-            Z = reader.ReadInt16();
+            Z = reader.ReadShort();
         }
 
         public virtual void Save(BinaryWriter writer)
@@ -185,20 +185,20 @@ public class EnvData
         }
     }
 
-    public class Particle : Element
+    public class ParticleDef : Element
     {
         public int SystemId { get; set; }
-        public byte Level { get; set; }
-        public byte OffsetX { get; set; }
-        public byte OffsetY { get; set; }
-        public byte OffsetZ { get; set; }
-        public byte LoD { get; set; }
+        public sbyte Level { get; set; }
+        public sbyte OffsetX { get; set; }
+        public sbyte OffsetY { get; set; }
+        public sbyte OffsetZ { get; set; }
+        public sbyte LoD { get; set; }
         
-        public override void Load(BinaryReader reader)
+        public override void Load(ExtendedDataInputStream reader)
         {
             base.Load(reader);
             
-            SystemId = reader.ReadInt32();
+            SystemId = reader.ReadInt();
             Level = reader.ReadByte();
             OffsetX = reader.ReadByte();
             OffsetY = reader.ReadByte();
@@ -216,11 +216,11 @@ public class EnvData
     {
         public int SoundId { get; set; }
         
-        public override void Load(BinaryReader reader)
+        public override void Load(ExtendedDataInputStream reader)
         {
             base.Load(reader);
             
-            SoundId = reader.ReadInt32();
+            SoundId = reader.ReadInt();
         }
         
         public override void Save(BinaryWriter writer)
@@ -234,26 +234,26 @@ public class EnvData
         public long Id { get; set; }
         public short Type { get; set; }
         public int[] Views { get; set; }
-        public byte[] Data { get; set; }
+        public sbyte[] Data { get; set; }
         public bool ClientOnly { get; set; }
         public short LandmarkType { get; set; }
         
-        public override void Load(BinaryReader reader)
+        public override void Load(ExtendedDataInputStream reader)
         {
-            Id = reader.ReadInt64();
-            Type = reader.ReadInt16();
+            Id = reader.ReadLong();
+            Type = reader.ReadShort();
 
             var viewCount = reader.ReadByte() & 255;
             Views = new int[viewCount];
             for (var i = 0; i < viewCount; i++)
             {
-                Views[i] = reader.ReadInt32();
+                Views[i] = reader.ReadInt();
             }
             
-            var dataLength = reader.ReadInt16() & 0xFFFF;
+            var dataLength = reader.ReadShort() & 0xFFFF;
             Data = reader.ReadBytes(dataLength);
-            ClientOnly = reader.ReadBoolean();
-            LandmarkType = reader.ReadInt16();
+            ClientOnly = reader.ReadBooleanBit();
+            LandmarkType = reader.ReadShort();
         }
         
         public override void Save(BinaryWriter writer)
@@ -267,15 +267,15 @@ public class EnvData
         public int Id { get; set; }
         public int GfxId { get; set; }
         public int Type { get; set; }
-        public byte Direction { get; set; }
+        public sbyte Direction { get; set; }
         
-        public override void Load(BinaryReader reader)
+        public override void Load(ExtendedDataInputStream reader)
         {
             base.Load(reader);
             
-            Id = reader.ReadInt32();
-            GfxId = reader.ReadInt32();
-            Type = reader.ReadInt16();
+            Id = reader.ReadInt();
+            GfxId = reader.ReadInt();
+            Type = reader.ReadShort();
             Direction = reader.ReadByte();
         }
         

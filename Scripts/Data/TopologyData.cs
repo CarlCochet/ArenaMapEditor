@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Transactions;
 
 public class TopologyData
 {
@@ -37,7 +36,7 @@ public class TopologyData
             var hash = GetHashCode(Id, x, y, 0);
             
             using var stream = entry.Open();
-            using var reader = new BinaryReader(stream);
+            var reader = new ExtendedDataInputStream(stream);
             var header = reader.ReadByte();
             var topologyType = (byte)((header & 15) >> 0);
 
@@ -87,11 +86,11 @@ public class TopologyData
         
         public abstract int GetVisibilityData(int x, int y, CellVisibilityData[] cellVisibilityData, int index);
 
-        public virtual void Load(BinaryReader reader)
+        public virtual void Load(ExtendedDataInputStream reader)
         {
-            X = reader.ReadInt16() * ChunkSize;
-            Y = reader.ReadInt16() * ChunkSize;
-            Z = reader.ReadInt16();
+            X = reader.ReadShort() * ChunkSize;
+            Y = reader.ReadShort() * ChunkSize;
+            Z = reader.ReadShort();
         }
 
         public virtual void Save(BinaryWriter writer)
@@ -129,9 +128,9 @@ public class TopologyData
 
     public class TopologyMapA(int id) : Partition(id)
     {
-        private byte Cost { get; set; }
+        private sbyte Cost { get; set; }
 
-        public override void Load(BinaryReader reader)
+        public override void Load(ExtendedDataInputStream reader)
         {
             base.Load(reader);
             Cost = reader.ReadByte();
@@ -179,18 +178,18 @@ public class TopologyData
         private const byte NumCosts = 2;
         
         public short[] Properties { get; set; } = new short[NumZValues];
-        public byte[] Costs { get; set; } = new byte[NumCosts];
-        public byte[] Cells { get; set; } = new byte[162];
+        public sbyte[] Costs { get; set; } = new sbyte[NumCosts];
+        public sbyte[] Cells { get; set; } = new sbyte[MapConstants.NumCells / 2];
 
         
         
-        public override void Load(BinaryReader reader)
+        public override void Load(ExtendedDataInputStream reader)
         {
             base.Load(reader);
 
             for (var i = 0; i < Properties.Length; i++)
             {
-                Properties[i] = (short)(reader.ReadInt16() + Z);
+                Properties[i] = (short)(reader.ReadShort() + Z);
             }
 
             for (var i = 0; i < Costs.Length; i++)
@@ -269,16 +268,16 @@ public class TopologyData
         private const byte NumCosts = 4;
         
         public short[] Properties { get; set; } = new short[NumZValues];
-        public byte[] Costs { get; set; } = new byte[NumCosts];
-        public byte[] MurFins { get; set; } = new byte[324];
+        public sbyte[] Costs { get; set; } = new sbyte[NumCosts];
+        public sbyte[] MurFins { get; set; } = new sbyte[MapConstants.NumCells];
         
-        public override void Load(BinaryReader reader)
+        public override void Load(ExtendedDataInputStream reader)
         {
             base.Load(reader);
 
             for (var i = 0; i < Properties.Length; i++)
             {
-                Properties[i] = (short)(reader.ReadInt16() + Z);
+                Properties[i] = (short)(reader.ReadShort() + Z);
             }
 
             for (var i = 0; i < Costs.Length; i++)
@@ -353,9 +352,9 @@ public class TopologyData
         private const short ZShift = 512;
         private const short ZMin = -32768;
         
-        public short[] Cells { get; set; } = new short[324];
+        public short[] Cells { get; set; } = new short[MapConstants.NumCells];
         
-        public override void Load(BinaryReader reader)
+        public override void Load(ExtendedDataInputStream reader)
         {
             base.Load(reader);
 
@@ -386,7 +385,7 @@ public class TopologyData
             var index2 = yDiff * ChunkSize + xDiff;
             var cell = Cells[index2];
             
-            pathData.Cost = (byte)((cell & CostMask) >>> CostPosition);
+            pathData.Cost = (sbyte)((cell & CostMask) >>> CostPosition);
             var zOffset = (cell & ZMask) >>> ZPosition;
             pathData.Z = (short)(zOffset != 0 ? Z - ZShift + zOffset : ZMin);
             pathData.MurFinInfo = 0;
@@ -434,10 +433,10 @@ public class TopologyData
         private const byte NumHeights = 64;
         private const short ZMin = -32768;
         
-        public byte[] Heights { get; set; } = new byte[NumHeights];
+        public sbyte[] Heights { get; set; } = new sbyte[NumHeights];
         public int[] Cells { get; set; }
         
-        public override void Load(BinaryReader reader)
+        public override void Load(ExtendedDataInputStream reader)
         {
             base.Load(reader);
 
@@ -446,12 +445,12 @@ public class TopologyData
                 Heights[i] = reader.ReadByte();
             }
             
-            var cellCount = reader.ReadInt16();
+            var cellCount = reader.ReadShort();
             Cells = new int[cellCount];
             
             for (var i = 0; i < Cells.Length; i++)
             {
-                Cells[i] = reader.ReadInt32();
+                Cells[i] = reader.ReadInt();
             }
         }
         
@@ -479,8 +478,8 @@ public class TopologyData
                 pathData.X = x;
                 pathData.Y = y;
                 pathData.Z = (short)(zOffset != 0 ? Z - ZShift + zOffset : ZMin);
-                pathData.Cost = (byte)((cell & CostMask) >>> CostPosition);
-                pathData.Cost = pathData.Cost == 15 ? unchecked((byte)-1) : pathData.Cost;
+                pathData.Cost = (sbyte)((cell & CostMask) >>> CostPosition);
+                pathData.Cost = pathData.Cost == 15 ? unchecked((sbyte)-1) : pathData.Cost;
                 pathData.IsHollow = (cell & MoveMask) >>> MovePosition != 0;
                 pathData.Height = Heights[(cell & HeightMask) >>> HeightPosition];
                 pathData.MurFinInfo = 0;
@@ -606,21 +605,21 @@ public class TopologyData
         private const short ZMin = -32768;
         
         public int[] Cells { get; set; }
-        public byte[] MoveAndVisibilities { get; set; }
-        public byte[] MurFinInfo { get; set; }
+        public sbyte[] MoveAndVisibilities { get; set; }
+        public sbyte[] MurFinInfo { get; set; }
         
-        public override void Load(BinaryReader reader)
+        public override void Load(ExtendedDataInputStream reader)
         {
             base.Load(reader);
             
-            var cellCount = reader.ReadInt16();
+            var cellCount = reader.ReadShort();
             Cells = new int[cellCount];
-            MoveAndVisibilities = new byte[cellCount + 1 >>> 1];
-            MurFinInfo = new byte[cellCount];
+            MoveAndVisibilities = new sbyte[cellCount + 1 >>> 1];
+            MurFinInfo = new sbyte[cellCount];
             
             for (var i = 0; i < Cells.Length; i++)
             {
-                Cells[i] = reader.ReadInt32();
+                Cells[i] = reader.ReadInt();
             }
 
             for (var i = 0; i < MoveAndVisibilities.Length; i++)
@@ -664,9 +663,9 @@ public class TopologyData
                     pathData.X = x;
                     pathData.Y = y;
                     pathData.Z = (short)(zOffset != 0 ? Z - ZShift + zOffset : ZMin);
-                    pathData.Height = (byte)((cell & HeightMask) >>> HeightPosition);
-                    pathData.Cost = (byte)((cell & CostMask) >>> CostPosition);
-                    pathData.Cost = pathData.Cost == 15 ? unchecked((byte)-1) : pathData.Cost;
+                    pathData.Height = (sbyte)((cell & HeightMask) >>> HeightPosition);
+                    pathData.Cost = (sbyte)((cell & CostMask) >>> CostPosition);
+                    pathData.Cost = pathData.Cost == 15 ? unchecked((sbyte)-1) : pathData.Cost;
                     pathData.IsHollow = (index4 & 1) == 0 ?
                         (MoveAndVisibilities[index4 >>> 1] >>> 4 & 1) != 0 :
                         (MoveAndVisibilities[index4 >>> 1] & 1) != 0;
@@ -702,7 +701,7 @@ public class TopologyData
                     visibilityData.X = x;
                     visibilityData.Y = y;
                     visibilityData.Z = (short)(Z - ZShift + (cell & ZMask) >>> ZPosition);
-                    visibilityData.Height = (byte)((cell & HeightMask) >>> HeightPosition);
+                    visibilityData.Height = (sbyte)((cell & HeightMask) >>> HeightPosition);
                     visibilityData.IsHollow = (index4 & 1) == 0 ?
                         (MoveAndVisibilities[index4 >>> 1] >>> 4 & 2) != 0 :
                         (MoveAndVisibilities[index4 >>> 1] & 2) != 0;
@@ -796,9 +795,9 @@ public class TopologyData
         public int Y { get; set; }
         public short Z { get; set; }
         public bool IsHollow { get; set; }
-        public byte Cost { get; set; }
-        public byte Height { get; set; }
-        public byte MurFinInfo { get; set; } = 0;
+        public sbyte Cost { get; set; }
+        public sbyte Height { get; set; }
+        public sbyte MurFinInfo { get; set; } = 0;
         
         public CellPathData(){}
 
@@ -869,6 +868,6 @@ public class TopologyData
         public int Y { get; set; }
         public short Z { get; set; }
         public bool IsHollow { get; set; }
-        public byte Height { get; set; }
+        public sbyte Height { get; set; }
     }
 }

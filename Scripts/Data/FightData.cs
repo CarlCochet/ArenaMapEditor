@@ -38,14 +38,14 @@ public class FightData
             return;
         
         using var stream = entry.Open();
-        using var reader = new BinaryReader(stream);
+        var reader = new ExtendedDataInputStream(stream);
 
         for (var i = 0; i < 6; i++)
         {
-            CoachPoints[i] = reader.ReadInt32();
+            CoachPoints[i] = reader.ReadInt();
         }
 
-        var startPointsCount = reader.ReadInt16() & 0xFFFF;
+        var startPointsCount = reader.ReadShort() & 0xFFFF;
         var team1Count = startPointsCount >>> 8;
         var team2Count = team1Count & 0xFF;
         StartPoints[0] = new List<int>(team1Count);
@@ -53,12 +53,12 @@ public class FightData
 
         for (var i = 0; i < team1Count; i++)
         {
-            StartPoints[0].Add(reader.ReadInt32());
+            StartPoints[0].Add(reader.ReadInt());
         }
 
         for (var i = 0; i < team2Count; i++)
         {
-            StartPoints[1].Add(reader.ReadInt32());
+            StartPoints[1].Add(reader.ReadInt());
         }
         
         StartPoints[0].Sort();
@@ -67,8 +67,8 @@ public class FightData
         var bonusCount = reader.ReadByte() & 255;
         for (var i = 0; i < bonusCount; i++)
         {
-            var position = reader.ReadInt32();
-            var type = reader.ReadInt32();
+            var position = reader.ReadInt();
+            var type = reader.ReadInt();
             Bonus.TryAdd(position, type);
         }
     }

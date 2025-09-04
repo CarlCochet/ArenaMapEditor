@@ -1,9 +1,7 @@
 using Godot;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using System.Text;
 
 public class MapData
 {
@@ -96,7 +94,7 @@ public class MapData
             return;
         
         using var stream = entry.Open();
-        using var reader = new BinaryReader(stream);
+        var reader = new ExtendedDataInputStream(stream);
         
         Ambiances = new AmbianceData(entry.FullName);
         Ambiances.Load(reader);
