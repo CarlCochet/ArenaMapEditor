@@ -71,6 +71,8 @@ public partial class Map : Node2D
             case Enums.Mode.Fight:
                 DisplayFight();
                 break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(mode), mode, null);
         }
     }
 

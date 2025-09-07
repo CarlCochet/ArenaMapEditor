@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dg6mn6au11akn"
-path="res://.godot/imported/-1002.tgam.png-30cd3ec3bbbcc1bd848de0aabae2f24e.ctex"
+uid="uid://bjfv7ugtnybqm"
+path="res://.godot/imported/8.tgam.png-3de1e0add78a0bcdd902ca7dfdcd6f47.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/Topology/-1002.tgam.png"
-dest_files=["res://.godot/imported/-1002.tgam.png-30cd3ec3bbbcc1bd848de0aabae2f24e.ctex"]
+source_file="res://Assets/Topology/8.tgam.png"
+dest_files=["res://.godot/imported/8.tgam.png-3de1e0add78a0bcdd902ca7dfdcd6f47.ctex"]
 
 [params]
 

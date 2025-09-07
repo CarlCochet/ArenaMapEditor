@@ -119,3 +119,4 @@ popup/item_4/id = 4
 
 [connection signal="item_selected" from="MarginContainer/GridContainer/BiomeButton" to="." method="_OnBiomeSelected"]
 [connection signal="item_selected" from="MarginContainer/GridContainer/CategoryButton" to="." method="_OnCategorySelected"]
+[connection signal="item_selected" from="MarginContainer/GridContainer/ModeButton" to="." method="_OnModeSelected"]
