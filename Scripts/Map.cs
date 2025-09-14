@@ -10,9 +10,14 @@ public partial class Map : Node2D
     
     [Export] public Camera CustomCamera;
     
-    [Export] private Node2D _assetContainer;
+    [Export] private Node2D _gfx;
+    [Export] private Node2D _path;
+    [Export] private Node2D _visibility;
+    [Export] private Node2D _light;
+    [Export] private Node2D _fight;
     [Export] private PackedScene _tileScene;
     [Export] private Sprite2D _grid;
+    
     
     private const int CellWidth = 86;
     private const int CellHeight = 43;
@@ -135,9 +140,9 @@ public partial class Map : Node2D
     {
         _tiles.Clear();
         SelectedTiles.Clear();
-        _assetContainer.QueueFree();
-        _assetContainer = new Node2D();
-        AddChild(_assetContainer);
+        _gfx.QueueFree();
+        _gfx = new Node2D();
+        AddChild(_gfx);
 
         var sortedElements = _mapData.Gfx.Partitions
             .SelectMany(p => p.Elements)
@@ -150,7 +155,7 @@ public partial class Map : Node2D
             tile.SetData(element);
             tile.PositionToIso(element.CellX, element.CellY, element.CellZ, element.Height, element.CommonData.OriginX, element.CommonData.OriginY);
             tile.FlipH = element.CommonData.Flip;
-            _assetContainer.AddChild(tile);
+            _gfx.AddChild(tile);
             _tiles.Add(tile);
         }
     }
@@ -160,7 +165,7 @@ public partial class Map : Node2D
         _tiles.Clear();
         SelectedTiles.Clear();
         
-        var children = _assetContainer.GetChildren();
+        var children = _gfx.GetChildren();
         foreach (var child in children)
         {
             child.QueueFree();
@@ -172,7 +177,7 @@ public partial class Map : Node2D
         _tiles.Clear();
         SelectedTiles.Clear();
         
-        var children = _assetContainer.GetChildren();
+        var children = _gfx.GetChildren();
         foreach (var child in children)
         {
             child.QueueFree();
@@ -184,7 +189,7 @@ public partial class Map : Node2D
         _tiles.Clear();
         SelectedTiles.Clear();
         
-        var children = _assetContainer.GetChildren();
+        var children = _gfx.GetChildren();
         foreach (var child in children)
         {
             child.QueueFree();
