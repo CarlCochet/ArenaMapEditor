@@ -22,14 +22,14 @@ public class TopologyData
     public const sbyte MethodDi = 5;
     
     public int Id { get; set; }
-    public List<Partition> Partitions { get; set; } = [];
-    public Dictionary<long, Partition> PartitionsMap { get; set; } = [];
+    public TopologyMapInstanceSet InstanceSet { get; set; }
 
     public TopologyData(string id)
     {
         if (!int.TryParse(id, out var worldId))
             return;
         Id = worldId;
+        InstanceSet = new TopologyMapInstanceSet();
     }
 
     public void Load(string path)
@@ -42,9 +42,9 @@ public class TopologyData
                 continue;
             
             var splitName = entry.FullName.Split('_');
-            if (!long.TryParse(splitName[0], out var x))
+            if (!int.TryParse(splitName[0], out var x))
                 x = 0;
-            if (!long.TryParse(splitName[1], out var y))
+            if (!int.TryParse(splitName[1], out var y))
                 y = 0;
             
             var hash = GetHashCode(Id, x, y, 0);
@@ -55,7 +55,7 @@ public class TopologyData
             var version = (sbyte)((header & VersionMask) >> VersionNumberPosition);
             var topologyMethod = (sbyte)((header & MethodMask) >> MethodNumberPosition);
 
-            Partition partition = topologyMethod switch
+            TopologyMap topologyMap = topologyMethod switch
             {
                 MethodA => new TopologyMapA(),
                 MethodB => new TopologyMapB(),
@@ -65,18 +65,80 @@ public class TopologyData
                 MethodDi => new TopologyMapDi(),
                 _ => null
             };
-            if (partition == null)
+            if (topologyMap == null)
                 continue;
             
-            partition.Load(reader);
-            Partitions.Add(partition);
+            topologyMap.Load(reader);
+            var instance = new TopologyMapInstance(topologyMap);
+            InstanceSet.AddMap(instance, x, y);
         }
-        Partitions = Partitions.OrderBy(p => p.X).ThenBy(p => p.Y).ToList();
     }
 
     public void Save()
     {
         
+    }
+
+    public CellPathData[] GetPathData(int x, int y)
+    {
+        var topologyMap = InstanceSet.GetTopologyMap(x, y);
+        if (topologyMap == null)
+        {
+            return null;
+        }
+        
+        var tempPathData = new CellPathData[1];
+        tempPathData[0] = new CellPathData();
+        var zCount = topologyMap.GetPathData(x, y, tempPathData, 0);
+        
+        if (zCount == 0)
+        {
+            return null;
+        }
+        if (zCount == 1)
+        {
+            return tempPathData;
+        }
+        
+        var cellPathData = new CellPathData[zCount];
+        for (var i = 0; i < zCount; i++)
+        {
+            cellPathData[i] = new CellPathData();
+            topologyMap.GetPathData(x, y, cellPathData, i);
+        }
+        
+        return cellPathData;
+    }
+    
+    public CellVisibilityData[] GetVisibilityData(int x, int y)
+    {
+        var topologyMap = InstanceSet.GetTopologyMap(x, y);
+        if (topologyMap == null)
+        {
+            return null;
+        }
+
+        var tempVisibilityData = new CellVisibilityData[1];
+        tempVisibilityData[0] = new CellVisibilityData();
+        var zCount = topologyMap.GetVisibilityData(x, y, tempVisibilityData, 0);
+        
+        if (zCount == 0)
+        {
+            return null;
+        }
+        if (zCount == 1)
+        {
+            return tempVisibilityData;
+        }
+        
+        var cellVisibilityData = new CellVisibilityData[zCount];
+        for (var i = 0; i < zCount; i++)
+        {
+            cellVisibilityData[i] = new CellVisibilityData();
+            topologyMap.GetVisibilityData(x, y, cellVisibilityData, i);
+        }
+        
+        return cellVisibilityData;
     }
     
     private long GetHashCode(int worldId, long x, long y, int instanceId)
@@ -88,7 +150,240 @@ public class TopologyData
                (long)(instanceId & 65535);
     }
 
-    public abstract class Partition
+    public class TopologyMapInstanceSet
+    {
+        public List<TopologyMapInstance> Maps { get; set; }
+        public int MinX { get; set; }
+        public int MinY { get; set; }
+        public int MaxX { get; set; }
+        public int MaxY { get; set; }
+        public int Width { get; set; }
+        public int Height { get; set; }
+
+        public TopologyMapInstanceSet()
+        {
+            Maps = [];
+            Reset();
+        }
+        
+        public TopologyMap GetTopologyMap(int x, int y)
+        {
+            if (x < MinX || x >= MinX + Width || y < MinY || y >= MinY + Height)
+            {
+                return null;
+            }
+            var index = GetMapIndex(x, y);
+            return index < 0 || index >= Maps.Count ? null : Maps[index]?.TopologyMap;
+        }
+
+        public bool IsInMap(int x, int y)
+        {
+            return x >= MinX && x < MaxX + Width && y >= MinY && y < MaxY + Height;
+        }
+
+        public bool IsMovementBlocked(int x, int y)
+        {
+            var index = GetMapIndex(x, y);
+            return index >= 0 && index < Maps.Count && Maps[index]?.IsBlocked(x, y) == true;
+        }
+
+        public bool IsSightBlocked(int x, int y)
+        {
+            var index = GetMapIndex(x, y);
+            return index >= 0 && index < Maps.Count && Maps[index]?.IsBlocked(x, y) == true;
+        }
+
+        public void Reset()
+        {
+            Maps.Clear();
+            MinX = int.MaxValue;
+            MinY = int.MaxValue;
+            MaxX = int.MinValue;
+            MaxY = int.MinValue;
+            Width = 0;
+            Height = 0;
+        }
+
+        public void AddMap(TopologyMapInstance mapInstance, int mapX, int mapY)
+        {
+            Maps.Add(mapInstance);
+            mapX *= MapConstants.MapWidth;
+            mapY *= MapConstants.MapLength;
+            MinX = Math.Min(MinX, mapX);
+            MinY = Math.Min(MinY, mapY);
+            MaxX = Math.Max(MaxX, mapX);
+            MaxY = Math.Max(MaxY, mapY);
+            Width = MapConstants.MapWidth + MaxX - MinX;
+            Height = MapConstants.MapLength + MaxY - MinY;
+        }
+
+        private int GetMapIndex(int x, int y)
+        {
+            if (x < MinX || y < MinY)
+            {
+                return -1;
+            }
+            
+            var offsetX = (x - MinX) / MapConstants.MapWidth;
+            var offsetY = (y - MinY) / MapConstants.MapLength;
+            return offsetY * (Width / MapConstants.MapWidth) + offsetX;
+        }
+    }
+
+    public class TopologyMapInstance
+    {
+        public ByteArrayBitSet EntirelyBlockedCells { get; set; } = new(324);
+        public ByteArrayBitSet UsedInFight { get; set; } = new(324);
+        public TopologyMap TopologyMap { get; set; }
+        public int NonBlockedCellsNumber { get; set; }
+        public static CellPathData[] PathData { get; set; } = new CellPathData[32];
+
+        public TopologyMapInstance(TopologyMap topologyMap)
+        {
+            for (var i = 0; i < PathData.Length; i++)
+            {
+                PathData[i] = new CellPathData();
+            }
+            SetTopologyMap(topologyMap);
+        }
+
+        public bool IsBlocked(int x, int y)
+        {
+            x -= TopologyMap.X;
+            y -= TopologyMap.Y;
+            return EntirelyBlockedCells.Get(y * MapConstants.MapWidth + x);
+        }
+
+        public int GetMurFinType(int x, int y, int z)
+        {
+            if (!TopologyMap.IsInMap(x, y))
+            {
+                return 0;
+            }
+            
+            var zCount = TopologyMap.GetPathData(x, y, PathData, 0);
+            if (zCount == 0)
+            {
+                return 0;
+            }
+
+            for (var i = 0; i < zCount; i++)
+            {
+                if (PathData[i].Z == z)
+                {
+                    return PathData[i].GetMurFinType();
+                }
+            }
+            return 0;
+        }
+
+        public bool IsIndoor(int x, int y, int z)
+        {
+            return CellPathData.IsIndoor(GetMurFinType(x, y, z));
+        }
+        
+        public bool IsUsedInFight(int x, int y)
+        {
+            x -= TopologyMap.X;
+            y -= TopologyMap.Y;
+            return UsedInFight.Get(y * MapConstants.MapWidth + x);
+        }
+
+        public void SetBlocked(int x, int y, bool blocked)
+        {
+            if (IsBlocked(x, y) == blocked)
+            {
+                return;
+            }
+
+            if (blocked)
+            {
+                x -= TopologyMap.X;
+                y -= TopologyMap.Y;
+                EntirelyBlockedCells.Set(y * MapConstants.MapWidth + x, true);
+                NonBlockedCellsNumber--;
+                return;
+            }
+
+            if (IsTopologyMapCellBlocked(x, y))
+            {
+                return;
+            }
+            
+            x -= TopologyMap.X;
+            y -= TopologyMap.Y;
+            EntirelyBlockedCells.Set(y * MapConstants.MapWidth + x, false);
+            NonBlockedCellsNumber++;
+        }
+
+        public void SetUsedInFight(int x, int y, bool usedInFight)
+        {
+            if (IsUsedInFight(x, y) == usedInFight)
+            {
+                return;
+            }
+
+            if (usedInFight)
+            {
+                x -= TopologyMap.X;
+                y -= TopologyMap.Y;
+                UsedInFight.Set(y * MapConstants.MapWidth + x, true);
+                return;
+            }
+
+            if (IsBlocked(x, y))
+            {
+                return;
+            }
+            
+            x -= TopologyMap.X;
+            y -= TopologyMap.Y;
+            UsedInFight.Set(y * MapConstants.MapWidth + x, false);
+        }
+
+        public void SetTopologyMap(TopologyMap topologyMap)
+        {
+            TopologyMap = topologyMap;
+            EntirelyBlockedCells.SetAll(false);
+            NonBlockedCellsNumber = 324;
+            var x = TopologyMap.X;
+            var y = TopologyMap.Y;
+            var index = 0;
+
+            for (var i = 0; i < MapConstants.MapLength; i++)
+            {
+                for (var j = 0; j < MapConstants.MapWidth; j++)
+                {
+                    if (IsTopologyMapCellBlocked(x + j, y + i))
+                    {
+                        EntirelyBlockedCells.Set(index, true);
+                        NonBlockedCellsNumber--;
+                    }
+                    index++;
+                }
+            }
+        }
+
+        public bool IsTopologyMapCellBlocked(int x, int y)
+        {
+            var zCount = TopologyMap.GetPathData(x, y, PathData, 0);
+            if (zCount == 1)
+            {
+                return PathData[0].Cost == -1;
+            }
+
+            for (var i = 0; i < zCount; i++)
+            {
+                if (PathData[i].Cost != -1)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+
+    public abstract class TopologyMap
     {
         public const int MaxZPerCells = 32;
         public const sbyte InfiniteCost = -1;
@@ -142,7 +437,7 @@ public class TopologyData
         }
     }
 
-    public abstract class TopologyMapBlockedCells : Partition
+    public abstract class TopologyMapBlockedCells : TopologyMap
     {
         private readonly sbyte[] _blockedCells = new sbyte[ByteArrayBitSet.GetDataLength(MapConstants.NumCells)];
         
@@ -162,11 +457,9 @@ public class TopologyData
         {
             return ByteArrayBitSet.Get(_blockedCells, (y - Y) * MapConstants.MapWidth + x - X);
         }
-        
-        
     }
 
-    public class TopologyMapA : Partition
+    public class TopologyMapA : TopologyMap
     {
         private sbyte Cost { get; set; }
         private sbyte MurFin { get; set; }
@@ -737,9 +1030,9 @@ public class TopologyData
             return pathData;
         }
 
-        public static short GetZIndex(CellPathData[] cellPathData, Partition partition, int x, int y, short z)
+        public static short GetZIndex(CellPathData[] cellPathData, TopologyMap topologyMap, int x, int y, short z)
         {
-            var pathData = partition.GetPathData(x, y, cellPathData, 0);
+            var pathData = topologyMap.GetPathData(x, y, cellPathData, 0);
 
             if (pathData == 1)
                 return (short)(cellPathData[0].Z == z ? 0 : -1);

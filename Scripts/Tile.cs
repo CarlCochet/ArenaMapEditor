@@ -5,6 +5,9 @@ public partial class Tile : Sprite2D
 {
     public TileData Data;
     public GfxData.Element Element;
+    public TopologyData.CellPathData PathData;
+    public TopologyData.CellVisibilityData VisibilityData;
+    
 	
     private const int CellWidth = 86;
     private const int CellHeight = 43;
@@ -13,6 +16,14 @@ public partial class Tile : Sprite2D
     private bool _isSelected;
     private Color _highlightColor = Colors.Green;
     private Color _baseColor = Colors.White;
+    
+    private Color _topColor = new(0.9f, 0.9f, 0.9f);
+    private Color _leftColor = new(0.7f, 0.7f, 0.7f);
+    private Color _rightColor = new(0.5f, 0.5f, 0.5f);
+    
+    private Color _topHighlightColor = new(0.3f, 0.9f, 0.3f);
+    private Color _leftHighlightColor = new(0.2f, 0.7f, 0.2f);
+    private Color _rightHighlightColor = new(0.1f, 0.5f, 0.1f);
 
     public override void _Ready()
     {
@@ -24,20 +35,73 @@ public partial class Tile : Sprite2D
         {
             DrawRect(GetRect(), Colors.Red, false);
         }
+
+        if (VisibilityData != null)
+        {
+            DrawIsometricCube();
+        }
     }
 
-    public void SetData(GfxData.Element element)
+    private void DrawIsometricCube()
     {
-        Data = GlobalData.Instance.Assets[element.CommonData.GfxId].Copy();
+        if (VisibilityData.CanViewThrough || VisibilityData.Height <= 0)
+        {
+            return;
+        }
+        
+        var cubeHeight = VisibilityData.Height * ElevationStep;
+        const float halfWidth = CellWidth * 0.5f;
+        const float halfHeight = CellHeight * 0.5f;
+
+        Vector2[] topFace = [new(0, -halfHeight), new(halfWidth, 0), new(0, halfHeight), new(-halfWidth, 0)];
+        Vector2[] leftFace = [new(-halfWidth, 0), new(-halfWidth, cubeHeight), new(0, halfHeight + cubeHeight), new(0, halfHeight)];
+        Vector2[] rightFace = [new(0, halfHeight), new(0, halfHeight + cubeHeight), new(halfWidth, cubeHeight), new(halfWidth, 0)];
+
+        if (_isSelected)
+        {
+            DrawColoredPolygon(leftFace, _leftHighlightColor);
+            DrawColoredPolygon(rightFace, _rightHighlightColor);
+            DrawColoredPolygon(topFace, _topHighlightColor);
+        }
+        else
+        {
+            DrawColoredPolygon(leftFace, _leftColor);
+            DrawColoredPolygon(rightFace, _rightColor);
+            DrawColoredPolygon(topFace, _topColor);
+        }
+
+        DrawPolylineColors(topFace.AsSpan(), [Colors.Black, Colors.Black, Colors.Black, Colors.Black], 1.0f, true);
+        DrawPolylineColors(leftFace.AsSpan(), [Colors.Black, Colors.Black, Colors.Black, Colors.Black], 1.0f, false);
+        DrawPolylineColors(rightFace.AsSpan(), [Colors.Black, Colors.Black, Colors.Black, Colors.Black], 1.0f, false);
+    }
+
+    public void SetElementData(GfxData.Element element)
+    {
+        // Data = GlobalData.Instance.Assets[element.CommonData.GfxId].Copy();
+        Data = GlobalData.Instance.GetAssetById(element.CommonData.GfxId).Copy();
         Element = element;
         Texture = Data.Texture;
         _baseColor = Colors.White;
-        _baseColor = Element.Colors.Length < 3 ? Colors.White : new Color(
-            0.7f + 0.3f * Element.Colors[0], 
-            0.7f + 0.3f * Element.Colors[1], 
-            0.7f + 0.3f * Element.Colors[2]);
+        _baseColor = Element.Colors.Length < 3
+            ? Colors.White
+            : new Color(0.7f + 0.3f * Element.Colors[0], 0.7f + 0.3f * Element.Colors[1], 0.7f + 0.3f * Element.Colors[2]);
         // _baseColor = Element.Colors.Length < 3 ? Colors.White : new Color(Element.Colors[0], Element.Colors[1], Element.Colors[2]);
         SelfModulate = _baseColor;
+    }
+
+    public void SetPathData(TopologyData.CellPathData pathData)
+    {
+        PathData = pathData;
+        Data = PathData.CanMoveThrough
+            ? GlobalData.Instance.GetAssetById(-1)
+            : GlobalData.Instance.GetAssetById(-2);
+        Texture = Data.Texture;
+    }
+
+    public void SetVisibilityData(TopologyData.CellVisibilityData visibilityData)
+    {
+        VisibilityData = visibilityData;
+        QueueRedraw();
     }
 	
     public void PositionToIso(int x, int y, int z, int height, int originX, int originY)
@@ -52,12 +116,14 @@ public partial class Tile : Sprite2D
     {
         SelfModulate = _baseColor;
         _isSelected = false;
+        QueueRedraw();
     }
 
     public void Select()
     {
         SelfModulate = _highlightColor;
         _isSelected = true;
+        QueueRedraw();
     }
 
     public bool IsValidPixel(Vector2 position)

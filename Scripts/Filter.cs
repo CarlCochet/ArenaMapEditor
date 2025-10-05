@@ -8,7 +8,11 @@ public partial class Filter : Control
     public Enums.Mode Mode { get; set; } = Enums.Mode.Gfx;
 
     public event EventHandler FilterUpdated; 
-    public event EventHandler ModeUpdated; 
+    public event EventHandler ModeUpdated;
+
+    [Export] private OptionButton _biomeButton;
+    [Export] private OptionButton _categoryButton;
+    [Export] private OptionButton _modeButton;
 	
     public override void _Ready() { }
 	
@@ -29,5 +33,26 @@ public partial class Filter : Control
         Mode = (Enums.Mode)index;
         FilterUpdated?.Invoke(this, EventArgs.Empty);
         ModeUpdated?.Invoke(this, EventArgs.Empty);
+    }
+    
+    public void UpdateBiome(Enums.Biome biome)
+    {
+        Biome = biome;
+        _biomeButton.Selected = (int)biome;
+        FilterUpdated?.Invoke(this, EventArgs.Empty);
+    }
+    
+    public void UpdateCategory(Enums.Category category)
+    {
+        Category = category;
+        _categoryButton.Selected = (int)category;
+        FilterUpdated?.Invoke(this, EventArgs.Empty);
+    }
+
+    public void UpdateMode(Enums.Mode mode)
+    {
+        Mode = mode;
+        _modeButton.Selected = (int)mode;
+        FilterUpdated?.Invoke(this, EventArgs.Empty);
     }
 }

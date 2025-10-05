@@ -50,10 +50,11 @@ public static class Enums
     public enum Mode
     {
         Gfx = 0,
-        GfxPresent = 1,
-        Topology = 2,
-        Light = 3,
-        Fight = 4,
+        GfxCurrent = 1,
+        Path = 2,
+        Visibility = 3,
+        Light = 4,
+        Fight = 5,
     }
 
     public enum Direction

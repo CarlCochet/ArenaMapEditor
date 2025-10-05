@@ -144,7 +144,10 @@ public partial class Editor : Node2D
 	{
 		var mapData = new MapData(eventArgs.MapName);
 		mapData.Load(_contentPath);
-		_map.Load(mapData, _filter.Mode);
+		_map.Load(mapData, Enums.Mode.Gfx);
+		_filter.UpdateBiome(Enums.Biome.Global);
+		_filter.UpdateCategory(Enums.Category.Global);
+		_filter.UpdateMode(Enums.Mode.Gfx);
 	}
 
 	private void _OnDirectorySelected(string dir)
@@ -159,7 +162,7 @@ public partial class Editor : Node2D
 		GlobalData.Instance.Settings.ArenaPath = dir;
 		
 		_contentPath = $"{GlobalData.Instance.Settings.ArenaPath}/game/contents";
-		using var dirAccess = DirAccess.Open($"{_contentPath}/maps/gfx");
+		using var dirAccess = DirAccess.Open($"{_contentPath}/maps/fight");
 		if (dirAccess == null)
 			return;
 		

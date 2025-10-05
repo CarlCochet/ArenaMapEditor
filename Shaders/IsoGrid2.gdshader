@@ -43,7 +43,7 @@ float elliptical_distance(vec2 p1, vec2 p2){
 void fragment() {
 	vec2 coords = global_coords.xy * grid_scale * 0.01 * 0.05555;
 	coords.y += 0.014;
-	coords.y += elevation * 0.01;
+	coords.y += elevation * 0.01 * 0.05555;
 
 	float dist_to_mouse = elliptical_distance(global_coords, mouse_position);
 	float mouse_factor = smoothstep(mouse_influence_radius, 0.0, dist_to_mouse);

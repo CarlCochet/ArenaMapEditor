@@ -1,7 +1,9 @@
 using Godot;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 
 public class MapData
 {
@@ -12,6 +14,7 @@ public class MapData
     public FightData Fight { get; set; }
     public EnvData Env { get; set; }
     public AmbianceData Ambiances { get; set; }
+    public List<(int x, int y)> ValidPositions { get; set; }
     
     public MapData(string id)
     {
@@ -44,6 +47,13 @@ public class MapData
         {
             Gfx = new GfxData(Id);
             Gfx.Load($"{path}/maps/gfx");
+            ValidPositions = Gfx.Partitions
+                .SelectMany(partition => partition.Elements)
+                .Select(element => (element.CellX, element.CellY))
+                .Distinct()
+                .OrderBy(pos => pos.CellX)
+                .ThenBy(pos => pos.CellY)
+                .ToList();
         }
         catch (Exception e)
         {
