@@ -18,6 +18,7 @@ public partial class Editor : Node2D
 	private int _x;
 	private int _y;
 	private int _z;
+	private Enums.FileDialogMode _mode;
 	
 	public override void _Ready()
 	{
@@ -32,6 +33,7 @@ public partial class Editor : Node2D
 		
 		_tools.MapSelected += _OnMapSelected;
 		_tools.LocateArenaPressed += _OnLocateArenaPressed;
+		_tools.ExportMapPressed += _OnMapExportedPressed;
 
 		_overlay.PreviewChangePressed += _OnPreviewChangePressed;
 		_overlay.OffsetChangeDown += _OnOffsetChangeDown;
@@ -138,6 +140,13 @@ public partial class Editor : Node2D
 	private void _OnLocateArenaPressed(object sender, EventArgs eventArgs)
 	{
 		_fileDialog.Visible = true;
+		_mode = Enums.FileDialogMode.Open;
+	}
+	
+	private void _OnMapExportedPressed(object sender, EventArgs e)
+	{
+		_fileDialog.Visible = true;
+		_mode = Enums.FileDialogMode.Save;
 	}
 	
 	private void _OnMapSelected(object sender, Tools.MapSelectedEventArgs eventArgs)
@@ -152,9 +161,42 @@ public partial class Editor : Node2D
 
 	private void _OnDirectorySelected(string dir)
 	{
+		switch (_mode) 
+		{
+			case Enums.FileDialogMode.Open:
+				LoadMapList(dir);
+				break;
+			case Enums.FileDialogMode.Save:
+				SaveMap(dir);
+				break;
+		}
+	}
+
+	private void SaveMap(string dir)
+	{
+		using var dirAccess = DirAccess.Open(dir);
+		var directories = dirAccess.GetDirectories();
+		var files = dirAccess.GetFiles();
+		if (files.Length > 0 || directories.Length > 0)
+		{
+			GD.PrintErr("Map directory is not empty.");
+			return;
+		}
+
+		dirAccess.MakeDir("env");
+		dirAccess.MakeDir("fight");
+		dirAccess.MakeDir("gfx");
+		dirAccess.MakeDir("light");
+		dirAccess.MakeDir("tplg");
+		
+		_map.Save(dir);
+	}
+
+	private void LoadMapList(string dir)
+	{
 		if (!IsFolderArena(dir))
 		{
-			GD.PrintErr("Invalid directory");
+			GD.PrintErr("Selected directory is not a valid Arena Client folder.");
 			return;
 		}
 

@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.IO.Compression;
 using System.Linq;
 
@@ -42,9 +43,39 @@ public class GfxData
         Partitions = Partitions.OrderBy(p => p.X).ThenBy(p => p.Y).ToList();
     }
 
-    public void Save(string path, string id)
+    public void Save(string path)
     {
+        var tempDir = Path.Combine(Path.GetTempPath(), $"gfx_{Id}_{Guid.NewGuid()}");
+        Directory.CreateDirectory(tempDir);
         
+        try
+        {
+            foreach (var partition in Partitions)
+            {
+                var mapX = partition.X / MapConstants.MapWidth;
+                var mapY = partition.Y / MapConstants.MapLength;
+                var fileName = $"{mapX}_{mapY}";
+                var filePath = Path.Combine(tempDir, fileName);
+            
+                using var fileStream = File.Create(filePath);
+                using var writer = new OutputBitStream(fileStream);
+                partition.Save(writer);
+            }
+            
+            var jarPath = Path.Combine(path, $"{Id}.jar");
+            if (File.Exists(jarPath))
+            {
+                File.Delete(jarPath);
+            }
+            ZipFile.CreateFromDirectory(tempDir, jarPath);
+        }
+        finally
+        {
+            if (Directory.Exists(tempDir))
+            {
+                Directory.Delete(tempDir, true);
+            }
+        }
     }
 
     public class Partition
@@ -162,25 +193,178 @@ public class GfxData
                 .ToList();
         }
 
-        public void Save()
+        public void Save(OutputBitStream writer)
         {
+            RecomputeBounds();
+            writer.WriteInt(_coordMinX);
+            writer.WriteInt(_coordMinY);
+            writer.WriteShort(_coordMinZ);
+            writer.WriteInt(_coordMaxX);
+            writer.WriteInt(_coordMaxY);
+            writer.WriteShort(_coordMaxZ);
             
+            var groupMap = new Dictionary<(int, sbyte, int), int>();
+            var groupList = new List<(int groupKey, sbyte layerIndex, int groupId)>();
+            
+            foreach (var element in Elements)
+            {
+                var key = (element.GroupKey, element.LayerIndex, element.GroupId);
+                if (groupMap.ContainsKey(key))
+                {
+                    continue;
+                }
+                
+                groupMap[key] = groupList.Count;
+                groupList.Add(key);
+            }
+            
+            writer.WriteShort(unchecked((short)groupList.Count));
+            foreach (var group in groupList)
+            {
+                writer.WriteInt(group.groupKey);
+                writer.WriteByte(group.layerIndex);
+                writer.WriteInt(group.groupId);
+            }
+            
+            var colorMap = new Dictionary<string, int>(new ColorArrayComparer());
+            var colorList = new List<float[]>();
+            
+            foreach (var element in Elements)
+            {
+                var colorKey = string.Join(",", element.Colors);
+                if (colorMap.ContainsKey(colorKey))
+                {
+                    continue;
+                }
+                
+                colorMap[colorKey] = colorList.Count;
+                colorList.Add(element.Colors);
+            }
+            
+            writer.WriteShort(unchecked((short)colorList.Count));
+            foreach (var colors in colorList)
+            {
+                var type = Element.GetColorType(colors);
+                writer.WriteByte(type);
+                Element.WriteColors(writer, type, colors);
+            }
+            
+            var cellMap = new Dictionary<(int, int), List<Element>>();
+            var minCellX = int.MaxValue;
+            var maxCellX = int.MinValue;
+            var minCellY = int.MaxValue;
+            var maxCellY = int.MinValue;
+            
+            foreach (var element in Elements)
+            {
+                var key = (element.CellX, element.CellY);
+                if (!cellMap.TryGetValue(key, out var value))
+                {
+                    value = [];
+                    cellMap[key] = value;
+                }
+
+                value.Add(element);
+                
+                minCellX = Math.Min(minCellX, element.CellX);
+                maxCellX = Math.Max(maxCellX, element.CellX);
+                minCellY = Math.Min(minCellY, element.CellY);
+                maxCellY = Math.Max(maxCellY, element.CellY);
+            }
+            
+            var mapX = minCellX;
+            var mapY = minCellY;
+            writer.WriteInt(mapX);
+            writer.WriteInt(mapY);
+            
+            var rects = BuildRectangles(cellMap);
+            writer.WriteShort((short)rects.Count);
+            
+            foreach (var rect in rects)
+            {
+                writer.WriteByte((sbyte)(rect.minX - mapX));
+                writer.WriteByte((sbyte)(rect.maxX - mapX));
+                writer.WriteByte((sbyte)(rect.minY - mapY));
+                writer.WriteByte((sbyte)(rect.maxY - mapY));
+                
+                for (var cx = rect.minX; cx < rect.maxX; cx++)
+                {
+                    for (var cy = rect.minY; cy < rect.maxY; cy++)
+                    {
+                        var cellElements = cellMap.GetValueOrDefault((cx, cy), []);
+                        writer.WriteByte((sbyte)cellElements.Count);
+                        
+                        foreach (var element in cellElements)
+                        {
+                            element.Save(writer);
+                            
+                            var groupIndex = groupMap[(element.GroupKey, element.LayerIndex, element.GroupId)];
+                            writer.WriteShort((short)groupIndex);
+                            
+                            var colorKey = string.Join(",", element.Colors);
+                            var colorIndex = colorMap[colorKey];
+                            writer.WriteShort((short)colorIndex);
+                        }
+                    }
+                }
+            }
+        }
+        
+        private void RecomputeBounds()
+        {
+            _coordMinX = int.MaxValue;
+            _coordMinY = int.MaxValue;
+            _coordMinZ = short.MaxValue;
+            _coordMaxX = int.MinValue;
+            _coordMaxY = int.MinValue;
+            _coordMaxZ = short.MinValue;
+    
+            foreach (var element in Elements)
+            {
+                _coordMinX = Math.Min(_coordMinX, element.CellX);
+                _coordMaxX = Math.Max(_coordMaxX, element.CellX);
+                _coordMinY = Math.Min(_coordMinY, element.CellY);
+                _coordMaxY = Math.Max(_coordMaxY, element.CellY);
+                _coordMinZ = Math.Min(_coordMinZ, element.CellZ);
+                _coordMaxZ = Math.Max(_coordMaxZ, element.CellZ);
+            }
+        }
+        
+        private static List<(int minX, int maxX, int minY, int maxY)> BuildRectangles(Dictionary<(int, int), List<Element>> cellMap)
+        {
+            var rects = new List<(int, int, int, int)>();
+            var processed = new HashSet<(int, int)>();
+            
+            foreach (var cellKey in cellMap.Keys.OrderBy(k => k.Item1).ThenBy(k => k.Item2))
+            {
+                if (processed.Contains(cellKey))
+                {
+                    continue;
+                }
+                    
+                var minX = cellKey.Item1;
+                var minY = cellKey.Item2;
+                var maxX = minX + 1;
+                var maxY = minY + 1;
+                
+                processed.Add(cellKey);
+                rects.Add((minX, maxX, minY, maxY));
+            }
+            
+            return rects;
         }
     }
 
-    public class Element
+    public class Element(int x, int y)
     {
         public const int TeintMask = 0x1;
         public const int AlphaMask = 0x2;
         public const int GradientMask = 0x4;
 
         private const float DefaultTeint = 0.5f;
-        private const float DefaultLight = 1.0f;
-        private const float DefaultAlpha = 1.0f;
-        
-        public byte Type { get; set; }
-        public int CellX { get; set; }
-        public int CellY { get; set; }
+
+        public int CellX { get; set; } = x;
+        public int CellY { get; set; } = y;
         public short CellZ { get; set; }
         public int Top { get; set; }
         public int Left { get; set; }
@@ -190,17 +374,11 @@ public class GfxData
         public sbyte LayerIndex { get; set; }
         public int GroupKey { get; set; }
         public bool Occluder { get; set; }
-        public byte TypeMask { get; set; }
+        public sbyte TypeMask { get; set; }
         public long HashCode { get; set; }
         public float[] Colors { get; set; }
         public Color Color { get; set; }
         public ElementData CommonData { get; set; }
-
-        public Element(int x, int y)
-        {
-            CellX = x;
-            CellY = y;
-        }
 
         public void Load(ExtendedDataInputStream reader)
         {
@@ -209,9 +387,9 @@ public class GfxData
             AltitudeOrder = reader.ReadByte();
             Occluder = reader.ReadBooleanBit();
             
-            TypeMask = reader.ReadBooleanBit() ? (byte)TeintMask : (byte)0;
-            TypeMask |= reader.ReadBooleanBit() ? (byte)AlphaMask : (byte)0;
-            TypeMask |= reader.ReadBooleanBit() ? (byte)GradientMask : (byte)0;
+            TypeMask = reader.ReadBooleanBit() ? (sbyte)TeintMask : (sbyte)0;
+            TypeMask |= reader.ReadBooleanBit() ? (sbyte)AlphaMask : (sbyte)0;
+            TypeMask |= reader.ReadBooleanBit() ? (sbyte)GradientMask : (sbyte)0;
             
             var elementId = reader.ReadInt();
             if (GlobalData.Instance.Elements.TryGetValue(elementId, out var data))
@@ -228,12 +406,21 @@ public class GfxData
             ComputeHashCode();
         }
         
-        public void Save()
+        public void Save(OutputBitStream writer)
         {
+            writer.WriteShort(CellZ);
+            writer.WriteByte(Height);
+            writer.WriteByte(AltitudeOrder);
+            writer.WriteBooleanBit(Occluder);
             
+            writer.WriteBooleanBit((TypeMask & TeintMask) != 0);
+            writer.WriteBooleanBit((TypeMask & AlphaMask) != 0);
+            writer.WriteBooleanBit((TypeMask & GradientMask) != 0);
+            
+            writer.WriteInt(CommonData.Id);
         }
         
-        public (int x, int y) IsoToScreen(int isoX, int isoY, int isoAltitude)
+        private static (int x, int y) IsoToScreen(int isoX, int isoY, int isoAltitude)
         {
             var x = (isoX - isoY) * 43;
             var y = (int)(-(isoY + isoX) * 21.5f) + isoAltitude * ElevationStep;
@@ -254,6 +441,28 @@ public class GfxData
             size += (type & AlphaMask) == AlphaMask ? 1 : 0;
             size *= (type & GradientMask) == GradientMask ? 2 : 1;
             return new float[size];
+        }
+        
+        public static sbyte GetColorType(float[] colors)
+        {
+            sbyte type = 0;
+            var hasGradient = colors.Length is 6 or 8 or 2;
+            var baseSize = hasGradient ? colors.Length / 2 : colors.Length;
+
+            if (baseSize >= 3)
+            {
+                type |= TeintMask;
+            }
+            if (baseSize is 4 or 1)
+            {
+                type |= AlphaMask;
+            }
+            if (hasGradient)
+            {
+                type |= GradientMask;
+            }
+            
+            return type;
         }
 
         public static void ReadColors(ExtendedDataInputStream reader, int type, float[] colors)
@@ -282,9 +491,46 @@ public class GfxData
 
                 if ((type & AlphaMask) == AlphaMask)
                 {
-                    colors[i++] = reader.ReadByte() / 255.0f + DefaultTeint;;
+                    colors[i++] = reader.ReadByte() / 255.0f + DefaultTeint;
                 }
             }
         }
+        
+        public static void WriteColors(OutputBitStream writer, sbyte type, float[] colors)
+        {
+            var i = 0;
+            if ((type & TeintMask) == TeintMask)
+            {
+                writer.WriteByte((sbyte)((colors[i++] - DefaultTeint) * 255));
+                writer.WriteByte((sbyte)((colors[i++] - DefaultTeint) * 255));
+                writer.WriteByte((sbyte)((colors[i++] - DefaultTeint) * 255));
+            }
+
+            if ((type & AlphaMask) == AlphaMask)
+            {
+                writer.WriteByte((sbyte)((colors[i++] - DefaultTeint) * 255));
+            }
+
+            if ((type & GradientMask) == GradientMask)
+            {
+                if ((type & TeintMask) == TeintMask)
+                {
+                    writer.WriteByte((sbyte)((colors[i++] - DefaultTeint) * 255));
+                    writer.WriteByte((sbyte)((colors[i++] - DefaultTeint) * 255));
+                    writer.WriteByte((sbyte)((colors[i++] - DefaultTeint) * 255));
+                }
+
+                if ((type & AlphaMask) == AlphaMask)
+                {
+                    writer.WriteByte((sbyte)((colors[i++] - DefaultTeint) * 255));
+                }
+            }
+        }
+    }
+    
+    private class ColorArrayComparer : IEqualityComparer<string>
+    {
+        public bool Equals(string x, string y) => x == y;
+        public int GetHashCode(string obj) => obj.GetHashCode();
     }
 }

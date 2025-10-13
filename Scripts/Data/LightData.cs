@@ -43,9 +43,39 @@ public class LightData
         Partitions = Partitions.OrderBy(p => p.X).ThenBy(p => p.Y).ToList();
     }
 
-    public void Save()
+    public void Save(string path)
     {
+        var tempDir = Path.Combine(Path.GetTempPath(), $"light_{Id}_{Guid.NewGuid()}");
+        Directory.CreateDirectory(tempDir);
         
+        try
+        {
+            foreach (var partition in Partitions)
+            {
+                var mapX = partition.X / MapConstants.MapWidth;
+                var mapY = partition.Y / MapConstants.MapLength;
+                var fileName = $"{mapX}_{mapY}";
+                var filePath = Path.Combine(tempDir, fileName);
+            
+                using var fileStream = File.Create(filePath);
+                using var writer = new OutputBitStream(fileStream);
+                partition.Save(writer);
+            }
+            
+            var jarPath = Path.Combine(path, $"{Id}.jar");
+            if (File.Exists(jarPath))
+            {
+                File.Delete(jarPath);
+            }
+            ZipFile.CreateFromDirectory(tempDir, jarPath);
+        }
+        finally
+        {
+            if (Directory.Exists(tempDir))
+            {
+                Directory.Delete(tempDir, true);
+            }
+        }
     }
 
     public class Partition(int id)
@@ -67,11 +97,8 @@ public class LightData
 
             for (var i = 0; i < count; i++)
             {
-                var allowOutdoorLighting = reader.ReadBooleanBit();
-                var ambiance = reader.ReadInt();
-                var shadow = reader.ReadInt();
-                var light = reader.ReadInt();
-                var def = new CellLightDef(ambiance, shadow, light, allowOutdoorLighting);
+                var def = new CellLightDef();
+                def.Load(reader);
                 CellLightDef.Add(def);
             }
 
@@ -86,9 +113,35 @@ public class LightData
             }
         }
 
-        public void Save(BinaryWriter writer)
+        public void Save(OutputBitStream writer)
         {
+            writer.WriteShort((short)(X / ChunkSize));
+            writer.WriteShort((short)(Y / ChunkSize));
+            writer.WriteShort(unchecked((short)CellLightDef.Count));
+
+            foreach (var def in CellLightDef)
+            {
+                def.Save(writer);
+            }
             
+            writer.WriteByte(unchecked((sbyte)(layerColors.Length / MapConstants.NumCells)));
+            var filledLayersCount = layerColors.Count(l => l != null);
+            writer.WriteShort(unchecked((short)filledLayersCount));
+
+            for (var k = 0; k < layerColors.Length; k++)
+            {
+                for (var idx = 0; idx < CellLightDef.Count; idx++)
+                {
+                    if (layerColors[k] != CellLightDef[idx])
+                    {
+                        continue;
+                    }
+                    
+                    writer.WriteShort(unchecked((short)k));
+                    writer.WriteShort(unchecked((short)idx));
+                    break;
+                }
+            }
         }
     }
 
@@ -110,22 +163,70 @@ public class LightData
         public float[] Merged { get; set; } = [0.0f, 0.0f, 0.0f];
         public float[] NightLight { get; set; }
 
-        public CellLightDef(int ambianceLight, int shadows, int lights, bool allowOutdoorLighting)
+        private int _ambianceLight;
+        private int _shadows;
+        private int _lights;
+
+        public void Load(ExtendedDataInputStream reader)
         {
-            AmbianceLightR = ArenaColor.GetRedFromARGB(ambianceLight) * ColorFactor;
-            AmbianceLightG = ArenaColor.GetGreenFromARGB(ambianceLight) * ColorFactor;
-            AmbianceLightB = ArenaColor.GetBlueFromARGB(ambianceLight) * ColorFactor;
+            AllowOutdoorLighting = reader.ReadBooleanBit();
+            _ambianceLight = reader.ReadInt();
+            _shadows = reader.ReadInt();
+            _lights = reader.ReadInt();
             
-            HasShadows = shadows != _defaultColor;
-            ShadowsR = ArenaColor.GetRedFromARGB(shadows);
-            ShadowsG = ArenaColor.GetGreenFromARGB(shadows);
-            ShadowsB = ArenaColor.GetBlueFromARGB(shadows);
+            AmbianceLightR = ArenaColor.GetRedFromARGB(_ambianceLight) * ColorFactor;
+            AmbianceLightG = ArenaColor.GetGreenFromARGB(_ambianceLight) * ColorFactor;
+            AmbianceLightB = ArenaColor.GetBlueFromARGB(_ambianceLight) * ColorFactor;
             
-            NightLight = lights != _defaultColor ? [0.0f, 0.0f, 0.0f] : null;
-            LightsR = ArenaColor.GetRedFromARGB(lights) - 0.5f;
-            LightsG = ArenaColor.GetGreenFromARGB(lights) - 0.5f;
-            LightsB = ArenaColor.GetBlueFromARGB(lights) - 0.5f;
-            AllowOutdoorLighting = allowOutdoorLighting;
+            HasShadows = _shadows != _defaultColor;
+            ShadowsR = ArenaColor.GetRedFromARGB(_shadows);
+            ShadowsG = ArenaColor.GetGreenFromARGB(_shadows);
+            ShadowsB = ArenaColor.GetBlueFromARGB(_shadows);
+            
+            NightLight = _lights != _defaultColor ? [0.0f, 0.0f, 0.0f] : null;
+            LightsR = ArenaColor.GetRedFromARGB(_lights) - 0.5f;
+            LightsG = ArenaColor.GetGreenFromARGB(_lights) - 0.5f;
+            LightsB = ArenaColor.GetBlueFromARGB(_lights) - 0.5f;
+        }
+
+        public void Save(OutputBitStream writer)
+        {
+            writer.WriteBooleanBit(AllowOutdoorLighting);
+            
+            var ambR = Math.Clamp(AmbianceLightR / ColorFactor, 0.0f, 1.0f);
+            var ambG = Math.Clamp(AmbianceLightG / ColorFactor, 0.0f, 1.0f);
+            var ambB = Math.Clamp(AmbianceLightB / ColorFactor, 0.0f, 1.0f);
+            var ambianceLight = ArenaColor.GetFromFloat(ambR, ambG, ambB, 1.0f);
+    
+            int shadows;
+            if (!HasShadows)
+            {
+                shadows = _defaultColor;
+            }
+            else
+            {
+                var shadR = Math.Clamp(ShadowsR, 0.0f, 1.0f);
+                var shadG = Math.Clamp(ShadowsG, 0.0f, 1.0f);
+                var shadB = Math.Clamp(ShadowsB, 0.0f, 1.0f);
+                shadows = ArenaColor.GetFromFloat(shadR, shadG, shadB, 1.0f);
+            }
+    
+            int lights;
+            if (NightLight == null)
+            {
+                lights = _defaultColor;
+            }
+            else
+            {
+                var lightR = Math.Clamp(LightsR + 0.5f, 0.0f, 1.0f);
+                var lightG = Math.Clamp(LightsG + 0.5f, 0.0f, 1.0f);
+                var lightB = Math.Clamp(LightsB + 0.5f, 0.0f, 1.0f);
+                lights = ArenaColor.GetFromFloat(lightR, lightG, lightB, 1.0f);
+            }
+    
+            writer.WriteInt(ambianceLight);
+            writer.WriteInt(shadows);
+            writer.WriteInt(lights);
         }
     }
 }

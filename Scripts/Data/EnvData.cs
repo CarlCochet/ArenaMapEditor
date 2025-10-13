@@ -11,6 +11,8 @@ public class EnvData
     public List<Partition> Partitions { get; set; } = [];
     public Dictionary<long, Partition> PartitionsMap { get; set; } = new();
 
+    private sbyte _version;
+
     public EnvData(string id)
     {
         if (!int.TryParse(id, out var worldId))
@@ -36,20 +38,54 @@ public class EnvData
             using var stream = entry.Open(); 
             var reader = new ExtendedDataInputStream(stream);
 
-            var version = reader.ReadByte();
-
             var partition = new Partition(Id);
             partition.Load(reader);
             Partitions.Add(partition);
         }
         Partitions = Partitions.OrderBy(p => p.X).ThenBy(p => p.Y).ToList();
     }
+    
+    public void Save(string path)
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), $"env_{Id}_{Guid.NewGuid()}");
+        Directory.CreateDirectory(tempDir);
+        
+        try
+        {
+            foreach (var partition in Partitions)
+            {
+                var mapX = partition.X / MapConstants.MapWidth;
+                var mapY = partition.Y / MapConstants.MapLength;
+                var fileName = $"{mapX}_{mapY}";
+                var filePath = Path.Combine(tempDir, fileName);
+            
+                using var fileStream = File.Create(filePath);
+                using var writer = new OutputBitStream(fileStream);
+                partition.Save(writer);
+            }
+            
+            var jarPath = Path.Combine(path, $"{Id}.jar");
+            if (File.Exists(jarPath))
+            {
+                File.Delete(jarPath);
+            }
+            ZipFile.CreateFromDirectory(tempDir, jarPath);
+        }
+        finally
+        {
+            if (Directory.Exists(tempDir))
+            {
+                Directory.Delete(tempDir, true);
+            }
+        }
+    }
 
     public class Partition(int id)
     {
         public int Id { get; set; } = id;
-        public int X { get; set; }
-        public int Y { get; set; }
+        public sbyte Version { get; set; }
+        public short X { get; set; }
+        public short Y { get; set; }
         
         public ParticleDef[] ParticleData { get; set; }
         public Sound[] Sounds { get; set; }
@@ -62,6 +98,7 @@ public class EnvData
 
         public void Load(ExtendedDataInputStream reader)
         {
+            Version = reader.ReadByte();
             X = reader.ReadShort();
             Y = reader.ReadShort();
 
@@ -72,9 +109,11 @@ public class EnvData
             LoadDynamicElements(reader);
         }
 
-        public void Save(BinaryWriter writer)
+        public void Save(OutputBitStream writer)
         {
-            
+            writer.WriteByte(Version);
+            writer.WriteShort(X);
+            writer.WriteShort(Y);
         }
 
         private void LoadParticleData(ExtendedDataInputStream reader)
@@ -179,9 +218,11 @@ public class EnvData
             Z = reader.ReadShort();
         }
 
-        public virtual void Save(BinaryWriter writer)
+        public virtual void Save(OutputBitStream writer)
         {
-            
+            writer.WriteByte(X);
+            writer.WriteByte(Y);
+            writer.WriteShort(Z);
         }
     }
 
@@ -206,9 +247,16 @@ public class EnvData
             LoD = reader.ReadByte();
         }
         
-        public override void Save(BinaryWriter writer)
+        public override void Save(OutputBitStream writer)
         {
+            base.Save(writer);
             
+            writer.WriteInt(SystemId);
+            writer.WriteByte(Level);
+            writer.WriteByte(OffsetX);
+            writer.WriteByte(OffsetY);
+            writer.WriteByte(OffsetZ);
+            writer.WriteByte(LoD);
         }
     }
 
@@ -223,9 +271,11 @@ public class EnvData
             SoundId = reader.ReadInt();
         }
         
-        public override void Save(BinaryWriter writer)
+        public override void Save(OutputBitStream writer)
         {
+            base.Save(writer);
             
+            writer.WriteInt(SoundId);
         }
     }
 
@@ -237,28 +287,45 @@ public class EnvData
         public sbyte[] Data { get; set; }
         public bool ClientOnly { get; set; }
         public short LandmarkType { get; set; }
+
+        private sbyte _viewCount;
+        private short _dataLength;
         
         public override void Load(ExtendedDataInputStream reader)
         {
             Id = reader.ReadLong();
             Type = reader.ReadShort();
 
-            var viewCount = reader.ReadByte() & 255;
+            _viewCount = reader.ReadByte();
+            var viewCount = _viewCount & 255;
             Views = new int[viewCount];
             for (var i = 0; i < viewCount; i++)
             {
                 Views[i] = reader.ReadInt();
             }
             
-            var dataLength = reader.ReadShort() & 0xFFFF;
+            _dataLength = reader.ReadShort();
+            var dataLength = _dataLength & 0xFFFF;
             Data = reader.ReadBytes(dataLength);
             ClientOnly = reader.ReadBooleanBit();
             LandmarkType = reader.ReadShort();
         }
         
-        public override void Save(BinaryWriter writer)
+        public override void Save(OutputBitStream writer)
         {
+            writer.WriteLong(Id);
+            writer.WriteShort(Type);
+            writer.WriteByte(_viewCount);
+
+            foreach (var view in Views)
+            {
+                writer.WriteInt(view);
+            }
             
+            writer.WriteShort(_dataLength);
+            writer.WriteBytes(Data);
+            writer.WriteBooleanBit(ClientOnly);
+            writer.WriteShort(LandmarkType);
         }
     }
 
@@ -266,7 +333,7 @@ public class EnvData
     {
         public int Id { get; set; }
         public int GfxId { get; set; }
-        public int Type { get; set; }
+        public short Type { get; set; }
         public sbyte Direction { get; set; }
         
         public override void Load(ExtendedDataInputStream reader)
@@ -279,9 +346,14 @@ public class EnvData
             Direction = reader.ReadByte();
         }
         
-        public override void Save(BinaryWriter writer)
+        public override void Save(OutputBitStream writer)
         {
+            base.Save(writer);
             
+            writer.WriteInt(Id);
+            writer.WriteInt(GfxId);
+            writer.WriteShort(Type);
+            writer.WriteByte(Direction);
         }
     }
 }

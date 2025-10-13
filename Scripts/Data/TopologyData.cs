@@ -1,25 +1,31 @@
 using Godot;
 using System;
 using System.Collections.Generic;
-using System.Dynamic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
-using System.Transactions;
 
 public class TopologyData
 {
-    public const sbyte VersionMask = -16;
-    public const sbyte MethodMask = 15;
-    public const int VersionNumberPosition = 4;
-    public const int MethodNumberPosition = 0;
-    public const sbyte MethodA = 0;
-    public const sbyte MethodB = 1;
-    public const sbyte MethodBi = 2;
-    public const sbyte MethodC = 3;
-    public const sbyte MethodCi = 4;
-    public const sbyte MethodDi = 5;
+    private const sbyte VersionMask = -16;
+    private const sbyte MethodMask = 15;
+    private const int VersionNumberPosition = 4;
+    private const int MethodNumberPosition = 0;
+    private const sbyte MethodA = 0;
+    private const sbyte MethodB = 1;
+    private const sbyte MethodBi = 2;
+    private const sbyte MethodC = 3;
+    private const sbyte MethodCi = 4;
+    private const sbyte MethodDi = 5;
+
+    private readonly JsonSerializerOptions _options = new()
+    {
+        WriteIndented = true,
+        // Converters = { new SByteArrayBase64Converter() }
+    };
     
     public int Id { get; set; }
     public TopologyMapInstanceSet InstanceSet { get; set; }
@@ -57,12 +63,12 @@ public class TopologyData
 
             TopologyMap topologyMap = topologyMethod switch
             {
-                MethodA => new TopologyMapA(),
-                MethodB => new TopologyMapB(),
-                MethodBi => new TopologyMapBi(),
-                MethodC => new TopologyMapC(),
-                MethodCi => new TopologyMapCi(),
-                MethodDi => new TopologyMapDi(),
+                MethodA => new TopologyMapA(header),
+                MethodB => new TopologyMapB(header),
+                MethodBi => new TopologyMapBi(header),
+                MethodC => new TopologyMapC(header),
+                MethodCi => new TopologyMapCi(header),
+                MethodDi => new TopologyMapDi(header),
                 _ => null
             };
             if (topologyMap == null)
@@ -74,9 +80,53 @@ public class TopologyData
         }
     }
 
-    public void Save()
+    public void Save(string path)
     {
+        var tempDir = Path.Combine(Path.GetTempPath(), $"topology_{Id}_{Guid.NewGuid()}");
+        Directory.CreateDirectory(tempDir);
         
+        try
+        {
+            foreach (var mapInstance in InstanceSet.Maps)
+            {
+                var topologyMap = mapInstance.TopologyMap;
+                var mapX = topologyMap.X / MapConstants.MapWidth;
+                var mapY = topologyMap.Y / MapConstants.MapLength;
+                var fileName = $"{mapX}_{mapY}";
+                var filePath = Path.Combine(tempDir, fileName);
+            
+                using var fileStream = File.Create(filePath);
+                using var writer = new OutputBitStream(fileStream);
+                writer.WriteByte(topologyMap.Header);
+                topologyMap.Save(writer);
+            }
+            
+            var jarPath = Path.Combine(path, $"{Id}.jar");
+            if (File.Exists(jarPath))
+            {
+                File.Delete(jarPath);
+            }
+            ZipFile.CreateFromDirectory(tempDir, jarPath);
+        }
+        finally
+        {
+            if (Directory.Exists(tempDir))
+            {
+                Directory.Delete(tempDir, true);
+            }
+        }
+    }
+
+    public void SaveJson(string path)
+    {
+        var data = new
+        {
+            worldId = Id,
+            topologyMap = InstanceSet.Maps.Select(m => m.TopologyMap).ToList()
+        };
+
+        var json = JsonSerializer.Serialize(data, _options);
+        File.WriteAllText($"{path}/{Id}.json", json);
     }
 
     public CellPathData[] GetPathData(int x, int y)
@@ -232,11 +282,11 @@ public class TopologyData
 
     public class TopologyMapInstance
     {
-        public ByteArrayBitSet EntirelyBlockedCells { get; set; } = new(324);
-        public ByteArrayBitSet UsedInFight { get; set; } = new(324);
         public TopologyMap TopologyMap { get; set; }
-        public int NonBlockedCellsNumber { get; set; }
-        public static CellPathData[] PathData { get; set; } = new CellPathData[32];
+        private ByteArrayBitSet EntirelyBlockedCells { get; set; } = new(324);
+        private ByteArrayBitSet UsedInFight { get; set; } = new(324);
+        private int NonBlockedCellsNumber { get; set; }
+        private static CellPathData[] PathData { get; set; } = new CellPathData[32];
 
         public TopologyMapInstance(TopologyMap topologyMap)
         {
@@ -254,7 +304,7 @@ public class TopologyData
             return EntirelyBlockedCells.Get(y * MapConstants.MapWidth + x);
         }
 
-        public int GetMurFinType(int x, int y, int z)
+        private int GetMurFinType(int x, int y, int z)
         {
             if (!TopologyMap.IsInMap(x, y))
             {
@@ -281,8 +331,8 @@ public class TopologyData
         {
             return CellPathData.IsIndoor(GetMurFinType(x, y, z));
         }
-        
-        public bool IsUsedInFight(int x, int y)
+
+        private bool IsUsedInFight(int x, int y)
         {
             x -= TopologyMap.X;
             y -= TopologyMap.Y;
@@ -341,7 +391,7 @@ public class TopologyData
             UsedInFight.Set(y * MapConstants.MapWidth + x, false);
         }
 
-        public void SetTopologyMap(TopologyMap topologyMap)
+        private void SetTopologyMap(TopologyMap topologyMap)
         {
             TopologyMap = topologyMap;
             EntirelyBlockedCells.SetAll(false);
@@ -364,7 +414,7 @@ public class TopologyData
             }
         }
 
-        public bool IsTopologyMapCellBlocked(int x, int y)
+        private bool IsTopologyMapCellBlocked(int x, int y)
         {
             var zCount = TopologyMap.GetPathData(x, y, PathData, 0);
             if (zCount == 1)
@@ -383,15 +433,24 @@ public class TopologyData
         }
     }
 
+    [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
+    [JsonDerivedType(typeof(TopologyMapA), "topologyMapA")]
+    [JsonDerivedType(typeof(TopologyMapB), "topologyMapB")]
+    [JsonDerivedType(typeof(TopologyMapBi), "topologyMapBi")]
+    [JsonDerivedType(typeof(TopologyMapC), "topologyMapC")]
+    [JsonDerivedType(typeof(TopologyMapCi), "topologyMapCi")]
+    [JsonDerivedType(typeof(TopologyMapDi), "topologyMapDi")]
     public abstract class TopologyMap
     {
-        public const int MaxZPerCells = 32;
-        public const sbyte InfiniteCost = -1;
-        public const sbyte DefaultCost = 7;
-            
-        public int X { get; set; }
-        public int Y { get; set; }
-        public short Z { get; set; }
+        protected const int MaxZPerCells = 32;
+        protected const sbyte InfiniteCost = -1;
+        protected const sbyte DefaultCost = 7;
+     
+        public sbyte Header { get; set; }
+        
+        [JsonPropertyName("posX")] public int X { get; set; }
+        [JsonPropertyName("posY")] public int Y { get; set; }
+        [JsonPropertyName("posZ")] public short Z { get; set; }
         
         public abstract int GetPathData(int x, int y, CellPathData[] cellPathData, int index);
         
@@ -404,9 +463,11 @@ public class TopologyData
             Z = reader.ReadShort();
         }
 
-        public virtual void Save(BinaryWriter writer)
+        public virtual void Save(OutputBitStream writer)
         {
-            
+            writer.WriteShort((short) (X / MapConstants.MapWidth));
+            writer.WriteShort((short) (Y / MapConstants.MapLength));
+            writer.WriteShort(Z);
         }
 
         public bool IsInMap(int x, int y)
@@ -414,7 +475,7 @@ public class TopologyData
             return x >= X && x < X + MapConstants.MapWidth && y >= Y && y < Y + MapConstants.MapLength;
         }
 
-        public bool CheckPathData(int x, int y, CellPathData[] cellPathData)
+        protected bool CheckPathData(int x, int y, CellPathData[] cellPathData)
         {
             if (cellPathData == null)
                 return false;
@@ -425,7 +486,7 @@ public class TopologyData
             return IsInMap(x, y);
         }
 
-        public bool CheckVisibilityData(int x, int y, CellVisibilityData[] cellVisibilityData)
+        protected bool CheckVisibilityData(int x, int y, CellVisibilityData[] cellVisibilityData)
         {
             if (cellVisibilityData == null)
                 return false;
@@ -437,15 +498,22 @@ public class TopologyData
         }
     }
 
-    public abstract class TopologyMapBlockedCells : TopologyMap
+    private abstract class TopologyMapBlockedCells : TopologyMap
     {
-        private readonly sbyte[] _blockedCells = new sbyte[ByteArrayBitSet.GetDataLength(MapConstants.NumCells)];
+        [JsonPropertyName("blockedCells")] private readonly sbyte[] _blockedCells = new sbyte[ByteArrayBitSet.GetDataLength(MapConstants.NumCells)];
         
         public override void Load(ExtendedDataInputStream reader)
         {
             base.Load(reader);
             
             reader.ReadBytes(_blockedCells);
+        }
+        
+        public override void Save(OutputBitStream writer)
+        {
+            base.Save(writer);
+            
+            writer.WriteBytes(_blockedCells);
         }
         
         public void FillBlockedCells(ByteArrayBitSet bitSet)
@@ -459,11 +527,16 @@ public class TopologyData
         }
     }
 
-    public class TopologyMapA : TopologyMap
+    private class TopologyMapA : TopologyMap
     {
-        private sbyte Cost { get; set; }
-        private sbyte MurFin { get; set; }
-        private sbyte Property { get; set; }
+        [JsonPropertyName("cost")] private sbyte Cost { get; set; }
+        [JsonPropertyName("wallCell")] private sbyte MurFin { get; set; }
+        [JsonPropertyName("property")] private sbyte Property { get; set; }
+
+        public TopologyMapA(sbyte header)
+        {
+            Header = header;
+        }
 
         public override void Load(ExtendedDataInputStream reader)
         {
@@ -474,9 +547,13 @@ public class TopologyData
             Property = reader.ReadByte();
         }
 
-        public override void Save(BinaryWriter writer)
+        public override void Save(OutputBitStream writer)
         {
+            base.Save(writer);
             
+            writer.WriteByte(Cost);
+            writer.WriteByte(MurFin);
+            writer.WriteByte(Property);
         }
 
         public override int GetPathData(int x, int y, CellPathData[] cellPathData, int index)
@@ -521,11 +598,16 @@ public class TopologyData
         }
     }
 
-    public class TopologyMapB : TopologyMapBlockedCells
+    private class TopologyMapB : TopologyMapBlockedCells
     {
-        public sbyte[] Costs { get; set; } = new sbyte[MapConstants.NumCells];
-        public sbyte[] MurFins { get; set; } = new sbyte[MapConstants.NumCells];
-        public sbyte[] Properties { get; set; } = new sbyte[MapConstants.NumCells];
+        [JsonPropertyName("costs")] private sbyte[] Costs { get; set; } = new sbyte[MapConstants.NumCells];
+        [JsonPropertyName("wallCells")] private sbyte[] MurFins { get; set; } = new sbyte[MapConstants.NumCells];
+        [JsonPropertyName("properties")] private sbyte[] Properties { get; set; } = new sbyte[MapConstants.NumCells];
+        
+        public TopologyMapB(sbyte header)
+        {
+            Header = header;
+        }
         
         public override void Load(ExtendedDataInputStream reader)
         {
@@ -539,9 +621,16 @@ public class TopologyData
             }
         }
         
-        public override void Save(BinaryWriter writer)
+        public override void Save(OutputBitStream writer)
         {
-            
+            base.Save(writer);
+
+            for (var i = 0; i < MapConstants.NumCells; ++i)
+            {
+                writer.WriteByte(Costs[i]);
+                writer.WriteByte(MurFins[i]);
+                writer.WriteByte(Properties[i]);
+            }
         }
 
         public override int GetPathData(int x, int y, CellPathData[] cellPathData, int index)
@@ -585,18 +674,19 @@ public class TopologyData
         }
     }
 
-    public class TopologyMapBi : TopologyMapBlockedCells
+    private class TopologyMapBi : TopologyMapBlockedCells
     {
-        private const int ZPosition = 0;
-        private const byte CostMask = 48;
-        private const byte ZMask = 15;
-        private const byte NumZValues = 16;
-        private const byte NumCosts = 4;
+        [JsonPropertyName("costs")] private sbyte[] Costs { get; set; }
+        [JsonPropertyName("wallCells")] private sbyte[] MurFins { get; set; }
+        [JsonPropertyName("properties")] private sbyte[] Properties { get; set; }
+        [JsonPropertyName("cells")] private int[] Cells { get; set; }
+
+        private sbyte _cellSize;
         
-        public sbyte[] Costs { get; set; }
-        public sbyte[] MurFins { get; set; }
-        public sbyte[] Properties { get; set; }
-        public int[] Cells { get; set; }
+        public TopologyMapBi(sbyte header)
+        {
+            Header = header;
+        }
         
         public override void Load(ExtendedDataInputStream reader)
         {
@@ -613,14 +703,27 @@ public class TopologyData
                 MurFins[i] = reader.ReadByte();
                 Properties[i] = reader.ReadByte();
             }
-            
+
             var cellSize = reader.ReadByte() & 0xFF;
+            Cells = new int[cellSize];
             Cells = TopologyIndexerHelper.CreateFor(Cells, cellSize, reader);
         }
         
-        public override void Save(BinaryWriter writer)
+        public override void Save(OutputBitStream writer)
         {
+            base.Save(writer);
             
+            var indexSize = (sbyte)Costs.Length;
+            writer.WriteByte(indexSize);
+
+            for (var i = 0; i < indexSize; ++i)
+            {
+                writer.WriteByte(Costs[i]);
+                writer.WriteByte(MurFins[i]);
+                writer.WriteByte(Properties[i]);
+            }
+            
+            writer.WriteByte(unchecked((sbyte)Cells.Length));
         }
 
         public override int GetPathData(int x, int y, CellPathData[] cellPathData, int index)
@@ -665,17 +768,22 @@ public class TopologyData
         }
     }
 
-    public class TopologyMapC : TopologyMapBlockedCells
+    private class TopologyMapC : TopologyMapBlockedCells
     {
-        public const sbyte MovMask = 0x01;
-        public const sbyte LosMask = 0x02;
+        private const sbyte MovMask = 0x01;
+        private const sbyte LosMask = 0x02;
+
+        [JsonPropertyName("costs")] private sbyte[] Costs { get; set; } = new sbyte[MapConstants.NumCells];
+        [JsonPropertyName("wallCells")] private sbyte[] MurFins { get; set; } = new sbyte[MapConstants.NumCells];
+        [JsonPropertyName("properties")] private sbyte[] Properties { get; set; } = new sbyte[MapConstants.NumCells];
+        [JsonPropertyName("movLos")] private sbyte[] MovLos { get; set; } = new sbyte[MapConstants.NumCells];
+        [JsonPropertyName("zs")] private short[] Zs { get; set; } = new short[MapConstants.NumCells];
+        [JsonPropertyName("heights")] private sbyte[] Heights { get; set; } = new sbyte[MapConstants.NumCells];
         
-        public sbyte[] Costs { get; set; } = new sbyte[MapConstants.NumCells];
-        public sbyte[] MurFins { get; set; } = new sbyte[MapConstants.NumCells];
-        public sbyte[] Properties { get; set; } = new sbyte[MapConstants.NumCells];
-        public short[] Zs { get; set; } = new short[MapConstants.NumCells];
-        public sbyte[] Heights { get; set; } = new sbyte[MapConstants.NumCells];
-        public sbyte[] MovLos { get; set; } = new sbyte[MapConstants.NumCells];
+        public TopologyMapC(sbyte header)
+        {
+            Header = header;
+        }
         
         public override void Load(ExtendedDataInputStream reader)
         {
@@ -692,9 +800,19 @@ public class TopologyData
             }
         }
         
-        public override void Save(BinaryWriter writer)
+        public override void Save(OutputBitStream writer)
         {
-            
+            base.Save(writer);
+
+            for (var i = 0; i < MapConstants.NumCells; ++i)
+            {
+                writer.WriteByte(Costs[i]);
+                writer.WriteByte(MurFins[i]);
+                writer.WriteByte(Properties[i]);
+                writer.WriteShort(Zs[i]);
+                writer.WriteByte(Heights[i]);
+                writer.WriteByte(MovLos[i]);
+            }
         }
 
         public override int GetPathData(int x, int y, CellPathData[] cellPathData, int index)
@@ -740,18 +858,23 @@ public class TopologyData
         }
     }
 
-    public class TopologyMapCi : TopologyMapBlockedCells
+    private class TopologyMapCi : TopologyMapBlockedCells
     {
-        public const sbyte MovMask = 0x01;
-        public const sbyte LosMask = 0x02;
-        
-        public sbyte[] Costs { get; set; }
-        public sbyte[] MurFins { get; set; }
-        public sbyte[] Properties { get; set; }
-        public short[] Zs { get; set; }
-        public sbyte[] Heights { get; set; }
-        public sbyte[] MovLos { get; set; }
-        public long[] Cells { get; set; }
+        private const sbyte MovMask = 0x01;
+        private const sbyte LosMask = 0x02;
+
+        [JsonPropertyName("costs")] private sbyte[] Costs { get; set; }
+        [JsonPropertyName("wallCells")] private sbyte[] MurFins { get; set; }
+        [JsonPropertyName("properties")] private sbyte[] Properties { get; set; }
+        [JsonPropertyName("movLos")] private sbyte[] MovLos { get; set; }
+        [JsonPropertyName("zs")] private short[] Zs { get; set; }
+        [JsonPropertyName("heights")] private sbyte[] Heights { get; set; }
+        [JsonPropertyName("cells")] private long[] Cells { get; set; }
+
+        public TopologyMapCi(sbyte header)
+        {
+            Header = header;
+        }
         
         public override void Load(ExtendedDataInputStream reader)
         {
@@ -778,9 +901,22 @@ public class TopologyData
             Cells = TopologyIndexerHelper.CreateFor(Cells, cellSize, reader);
         }
         
-        public override void Save(BinaryWriter writer)
+        public override void Save(OutputBitStream writer)
         {
+            base.Save(writer);
+
+            writer.WriteByte(unchecked((sbyte)Costs.Length));
+            for (var i = 0; i < Costs.Length; ++i)
+            {
+                writer.WriteByte(Costs[i]);
+                writer.WriteByte(MurFins[i]);
+                writer.WriteByte(Properties[i]);
+                writer.WriteShort(Zs[i]);
+                writer.WriteByte(Heights[i]);
+                writer.WriteByte(MovLos[i]);
+            }
             
+            writer.WriteByte(unchecked((sbyte)Cells.Length));
         }
         
         public override int GetPathData(int x, int y, CellPathData[] cellPathData, int index)
@@ -827,23 +963,28 @@ public class TopologyData
         }
     }
 
-    public class TopologyMapDi : TopologyMapBlockedCells
+    private class TopologyMapDi : TopologyMapBlockedCells
     {
-        private static List<int> _list = [];
+        private static readonly List<int> Indexes = [];
         private static readonly Lock Mutex = new();
+
+        private const sbyte MovMask = 0x01;
+        private const sbyte LosMask = 0x02;
+        private const int IndexOffset = 1;
+
+        [JsonPropertyName("costs")] private sbyte[] Costs { get; set; }
+        [JsonPropertyName("wallCells")] private sbyte[] MurFins { get; set; }
+        [JsonPropertyName("properties")] private sbyte[] Properties { get; set; }
+        [JsonPropertyName("movLos")] private sbyte[] MovLos { get; set; }
+        [JsonPropertyName("zs")] private short[] Zs { get; set; }
+        [JsonPropertyName("heights")] private sbyte[] Heights { get; set; }
+        [JsonPropertyName("cells")] private long[] Cells { get; set; }
+        [JsonPropertyName("cellsWithMultiZ")] private int[] CellsWithMultiZ { get; set; }
         
-        public const sbyte MovMask = 0x01;
-        public const sbyte LosMask = 0x02;
-        public const int IndexOffset = 1;
-        
-        public sbyte[] Costs { get; set; }
-        public sbyte[] MurFins { get; set; }
-        public sbyte[] Properties { get; set; }
-        public short[] Zs { get; set; }
-        public sbyte[] Heights { get; set; }
-        public sbyte[] MovLos { get; set; }
-        public long[] Cells { get; set; }
-        public int[] CellsWithMultiZ { get; set; }
+        public TopologyMapDi(sbyte header)
+        {
+            Header = header;
+        }
         
         public override void Load(ExtendedDataInputStream reader)
         {
@@ -865,7 +1006,7 @@ public class TopologyData
                 Heights[i] = reader.ReadByte();
                 MovLos[i] = reader.ReadByte();
             }
-            
+
             var cellCount = reader.ReadByte() & 0xFF;
             Cells = TopologyIndexerHelper.CreateFor(Cells, cellCount, reader); 
             
@@ -877,9 +1018,28 @@ public class TopologyData
             }
         }
         
-        public override void Save(BinaryWriter writer)
+        public override void Save(OutputBitStream writer)
         {
+            base.Save(writer);
             
+            writer.WriteByte(unchecked((sbyte)Costs.Length));
+            for (var i = 0; i < Costs.Length; ++i)
+            {
+                writer.WriteByte(Costs[i]);
+                writer.WriteByte(MurFins[i]);
+                writer.WriteByte(Properties[i]);
+                writer.WriteShort(Zs[i]);
+                writer.WriteByte(Heights[i]);
+                writer.WriteByte(MovLos[i]);
+            }
+            
+            writer.WriteByte(unchecked((sbyte)Cells.Length));
+            writer.WriteShort(unchecked((short)CellsWithMultiZ.Length));
+
+            foreach (var c in CellsWithMultiZ)
+            {
+                writer.WriteInt(c);
+            }
         }
         
         public override int GetPathData(int x, int y, CellPathData[] cellPathData, int index)
@@ -896,7 +1056,7 @@ public class TopologyData
 
             using (Mutex.EnterScope())
             {
-                var tab = GetMultiIndex(x - X, y - Y, _list);
+                var tab = GetMultiIndex(x - X, y - Y, Indexes);
                 var zCount = tab.Count;
                 for (var i = 0; i < zCount; ++i)
                 {
@@ -923,7 +1083,7 @@ public class TopologyData
 
             using (Mutex.EnterScope())
             {
-                var tab = GetMultiIndex(x - X, y - Y, _list);
+                var tab = GetMultiIndex(x - X, y - Y, Indexes);
                 var zCount = tab.Count;
                 for (var i = 0; i < zCount; ++i)
                 {
@@ -944,9 +1104,9 @@ public class TopologyData
             return TopologyIndexerHelper.GetIndex(Cells, cellIndex, Costs.Length);
         }
 
-        private List<int> GetMultiIndex(int x, int y, List<int> list)
+        private List<int> GetMultiIndex(int x, int y, List<int> indexes)
         {
-            list.Clear();
+            indexes.Clear();
             var multiCount = CellsWithMultiZ.Length;
 
             for (var i = 0; i < multiCount; ++i)
@@ -965,10 +1125,10 @@ public class TopologyData
                     break;
                 
                 var index = (cellData >> 16) & 0xFFFF;
-                list.Add(index);
+                indexes.Add(index);
             }
             
-            return list;
+            return indexes;
         }
 
         private void FillPathData(CellPathData data, int cellIndex)
@@ -1007,7 +1167,7 @@ public class TopologyData
             SetData(data);
         }
 
-        public void SetData(CellPathData data)
+        private void SetData(CellPathData data)
         {
             X = data.X;
             Y = data.Y;
@@ -1070,5 +1230,41 @@ public class TopologyData
         public short Z { get; set; }
         public bool CanViewThrough { get; set; }
         public sbyte Height { get; set; }
+    }
+    
+    public class SByteArrayBase64Converter : JsonConverter<sbyte[]>
+    {
+        public override sbyte[] Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            if (reader.TokenType == JsonTokenType.Null)
+            {
+                return null;
+            }
+
+            var base64String = reader.GetString();
+            if (string.IsNullOrEmpty(base64String))
+            {
+                return [];
+            }
+
+            var bytes = Convert.FromBase64String(base64String);
+            var sbyteArray = new sbyte[bytes.Length];
+            Buffer.BlockCopy(bytes, 0, sbyteArray, 0, bytes.Length);
+            return sbyteArray;
+        }
+
+        public override void Write(Utf8JsonWriter writer, sbyte[] value, JsonSerializerOptions options)
+        {
+            if (value == null)
+            {
+                writer.WriteNullValue();
+                return;
+            }
+
+            var bytes = new byte[value.Length];
+            Buffer.BlockCopy(value, 0, bytes, 0, value.Length);
+            var base64String = Convert.ToBase64String(bytes);
+            writer.WriteStringValue(base64String);
+        }
     }
 }

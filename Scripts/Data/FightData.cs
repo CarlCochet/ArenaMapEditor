@@ -47,7 +47,7 @@ public class FightData
 
         var startPointsCount = reader.ReadShort() & 0xFFFF;
         var team1Count = startPointsCount >>> 8;
-        var team2Count = team1Count & 0xFF;
+        var team2Count = startPointsCount & 0xFF;
         StartPoints[0] = new List<int>(team1Count);
         StartPoints[1] = new List<int>(team2Count);
 
@@ -64,12 +64,69 @@ public class FightData
         StartPoints[0].Sort();
         StartPoints[1].Sort();
         
-        var bonusCount = reader.ReadByte() & 255;
+        var bonusCount = reader.ReadByte() & 0xFF;
         for (var i = 0; i < bonusCount; i++)
         {
             var position = reader.ReadInt();
             var type = reader.ReadInt();
             Bonus.TryAdd(position, type);
+        }
+    }
+    
+    public void Save(string path)
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), $"gfx_{Id}_{Guid.NewGuid()}");
+        Directory.CreateDirectory(tempDir);
+        
+        try
+        {
+            var fileName = $"{Id}.fmd";
+            var filePath = Path.Combine(tempDir, fileName);
+        
+            using var fileStream = File.Create(filePath);
+            using var writer = new OutputBitStream(fileStream);
+            SaveData(writer);
+            
+            var jarPath = Path.Combine(path, $"{Id}.jar");
+            if (File.Exists(jarPath))
+            {
+                File.Delete(jarPath);
+            }
+            ZipFile.CreateFromDirectory(tempDir, jarPath);
+        }
+        finally
+        {
+            if (Directory.Exists(tempDir))
+            {
+                Directory.Delete(tempDir, true);
+            }
+        }
+    }
+
+    private void SaveData(OutputBitStream writer)
+    {
+        foreach (var c in CoachPoints)
+        {
+            writer.WriteInt(c);
+        }
+
+        var startPointsCount = (StartPoints[0].Count << 8) | StartPoints[1].Count;
+        writer.WriteShort(unchecked((short)startPointsCount));
+
+        foreach (var s in StartPoints[0])
+        {
+            writer.WriteInt(s);
+        }
+        foreach (var s in StartPoints[1])
+        {
+            writer.WriteInt(s);
+        }
+        
+        writer.WriteByte(unchecked((sbyte)Bonus.Count));
+        foreach (var bonus in Bonus)
+        {
+            writer.WriteInt(bonus.Key);
+            writer.WriteInt(bonus.Value);
         }
     }
 }

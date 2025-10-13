@@ -31,7 +31,7 @@ public class AmbianceData
         }
     }
 
-    public void Save(BinaryWriter writer)
+    public void Save(string path)
     {
         
     }

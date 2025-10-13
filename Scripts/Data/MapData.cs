@@ -92,7 +92,13 @@ public class MapData
 
     public void Save(string path)
     {
+        Topology.Save($"{path}/tplg");
+        Light.Save($"{path}/light");
+        Gfx.Save($"{path}/gfx");
+        Fight.Save($"{path}/fight");
+        Env.Save($"{path}/env");
         
+        Topology.SaveJson(path);
     }
 
     private void LoadAmbiance(string path)

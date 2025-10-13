@@ -94,6 +94,11 @@ public partial class Map : Node2D
         UpdateDisplay(mode);
     }
 
+    public void Save(string path)
+    {
+        _mapData.Save(path);
+    }
+
     public void HighlightTiles(Vector2 position)
     {
         foreach (var tile in _tiles)
@@ -188,11 +193,11 @@ public partial class Map : Node2D
     private void DisplayPath()
     {
         SelectedTiles.Clear();
-        _gfx.Modulate = new Color(1.0f, 1.0f, 1.0f, 0.5f);
+        _gfx.Modulate = new Color(1.0f, 1.0f, 1.0f, 0.1f);
         _fight.Visible = false;
         _light.Visible = false;
         _path.Visible = true;
-        _visibility.Visible = true;
+        _visibility.Visible = false;
         
         var topology = _mapData.Topology;
         for (var x = topology.InstanceSet.MinX; x <= topology.InstanceSet.MinX + topology.InstanceSet.Width; x++)
@@ -209,7 +214,7 @@ public partial class Map : Node2D
                 {
                     var tile = _tileScene.Instantiate<Tile>();
                     tile.SetPathData(pathData);
-                    tile.PositionToIso(pathData.X, pathData.Y, pathData.Z, pathData.Height, 0, 0);
+                    tile.PositionToIso(pathData.X, pathData.Y, 0, 0, 0, 0);
                     _path.AddChild(tile);
                     _tiles.Add(tile);
                 }
@@ -220,10 +225,10 @@ public partial class Map : Node2D
     private void DisplayVisibility()
     {
         SelectedTiles.Clear();
-        _gfx.Modulate = new Color(1.0f, 1.0f, 1.0f, 0.5f);
+        _gfx.Modulate = new Color(1.0f, 1.0f, 1.0f, 0.1f);
         _fight.Visible = false;
         _light.Visible = false;
-        _path.Visible = true;
+        _path.Visible = false;
         _visibility.Visible = true;
 
         var topology = _mapData.Topology;
@@ -241,8 +246,8 @@ public partial class Map : Node2D
                 {
                     var tile = _tileScene.Instantiate<Tile>();
                     tile.SetVisibilityData(visibilityData);
-                    tile.PositionToIso(visibilityData.X, visibilityData.Y, visibilityData.Z, visibilityData.Height, 0, 0);
-                    _path.AddChild(tile);
+                    tile.PositionToIso(visibilityData.X, visibilityData.Y, 0, 0, 0, 0);
+                    _visibility.AddChild(tile);
                     _tiles.Add(tile);
                 }
             }

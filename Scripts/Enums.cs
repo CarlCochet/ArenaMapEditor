@@ -3,6 +3,12 @@ using System;
 
 public static class Enums
 {
+    public enum FileDialogMode
+    {
+        Open = 0,
+        Save = 1,
+    }
+    
     public enum Tool
     {
         None = 0,
