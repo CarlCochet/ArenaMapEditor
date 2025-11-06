@@ -1,6 +1,6 @@
 [gd_scene load_steps=36 format=3 uid="uid://d14hqwtpnn5ek"]
 
-[ext_resource type="Script" path="res://Scripts/Tools.cs" id="1_6s3ac"]
+[ext_resource type="Script" uid="uid://ejao00um5dw" path="res://Scripts/Tools.cs" id="1_6s3ac"]
 [ext_resource type="Texture2D" uid="uid://cr0hplinhgo3t" path="res://Assets/UI/ToolSelect.png" id="2_78btu"]
 [ext_resource type="Texture2D" uid="uid://bq8iuh80f1tm3" path="res://Assets/UI/ToolSelect_pressed.png" id="3_c31eb"]
 [ext_resource type="Texture2D" uid="uid://nal35cjovp7s" path="res://Assets/UI/ToolSelect_hover.png" id="4_0mtuu"]
@@ -120,7 +120,7 @@ custom_minimum_size = Vector2(115, 0)
 layout_mode = 2
 
 [node name="SizeLabel" type="Label" parent="MarginContainer/HBoxContainer/BrushSize"]
-layout_mode = 2
+layout_mode = 0
 offset_left = 26.0
 offset_top = -2.0
 offset_right = 78.0
@@ -130,7 +130,7 @@ label_settings = SubResource("LabelSettings_kgn1q")
 vertical_alignment = 1
 
 [node name="Size" type="LineEdit" parent="MarginContainer/HBoxContainer/BrushSize"]
-layout_mode = 2
+layout_mode = 0
 offset_left = 78.0
 offset_right = 113.0
 offset_bottom = 30.0

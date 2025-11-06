@@ -19,6 +19,8 @@ public class GlobalData
     public Color SelectedColor { get; set; } = Colors.White;
     public List<int> SelectedTiles = [];
     public List<TileData> Assets { get; private set; } = [];
+    public Dictionary<int, TileData> ValidAssets { get; private set; } = new();
+    public int[] AssetIds { get; private set; }
     public RandomNumberGenerator Rng { get; private set; } = new();
     public Settings Settings { get; set; }
 
@@ -50,7 +52,10 @@ public class GlobalData
         foreach (var asset in Assets)
         {
             asset.LoadTexture();
+            if (asset.IsValid)
+                ValidAssets.Add(asset.Id, asset);
         }
+        AssetIds = ValidAssets.Keys.ToArray();
     }
     
     public void LoadElements(string path)
@@ -103,11 +108,6 @@ public class GlobalData
         }
     }
 
-    public TileData GetAssetById(int gfxId)
-    {
-        return Assets.FirstOrDefault(a => a.Id == gfxId);
-    }
-    
     public void SaveSettings()
     {
 		using var settingsFile = FileAccess.Open("user://settings.json", FileAccess.ModeFlags.Write);

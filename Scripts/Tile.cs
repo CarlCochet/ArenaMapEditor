@@ -78,7 +78,8 @@ public partial class Tile : Sprite2D
     public void SetElementData(GfxData.Element element)
     {
         // Data = GlobalData.Instance.Assets[element.CommonData.GfxId].Copy();
-        Data = GlobalData.Instance.GetAssetById(element.CommonData.GfxId).Copy();
+        if (!GlobalData.Instance.ValidAssets.TryGetValue(element.CommonData.GfxId, out var asset)) return;
+        Data = asset.Copy();
         Element = element;
         Texture = Data.Texture;
         _baseColor = Colors.White;
@@ -91,10 +92,10 @@ public partial class Tile : Sprite2D
 
     public void SetPathData(TopologyData.CellPathData pathData)
     {
+        if (!GlobalData.Instance.ValidAssets.TryGetValue(-1, out var asset)) return;
+        if (!GlobalData.Instance.ValidAssets.TryGetValue(-2, out var asset2)) return;
         PathData = pathData;
-        Data = PathData.CanMoveThrough
-            ? GlobalData.Instance.GetAssetById(-1)
-            : GlobalData.Instance.GetAssetById(-2);
+        Data = PathData.CanMoveThrough ? asset : asset2;
         Texture = Data.Texture;
     }
 

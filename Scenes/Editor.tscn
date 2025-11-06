@@ -1,6 +1,6 @@
 [gd_scene load_steps=9 format=3 uid="uid://cvasy00hsj0lk"]
 
-[ext_resource type="Script" path="res://Scripts/Editor.cs" id="1_c7qby"]
+[ext_resource type="Script" uid="uid://cfo3k2hl7j6lu" path="res://Scripts/Editor.cs" id="1_c7qby"]
 [ext_resource type="PackedScene" uid="uid://5k8sgg41ctpm" path="res://Scenes/Map.tscn" id="2_pkgv6"]
 [ext_resource type="PackedScene" uid="uid://bd4spy67wa1ic" path="res://Scenes/Filter.tscn" id="3_a4ic1"]
 [ext_resource type="PackedScene" uid="uid://b4nf4nw6chsmc" path="res://Scenes/AssetsPreview.tscn" id="4_7hrj1"]
@@ -112,7 +112,7 @@ layout_mode = 1
 
 [node name="FileDialog" type="FileDialog" parent="CanvasLayer"]
 title = "Open a Directory"
-size = Vector2i(324, 180)
+size = Vector2i(348, 180)
 ok_button_text = "Select Current Folder"
 file_mode = 2
 access = 2

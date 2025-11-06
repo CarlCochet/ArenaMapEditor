@@ -214,7 +214,7 @@ public partial class Map : Node2D
                 {
                     var tile = _tileScene.Instantiate<Tile>();
                     tile.SetPathData(pathData);
-                    tile.PositionToIso(pathData.X, pathData.Y, 0, 0, 0, 0);
+                    tile.PositionToIso(pathData.X, pathData.Y, pathData.Z, pathData.Height, 0, 0);
                     _path.AddChild(tile);
                     _tiles.Add(tile);
                 }
@@ -246,7 +246,7 @@ public partial class Map : Node2D
                 {
                     var tile = _tileScene.Instantiate<Tile>();
                     tile.SetVisibilityData(visibilityData);
-                    tile.PositionToIso(visibilityData.X, visibilityData.Y, 0, 0, 0, 0);
+                    tile.PositionToIso(visibilityData.X, visibilityData.Y, 0, visibilityData.Height, 0, 0);
                     _visibility.AddChild(tile);
                     _tiles.Add(tile);
                 }
