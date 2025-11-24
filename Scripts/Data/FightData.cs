@@ -82,11 +82,13 @@ public class FightData
         {
             var fileName = $"{Id}.fmd";
             var filePath = Path.Combine(tempDir, fileName);
-        
-            using var fileStream = File.Create(filePath);
-            using var writer = new OutputBitStream(fileStream);
-            SaveData(writer);
-            
+
+            {
+                using var fileStream = File.Create(filePath);
+                using var writer = new OutputBitStream(fileStream);
+                SaveData(writer);
+            }
+
             var jarPath = Path.Combine(path, $"{Id}.jar");
             if (File.Exists(jarPath))
             {

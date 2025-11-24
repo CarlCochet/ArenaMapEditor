@@ -78,6 +78,41 @@ public class GfxData
         }
     }
 
+    public void SaveTopology(string path)
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), $"gfx_{Id}_{Guid.NewGuid()}");
+        Directory.CreateDirectory(tempDir);
+        
+        try
+        {
+            foreach (var partition in Partitions)
+            {
+                var mapX = partition.X / MapConstants.MapWidth;
+                var mapY = partition.Y / MapConstants.MapLength;
+                var fileName = $"{mapX}_{mapY}";
+                var filePath = Path.Combine(tempDir, fileName);
+                
+                using var fileStream = File.Create(filePath);
+                using var writer = new OutputBitStream(fileStream);
+                partition.SaveTopology(writer);
+            }
+            
+            var jarPath = Path.Combine(path, $"{Id}.jar");
+            if (File.Exists(jarPath))
+            {
+                File.Delete(jarPath);
+            }
+            ZipFile.CreateFromDirectory(tempDir, jarPath);
+        }
+        finally
+        {
+            if (Directory.Exists(tempDir))
+            {
+                Directory.Delete(tempDir, true);
+            }
+        }
+    }
+
     public class Partition
     {
         public string Id { get; set; }
@@ -308,6 +343,21 @@ public class GfxData
                     }
                 }
             }
+        }
+
+        public void SaveTopology(OutputBitStream writer)
+        {
+            if (Elements.Count == 0)
+            {
+                var topologyA = new TopologyData.TopologyMapA();
+                topologyA.LoadFromGfx(this);
+                topologyA.Save(writer);
+                return;
+            }
+
+            var topologyCi = new TopologyData.TopologyMapCi();
+            topologyCi.LoadFromGfx(this);
+            topologyCi.Save(writer);
         }
         
         private void RecomputeBounds()

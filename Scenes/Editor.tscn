@@ -9,14 +9,15 @@
 [ext_resource type="PackedScene" uid="uid://btqhc3kx587xd" path="res://Scenes/Inspector.tscn" id="7_8t728"]
 [ext_resource type="PackedScene" uid="uid://7w02tr37xxmq" path="res://Scenes/Gizmo.tscn" id="8_vbhsn"]
 
-[node name="Editor" type="Node2D" node_paths=PackedStringArray("_map", "_filter", "_assetsPreview", "_tools", "_overlay", "_fileDialog", "_inspector", "_gizmo")]
+[node name="Editor" type="Node2D" node_paths=PackedStringArray("_map", "_filter", "_assetsPreview", "_tools", "_overlay", "_openDialog", "_saveDialog", "_inspector", "_gizmo")]
 script = ExtResource("1_c7qby")
 _map = NodePath("Map")
 _filter = NodePath("CanvasLayer/SplitContainer/SplitContainer/ColorRect/Filter")
 _assetsPreview = NodePath("CanvasLayer/SplitContainer/SplitContainer/ColorRect2/AssetsPreview")
 _tools = NodePath("CanvasLayer/SplitContainer/SplitContainer2/ColorRect/Tools")
 _overlay = NodePath("CanvasLayer/SplitContainer/SplitContainer2/SplitContainer/ColorRect2/Overlay")
-_fileDialog = NodePath("CanvasLayer/FileDialog")
+_openDialog = NodePath("CanvasLayer/OpenDialog")
+_saveDialog = NodePath("CanvasLayer/SaveDialog")
 _inspector = NodePath("CanvasLayer/SplitContainer/SplitContainer2/SplitContainer/ColorRect/Inspector")
 _gizmo = NodePath("CanvasLayer/Gizmo")
 
@@ -110,15 +111,23 @@ color = Color(0.172833, 0.172833, 0.172833, 1)
 [node name="Inspector" parent="CanvasLayer/SplitContainer/SplitContainer2/SplitContainer/ColorRect" instance=ExtResource("7_8t728")]
 layout_mode = 1
 
-[node name="FileDialog" type="FileDialog" parent="CanvasLayer"]
-title = "Open a Directory"
+[node name="OpenDialog" type="FileDialog" parent="CanvasLayer"]
+title = "Open Arena Directory"
 size = Vector2i(348, 180)
 ok_button_text = "Select Current Folder"
 file_mode = 2
+display_mode = 1
 access = 2
 filters = PackedStringArray("*.jar", "*.json")
 use_native_dialog = true
 
+[node name="SaveDialog" type="FileDialog" parent="CanvasLayer"]
+title = "Save Map"
+display_mode = 1
+access = 2
+use_native_dialog = true
+
 [connection signal="mouse_entered" from="CanvasLayer/SplitContainer/SplitContainer/ColorRect2/AssetsPreview" to="." method="_OnAssetPreviewEntered"]
 [connection signal="mouse_exited" from="CanvasLayer/SplitContainer/SplitContainer/ColorRect2/AssetsPreview" to="." method="_OnAssetPreviewExited"]
-[connection signal="dir_selected" from="CanvasLayer/FileDialog" to="." method="_OnDirectorySelected"]
+[connection signal="dir_selected" from="CanvasLayer/OpenDialog" to="." method="_OnDirectorySelected"]
+[connection signal="file_selected" from="CanvasLayer/SaveDialog" to="." method="_OnSaveDirectorySelected"]

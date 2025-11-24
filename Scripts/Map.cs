@@ -135,21 +135,26 @@ public partial class Map : Node2D
             tile.Select();
             _gridMaterial.SetShaderParameter("elevation", (float)(tile.Element.CellZ * ElevationStep));
             _grid2Material.SetShaderParameter("elevation", (float)(tile.Element.CellZ * ElevationStep));
-            TileSelected?.Invoke(this, new TileSelectedEventArgs(tile.Element));
+            var cellPathData = _mapData.Topology.GetPathData(tile.Element.CellX, tile.Element.CellY);
+            var visibilityData = _mapData.Topology.GetVisibilityData(tile.Element.CellX, tile.Element.CellY);
+            TileSelected?.Invoke(this, new TileSelectedEventArgs(tile.Element, cellPathData, visibilityData));
         }
     }
 
-    public class TileSelectedEventArgs(GfxData.Element element) : EventArgs
+    public class TileSelectedEventArgs(GfxData.Element element, TopologyData.CellPathData[] pathData, TopologyData.CellVisibilityData[] visibilityData) : EventArgs
     {
         public GfxData.Element Element => element;
+        public TopologyData.CellPathData[] PathData => pathData;
+        public TopologyData.CellVisibilityData[] VisibilityData => visibilityData;
     }
 
     public void Clear()
     {
         _tiles.Clear();
-        _gfx.QueueFree();
-        _gfx = new Node2D();
-        AddChild(_gfx);
+        foreach (var child in _gfx.GetChildren())
+        {
+            child.QueueFree();
+        }
     }
     
     private void _OnZoomUpdated(object sender, Camera.ZoomUpdatedEventArgs e)
@@ -162,12 +167,8 @@ public partial class Map : Node2D
     {
         try
         {
-            SelectedTiles.Clear();
+            ResetDisplay();
             _gfx.Modulate = Colors.White;
-            _fight.Visible = false;
-            _light.Visible = false;
-            _path.Visible = false;
-            _visibility.Visible = false;
 
             var sortedElements = _mapData.Gfx.Partitions
                 .SelectMany(p => p.Elements)
@@ -192,12 +193,8 @@ public partial class Map : Node2D
 
     private void DisplayPath()
     {
-        SelectedTiles.Clear();
-        _gfx.Modulate = new Color(1.0f, 1.0f, 1.0f, 0.1f);
-        _fight.Visible = false;
-        _light.Visible = false;
+        ResetDisplay();
         _path.Visible = true;
-        _visibility.Visible = false;
         
         var topology = _mapData.Topology;
         for (var x = topology.InstanceSet.MinX; x <= topology.InstanceSet.MinX + topology.InstanceSet.Width; x++)
@@ -206,17 +203,15 @@ public partial class Map : Node2D
             {
                 var cellPathData = topology.GetPathData(x, y);
                 if (cellPathData == null)
-                {
                     continue;
-                }
 
                 foreach (var pathData in cellPathData)
                 {
                     var tile = _tileScene.Instantiate<Tile>();
                     tile.SetPathData(pathData);
-                    tile.PositionToIso(pathData.X, pathData.Y, pathData.Z, pathData.Height, 0, 0);
+                    tile.PositionToIso(pathData.X - 1, pathData.Y, pathData.Z, 0, 0, 0);
                     _path.AddChild(tile);
-                    _tiles.Add(tile);
+                    // _tiles.Add(tile);
                 }
             }
         }
@@ -224,11 +219,7 @@ public partial class Map : Node2D
     
     private void DisplayVisibility()
     {
-        SelectedTiles.Clear();
-        _gfx.Modulate = new Color(1.0f, 1.0f, 1.0f, 0.1f);
-        _fight.Visible = false;
-        _light.Visible = false;
-        _path.Visible = false;
+        ResetDisplay();
         _visibility.Visible = true;
 
         var topology = _mapData.Topology;
@@ -238,17 +229,18 @@ public partial class Map : Node2D
             {
                 var cellVisibilityData = topology.GetVisibilityData(x, y);
                 if (cellVisibilityData == null)
-                {
                     continue;
-                }
 
                 foreach (var visibilityData in cellVisibilityData)
                 {
+                    if (visibilityData.CanViewThrough) 
+                        continue;
+                    
                     var tile = _tileScene.Instantiate<Tile>();
                     tile.SetVisibilityData(visibilityData);
-                    tile.PositionToIso(visibilityData.X, visibilityData.Y, 0, visibilityData.Height, 0, 0);
+                    tile.PositionToIso(visibilityData.X, visibilityData.Y, visibilityData.Z - visibilityData.Height, -visibilityData.Height, 0, 0);
                     _visibility.AddChild(tile);
-                    _tiles.Add(tile);
+                    // _tiles.Add(tile);
                 }
             }
         }
@@ -256,25 +248,42 @@ public partial class Map : Node2D
 
     private void DisplayLight()
     {
-        SelectedTiles.Clear();
-        _gfx.Modulate = new Color(1.0f, 1.0f, 1.0f, 0.5f);
-        _fight.Visible = false;
+        ResetDisplay();
         _light.Visible = true;
-        _path.Visible = false;
-        _visibility.Visible = false;
-        
         
     }
 
     private void DisplayFight()
     {
-        SelectedTiles.Clear();
-        _gfx.Modulate = new Color(1.0f, 1.0f, 1.0f, 0.5f);
+        ResetDisplay();
         _fight.Visible = true;
+       
+    }
+
+    private void ResetDisplay()
+    {
+        SelectedTiles.Clear();
+        _tiles.Clear();
+        _fight.Visible = false;
         _light.Visible = false;
         _path.Visible = false;
         _visibility.Visible = false;
-        
-        
+
+        foreach (var child in _fight.GetChildren())
+        {
+            child.QueueFree();
+        }
+        foreach (var child in _light.GetChildren())
+        {
+            child.QueueFree();
+        }
+        foreach (var child in _path.GetChildren())
+        {
+            child.QueueFree();
+        }
+        foreach (var child in _visibility.GetChildren())
+        {
+            child.QueueFree();
+        }
     }
 }

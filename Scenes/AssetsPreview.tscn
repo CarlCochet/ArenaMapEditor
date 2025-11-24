@@ -69,5 +69,5 @@ texture_pressed = ExtResource("7_y6q5p")
 texture_hover = ExtResource("8_n4tih")
 
 [connection signal="pressed" from="HBoxContainer/Previous" to="." method="_OnPreviousPressed"]
-[connection signal="text_submitted" from="HBoxContainer/Current" to="." method="_OnCurrentSubmitted"]
+[connection signal="text_changed" from="HBoxContainer/Current" to="." method="_OnCurrentChanged"]
 [connection signal="pressed" from="HBoxContainer/Next" to="." method="_OnNextPressed"]

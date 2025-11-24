@@ -1,7 +1,6 @@
 using Godot;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 public partial class AssetsPreview : Control
 {
@@ -32,7 +31,15 @@ public partial class AssetsPreview : Control
 	{
 		var newPageSize = (GetWindow().Size.Y - HeaderHeight) / AssetSize * ColumnCount;
 		if (_pageSize == newPageSize) return;
+		
+		var currentPageCount = _totalElements / _pageSize;
+		var newPageCount = _totalElements / newPageSize;
+		var ratio = (float) currentPageCount / newPageCount;
+		
 		_pageSize = newPageSize;
+		_currentPage = (int) Math.Floor(_currentPage / ratio);
+		_currentPage = Math.Max(0, Math.Min(_currentPage, _totalElements / _pageSize));
+		
 		DisplayAssets(_biome, _category, _mode);
 	}
 
@@ -44,7 +51,7 @@ public partial class AssetsPreview : Control
 		_totalElements = GlobalData.Instance.AssetIds.Length;
 		
 		_pageInput.Text = (_currentPage + 1).ToString();
-		_pageTotal.Text = $"/{GlobalData.Instance.Assets.Count / _pageSize + 1}";
+		_pageTotal.Text = $"/{_totalElements / _pageSize + 1}";
 		
 		_biome = biome;
 		_category = category;
@@ -103,7 +110,11 @@ public partial class AssetsPreview : Control
 
 	private void _OnCurrentSubmitted(string newPage)
 	{
-		if (!int.TryParse(newPage, out var page)) return;
+		if (!int.TryParse(newPage, out var page))
+		{
+			_pageInput.Text = (_currentPage + 1).ToString();
+			return;
+		}
 		_currentPage = Math.Max(0, Math.Min(page - 1, _totalElements / _pageSize));
 		DisplayAssets(_biome, _category, _mode);
 	}

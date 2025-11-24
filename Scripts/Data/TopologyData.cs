@@ -24,7 +24,7 @@ public class TopologyData
     private readonly JsonSerializerOptions _options = new()
     {
         WriteIndented = true,
-        // Converters = { new SByteArrayBase64Converter() }
+        Converters = { new SByteArrayBase64Converter() }
     };
     
     public int Id { get; set; }
@@ -40,6 +40,7 @@ public class TopologyData
 
     public void Load(string path)
     {
+        GD.Print($"----------------------------------------------- Loading topology for map {Id} -----------------------------------------------");
         using var archive = ZipFile.OpenRead($"{path}/{Id}.jar");
         
         foreach (var entry in archive.Entries)
@@ -63,12 +64,12 @@ public class TopologyData
 
             TopologyMap topologyMap = topologyMethod switch
             {
-                MethodA => new TopologyMapA(header),
-                MethodB => new TopologyMapB(header),
-                MethodBi => new TopologyMapBi(header),
-                MethodC => new TopologyMapC(header),
-                MethodCi => new TopologyMapCi(header),
-                MethodDi => new TopologyMapDi(header),
+                MethodA => new TopologyMapA(),
+                MethodB => new TopologyMapB(),
+                MethodBi => new TopologyMapBi(),
+                MethodC => new TopologyMapC(),
+                MethodCi => new TopologyMapCi(),
+                MethodDi => new TopologyMapDi(),
                 _ => null
             };
             if (topologyMap == null)
@@ -78,6 +79,8 @@ public class TopologyData
             var instance = new TopologyMapInstance(topologyMap);
             InstanceSet.AddMap(instance, x, y);
         }
+
+        InstanceSet.Sort();
     }
 
     public void Save(string path)
@@ -89,7 +92,7 @@ public class TopologyData
         {
             foreach (var mapInstance in InstanceSet.Maps)
             {
-                var topologyMap = mapInstance.TopologyMap;
+                var topologyMap = mapInstance.TopoMap;
                 var mapX = topologyMap.X / MapConstants.MapWidth;
                 var mapY = topologyMap.Y / MapConstants.MapLength;
                 var fileName = $"{mapX}_{mapY}";
@@ -103,17 +106,13 @@ public class TopologyData
             
             var jarPath = Path.Combine(path, $"{Id}.jar");
             if (File.Exists(jarPath))
-            {
                 File.Delete(jarPath);
-            }
             ZipFile.CreateFromDirectory(tempDir, jarPath);
         }
         finally
         {
             if (Directory.Exists(tempDir))
-            {
                 Directory.Delete(tempDir, true);
-            }
         }
     }
 
@@ -122,7 +121,7 @@ public class TopologyData
         var data = new
         {
             worldId = Id,
-            topologyMap = InstanceSet.Maps.Select(m => m.TopologyMap).ToList()
+            topologyMap = InstanceSet.Maps.Select(m => m.TopoMap).ToList()
         };
 
         var json = JsonSerializer.Serialize(data, _options);
@@ -133,29 +132,18 @@ public class TopologyData
     {
         var topologyMap = InstanceSet.GetTopologyMap(x, y);
         if (topologyMap == null)
-        {
             return null;
-        }
         
-        var tempPathData = new CellPathData[1];
-        tempPathData[0] = new CellPathData();
-        var zCount = topologyMap.GetPathData(x, y, tempPathData, 0);
-        
+        var zCount = topologyMap.GetZCount(x, y);
         if (zCount == 0)
-        {
             return null;
-        }
-        if (zCount == 1)
-        {
-            return tempPathData;
-        }
         
         var cellPathData = new CellPathData[zCount];
         for (var i = 0; i < zCount; i++)
         {
             cellPathData[i] = new CellPathData();
-            topologyMap.GetPathData(x, y, cellPathData, i);
         }
+        topologyMap.GetPathData(x, y, cellPathData, 0);
         
         return cellPathData;
     }
@@ -164,29 +152,18 @@ public class TopologyData
     {
         var topologyMap = InstanceSet.GetTopologyMap(x, y);
         if (topologyMap == null)
-        {
             return null;
-        }
 
-        var tempVisibilityData = new CellVisibilityData[1];
-        tempVisibilityData[0] = new CellVisibilityData();
-        var zCount = topologyMap.GetVisibilityData(x, y, tempVisibilityData, 0);
-        
+        var zCount = topologyMap.GetZCount(x, y);
         if (zCount == 0)
-        {
             return null;
-        }
-        if (zCount == 1)
-        {
-            return tempVisibilityData;
-        }
         
         var cellVisibilityData = new CellVisibilityData[zCount];
         for (var i = 0; i < zCount; i++)
         {
             cellVisibilityData[i] = new CellVisibilityData();
-            topologyMap.GetVisibilityData(x, y, cellVisibilityData, i);
         }
+        topologyMap.GetVisibilityData(x, y, cellVisibilityData, 0);
         
         return cellVisibilityData;
     }
@@ -219,11 +196,10 @@ public class TopologyData
         public TopologyMap GetTopologyMap(int x, int y)
         {
             if (x < MinX || x >= MinX + Width || y < MinY || y >= MinY + Height)
-            {
                 return null;
-            }
+            
             var index = GetMapIndex(x, y);
-            return index < 0 || index >= Maps.Count ? null : Maps[index]?.TopologyMap;
+            return index < 0 || index >= Maps.Count ? null : Maps[index]?.TopoMap;
         }
 
         public bool IsInMap(int x, int y)
@@ -267,22 +243,33 @@ public class TopologyData
             Height = MapConstants.MapLength + MaxY - MinY;
         }
 
+        public void Sort()
+        {
+            Maps = Maps.OrderBy(instance => instance.TopoMap.Y)
+                .ThenBy(instance => instance.TopoMap.X)
+                .ToList();
+        }
+
         private int GetMapIndex(int x, int y)
         {
             if (x < MinX || y < MinY)
-            {
                 return -1;
+
+            for (var index = 0; index < Maps.Count; index++)
+            {
+                var mapX = Maps[index].TopoMap.X;
+                var mapY = Maps[index].TopoMap.Y;
+                if (x >= mapX && x < mapX + MapConstants.MapWidth && y >= mapY && y < mapY + MapConstants.MapLength)
+                    return index;
             }
-            
-            var offsetX = (x - MinX) / MapConstants.MapWidth;
-            var offsetY = (y - MinY) / MapConstants.MapLength;
-            return offsetY * (Width / MapConstants.MapWidth) + offsetX;
+
+            return -1;
         }
     }
 
     public class TopologyMapInstance
     {
-        public TopologyMap TopologyMap { get; set; }
+        public TopologyMapC TopoMap { get; set; }
         private ByteArrayBitSet EntirelyBlockedCells { get; set; } = new(324);
         private ByteArrayBitSet UsedInFight { get; set; } = new(324);
         private int NonBlockedCellsNumber { get; set; }
@@ -299,30 +286,24 @@ public class TopologyData
 
         public bool IsBlocked(int x, int y)
         {
-            x -= TopologyMap.X;
-            y -= TopologyMap.Y;
+            x -= TopoMap.X;
+            y -= TopoMap.Y;
             return EntirelyBlockedCells.Get(y * MapConstants.MapWidth + x);
         }
 
         private int GetMurFinType(int x, int y, int z)
         {
-            if (!TopologyMap.IsInMap(x, y))
-            {
+            if (!TopoMap.IsInMap(x, y))
                 return 0;
-            }
-            
-            var zCount = TopologyMap.GetPathData(x, y, PathData, 0);
+
+            var zCount = TopoMap.GetZCount(x, y);
             if (zCount == 0)
-            {
                 return 0;
-            }
 
             for (var i = 0; i < zCount; i++)
             {
                 if (PathData[i].Z == z)
-                {
                     return PathData[i].GetMurFinType();
-                }
             }
             return 0;
         }
@@ -334,34 +315,30 @@ public class TopologyData
 
         private bool IsUsedInFight(int x, int y)
         {
-            x -= TopologyMap.X;
-            y -= TopologyMap.Y;
+            x -= TopoMap.X;
+            y -= TopoMap.Y;
             return UsedInFight.Get(y * MapConstants.MapWidth + x);
         }
 
         public void SetBlocked(int x, int y, bool blocked)
         {
             if (IsBlocked(x, y) == blocked)
-            {
                 return;
-            }
 
             if (blocked)
             {
-                x -= TopologyMap.X;
-                y -= TopologyMap.Y;
+                x -= TopoMap.X;
+                y -= TopoMap.Y;
                 EntirelyBlockedCells.Set(y * MapConstants.MapWidth + x, true);
                 NonBlockedCellsNumber--;
                 return;
             }
 
             if (IsTopologyMapCellBlocked(x, y))
-            {
                 return;
-            }
             
-            x -= TopologyMap.X;
-            y -= TopologyMap.Y;
+            x -= TopoMap.X;
+            y -= TopoMap.Y;
             EntirelyBlockedCells.Set(y * MapConstants.MapWidth + x, false);
             NonBlockedCellsNumber++;
         }
@@ -369,35 +346,31 @@ public class TopologyData
         public void SetUsedInFight(int x, int y, bool usedInFight)
         {
             if (IsUsedInFight(x, y) == usedInFight)
-            {
                 return;
-            }
 
             if (usedInFight)
             {
-                x -= TopologyMap.X;
-                y -= TopologyMap.Y;
+                x -= TopoMap.X;
+                y -= TopoMap.Y;
                 UsedInFight.Set(y * MapConstants.MapWidth + x, true);
                 return;
             }
 
             if (IsBlocked(x, y))
-            {
                 return;
-            }
             
-            x -= TopologyMap.X;
-            y -= TopologyMap.Y;
+            x -= TopoMap.X;
+            y -= TopoMap.Y;
             UsedInFight.Set(y * MapConstants.MapWidth + x, false);
         }
 
         private void SetTopologyMap(TopologyMap topologyMap)
         {
-            TopologyMap = topologyMap;
+            TopoMap = topologyMap.ConvertToC();
             EntirelyBlockedCells.SetAll(false);
             NonBlockedCellsNumber = 324;
-            var x = TopologyMap.X;
-            var y = TopologyMap.Y;
+            var x = TopoMap.X;
+            var y = TopoMap.Y;
             var index = 0;
 
             for (var i = 0; i < MapConstants.MapLength; i++)
@@ -416,12 +389,7 @@ public class TopologyData
 
         private bool IsTopologyMapCellBlocked(int x, int y)
         {
-            var zCount = TopologyMap.GetPathData(x, y, PathData, 0);
-            if (zCount == 1)
-            {
-                return PathData[0].Cost == -1;
-            }
-
+            var zCount = TopoMap.GetZCount(x, y);
             for (var i = 0; i < zCount; i++)
             {
                 if (PathData[i].Cost != -1)
@@ -452,9 +420,15 @@ public class TopologyData
         [JsonPropertyName("posY")] public int Y { get; set; }
         [JsonPropertyName("posZ")] public short Z { get; set; }
         
-        public abstract int GetPathData(int x, int y, CellPathData[] cellPathData, int index);
+        public abstract void GetPathData(int x, int y, CellPathData[] cellPathData, int index);
         
-        public abstract int GetVisibilityData(int x, int y, CellVisibilityData[] cellVisibilityData, int index);
+        public abstract void GetVisibilityData(int x, int y, CellVisibilityData[] cellVisibilityData, int index);
+        
+        public abstract int GetZCount(int x, int y);
+        
+        public abstract void UpdateData(CellPathData[] pathData, CellVisibilityData[] visibilityData);
+
+        public abstract TopologyMapC ConvertToC();
 
         public virtual void Load(ExtendedDataInputStream reader)
         {
@@ -498,44 +472,44 @@ public class TopologyData
         }
     }
 
-    private abstract class TopologyMapBlockedCells : TopologyMap
+    public abstract class TopologyMapBlockedCells : TopologyMap
     {
-        [JsonPropertyName("blockedCells")] private readonly sbyte[] _blockedCells = new sbyte[ByteArrayBitSet.GetDataLength(MapConstants.NumCells)];
+        [JsonPropertyName("blockedCells")] public sbyte[] BlockedCells { get; } = new sbyte[ByteArrayBitSet.GetDataLength(MapConstants.NumCells)];
         
         public override void Load(ExtendedDataInputStream reader)
         {
             base.Load(reader);
             
-            reader.ReadBytes(_blockedCells);
+            reader.ReadBytes(BlockedCells);
         }
         
         public override void Save(OutputBitStream writer)
         {
             base.Save(writer);
             
-            writer.WriteBytes(_blockedCells);
+            writer.WriteBytes(BlockedCells);
         }
         
         public void FillBlockedCells(ByteArrayBitSet bitSet)
         {
-            Array.Copy(_blockedCells, 0, bitSet.GetByteArray(), 0, _blockedCells.Length);
+            Array.Copy(BlockedCells, 0, bitSet.GetByteArray(), 0, BlockedCells.Length);
         }
 
         public bool IsCellBlocked(int x, int y)
         {
-            return ByteArrayBitSet.Get(_blockedCells, (y - Y) * MapConstants.MapWidth + x - X);
+            return ByteArrayBitSet.Get(BlockedCells, (y - Y) * MapConstants.MapWidth + x - X);
         }
     }
 
-    private class TopologyMapA : TopologyMap
+    public class TopologyMapA : TopologyMap
     {
-        [JsonPropertyName("cost")] private sbyte Cost { get; set; }
-        [JsonPropertyName("wallCell")] private sbyte MurFin { get; set; }
-        [JsonPropertyName("property")] private sbyte Property { get; set; }
+        [JsonPropertyName("cost")] public sbyte Cost { get; set; }
+        [JsonPropertyName("wallCell")] public sbyte MurFin { get; set; }
+        [JsonPropertyName("property")] public sbyte Property { get; set; }
 
-        public TopologyMapA(sbyte header)
+        public TopologyMapA()
         {
-            Header = header;
+            Header = (2 << 4) | MethodA;
         }
 
         public override void Load(ExtendedDataInputStream reader)
@@ -545,10 +519,26 @@ public class TopologyData
             Cost = reader.ReadByte();
             MurFin = reader.ReadByte();
             Property = reader.ReadByte();
+            
+            GD.Print($"({X},{Y},{Z})");
+            GD.Print($"Costs: [{string.Join(", ", Cost)}]");
+            GD.Print($"MurFins: [{string.Join(", ", MurFin)}]");
+            GD.Print($"Properties: [{string.Join(", ", Property)}]");
+        }
+
+        public void LoadFromGfx(GfxData.Partition partition)
+        {
+            X = partition.X;
+            Y = partition.Y;
+            Z = short.MinValue;
+            Cost = InfiniteCost;
+            MurFin = 0;
+            Property = 0;
         }
 
         public override void Save(OutputBitStream writer)
         {
+            writer.WriteByte(Header);
             base.Save(writer);
             
             writer.WriteByte(Cost);
@@ -556,10 +546,10 @@ public class TopologyData
             writer.WriteByte(Property);
         }
 
-        public override int GetPathData(int x, int y, CellPathData[] cellPathData, int index)
+        public override void GetPathData(int x, int y, CellPathData[] cellPathData, int index)
         {
             if (!CheckPathData(x, y, cellPathData))
-                return 0;
+                return;
             
             var pathData = cellPathData[index];
             pathData.X = x;
@@ -570,13 +560,12 @@ public class TopologyData
             pathData.Height = 0;
             pathData.MurFinInfo = MurFin;
             pathData.MiscProperties = Property;
-            return 1;
         }
 
-        public override int GetVisibilityData(int x, int y, CellVisibilityData[] cellVisibilityData, int index)
+        public override void GetVisibilityData(int x, int y, CellVisibilityData[] cellVisibilityData, int index)
         {
             if (!CheckVisibilityData(x, y, cellVisibilityData))
-                return 0;
+                return;
             
             var visibilityData = cellVisibilityData[index];
             visibilityData.X = x;
@@ -584,7 +573,37 @@ public class TopologyData
             visibilityData.Z = Z;
             visibilityData.CanViewThrough = false;
             visibilityData.Height = 0;
+        }
+        
+        public override int GetZCount(int x, int y)
+        {
             return 1;
+        }
+
+        public override void UpdateData(CellPathData[] pathData, CellVisibilityData[] visibilityData)
+        {
+            if (pathData.Length == 0) 
+                return;
+            var data = pathData[0];
+            Cost = data.Cost;
+            MurFin = data.MurFinInfo;
+            Property = data.MiscProperties;
+        }
+
+        public override TopologyMapC ConvertToC()
+        {
+            return new TopologyMapC
+            {
+                X = X,
+                Y = Y,
+                Z = Z,
+                Costs = Enumerable.Repeat(Cost, MapConstants.NumCells).ToArray(),
+                MurFins = Enumerable.Repeat(MurFin, MapConstants.NumCells).ToArray(),
+                Properties = Enumerable.Repeat(Property, MapConstants.NumCells).ToArray(),
+                MovLos = new sbyte[MapConstants.NumCells],
+                Zs = new short[MapConstants.NumCells],
+                Heights = new sbyte[MapConstants.NumCells]
+            };
         }
 
         public void FillBlockedCells(ByteArrayBitSet bitSet)
@@ -598,15 +617,15 @@ public class TopologyData
         }
     }
 
-    private class TopologyMapB : TopologyMapBlockedCells
+    public class TopologyMapB : TopologyMapBlockedCells
     {
-        [JsonPropertyName("costs")] private sbyte[] Costs { get; set; } = new sbyte[MapConstants.NumCells];
-        [JsonPropertyName("wallCells")] private sbyte[] MurFins { get; set; } = new sbyte[MapConstants.NumCells];
-        [JsonPropertyName("properties")] private sbyte[] Properties { get; set; } = new sbyte[MapConstants.NumCells];
+        [JsonPropertyName("costs")] public sbyte[] Costs { get; set; } = new sbyte[MapConstants.NumCells];
+        [JsonPropertyName("wallCells")] public sbyte[] MurFins { get; set; } = new sbyte[MapConstants.NumCells];
+        [JsonPropertyName("properties")] public sbyte[] Properties { get; set; } = new sbyte[MapConstants.NumCells];
         
-        public TopologyMapB(sbyte header)
+        public TopologyMapB()
         {
-            Header = header;
+            Header = (2 << 4) | MethodB;
         }
         
         public override void Load(ExtendedDataInputStream reader)
@@ -619,10 +638,16 @@ public class TopologyData
                 MurFins[i] = reader.ReadByte();
                 Properties[i] = reader.ReadByte();
             }
+            
+            GD.Print($"({X},{Y},{Z})");
+            GD.Print($"Costs: [{string.Join(", ", Costs)}]");
+            GD.Print($"MurFins: [{string.Join(", ", MurFins)}]");
+            GD.Print($"Properties: [{string.Join(", ", Properties)}]");
         }
         
         public override void Save(OutputBitStream writer)
         {
+            writer.WriteByte(Header);
             base.Save(writer);
 
             for (var i = 0; i < MapConstants.NumCells; ++i)
@@ -633,10 +658,10 @@ public class TopologyData
             }
         }
 
-        public override int GetPathData(int x, int y, CellPathData[] cellPathData, int index)
+        public override void GetPathData(int x, int y, CellPathData[] cellPathData, int index)
         {
             if (!CheckPathData(x, y, cellPathData))
-                return 0;
+                return;
             
             var pathData = cellPathData[index];
             pathData.X = x;
@@ -649,13 +674,12 @@ public class TopologyData
             pathData.Cost = Costs[cellIndex];
             pathData.MurFinInfo = MurFins[cellIndex];
             pathData.MiscProperties = Properties[cellIndex];
-            return 1;
         }
 
-        public override int GetVisibilityData(int x, int y, CellVisibilityData[] cellVisibilityData, int index)
+        public override void GetVisibilityData(int x, int y, CellVisibilityData[] cellVisibilityData, int index)
         {
             if (!CheckVisibilityData(x, y, cellVisibilityData))
-                return 0;
+                return;
             
             var visibilityData = cellVisibilityData[index];
             visibilityData.X = x;
@@ -663,7 +687,38 @@ public class TopologyData
             visibilityData.Z = Z;
             visibilityData.CanViewThrough = false;
             visibilityData.Height = 0;
+        }
+        
+        public override int GetZCount(int x, int y)
+        {
             return 1;
+        }
+        
+        public override TopologyMapC ConvertToC()
+        {
+            return new TopologyMapC
+            {
+                X = X,
+                Y = Y,
+                Z = Z,
+                Costs = Costs,
+                MurFins = MurFins,
+                Properties = Properties,
+                MovLos = new sbyte[MapConstants.NumCells],
+                Zs = new short[MapConstants.NumCells], 
+                Heights = new sbyte[MapConstants.NumCells]
+            };
+        }
+        
+        public override void UpdateData(CellPathData[] pathData, CellVisibilityData[] visibilityData)
+        {
+            if (pathData.Length == 0) 
+                return;
+            var data = pathData[0];
+            var cellIndex = GetIndex(data.X, data.Y);
+            Costs[cellIndex] = data.Cost;
+            MurFins[cellIndex] = data.MurFinInfo;
+            Properties[cellIndex] = data.MiscProperties;
         }
 
         private int GetIndex(int x, int y)
@@ -674,18 +729,18 @@ public class TopologyData
         }
     }
 
-    private class TopologyMapBi : TopologyMapBlockedCells
+    public class TopologyMapBi : TopologyMapBlockedCells
     {
-        [JsonPropertyName("costs")] private sbyte[] Costs { get; set; }
-        [JsonPropertyName("wallCells")] private sbyte[] MurFins { get; set; }
-        [JsonPropertyName("properties")] private sbyte[] Properties { get; set; }
-        [JsonPropertyName("cells")] private int[] Cells { get; set; }
+        [JsonPropertyName("costs")] public sbyte[] Costs { get; set; }
+        [JsonPropertyName("wallCells")] public sbyte[] MurFins { get; set; }
+        [JsonPropertyName("properties")] public sbyte[] Properties { get; set; }
+        [JsonPropertyName("cells")] public int[] Cells { get; set; }
 
         private sbyte _cellSize;
         
-        public TopologyMapBi(sbyte header)
+        public TopologyMapBi()
         {
-            Header = header;
+            Header = (2 << 4) | MethodBi;
         }
         
         public override void Load(ExtendedDataInputStream reader)
@@ -707,10 +762,17 @@ public class TopologyData
             var cellSize = reader.ReadByte() & 0xFF;
             Cells = new int[cellSize];
             Cells = TopologyIndexerHelper.CreateFor(Cells, cellSize, reader);
+            
+            GD.Print($"({X},{Y},{Z})");
+            GD.Print($"Costs: [{string.Join(", ", Costs)}]");
+            GD.Print($"MurFins: [{string.Join(", ", MurFins)}]");
+            GD.Print($"Properties: [{string.Join(", ", Properties)}]");
+            GD.Print($"Cells: [{string.Join(", ", Cells)}]");
         }
         
         public override void Save(OutputBitStream writer)
         {
+            writer.WriteByte(Header);
             base.Save(writer);
             
             var indexSize = (sbyte)Costs.Length;
@@ -726,10 +788,10 @@ public class TopologyData
             writer.WriteByte(unchecked((sbyte)Cells.Length));
         }
 
-        public override int GetPathData(int x, int y, CellPathData[] cellPathData, int index)
+        public override void GetPathData(int x, int y, CellPathData[] cellPathData, int index)
         {
             if (!CheckPathData(x, y, cellPathData))
-                return 0;
+                return;
             
             var pathData = cellPathData[index];
             pathData.X = x;
@@ -742,13 +804,12 @@ public class TopologyData
             pathData.Cost = Costs[tab];
             pathData.MurFinInfo = MurFins[tab];
             pathData.MiscProperties = Properties[tab];
-            return 1;
         }
 
-        public override int GetVisibilityData(int x, int y, CellVisibilityData[] cellVisibilityData, int index)
+        public override void GetVisibilityData(int x, int y, CellVisibilityData[] cellVisibilityData, int index)
         {
             if (!CheckVisibilityData(x, y, cellVisibilityData))
-                return 0;
+                return;
             
             var visibilityData = cellVisibilityData[index];
             visibilityData.X = x;
@@ -756,7 +817,58 @@ public class TopologyData
             visibilityData.Z = Z;
             visibilityData.CanViewThrough = false;
             visibilityData.Height = 0;
+        }
+        
+        public override int GetZCount(int x, int y)
+        {
             return 1;
+        }
+        
+        public override void UpdateData(CellPathData[] pathData, CellVisibilityData[] visibilityData)
+        {
+            if (pathData.Length == 0) 
+                return;
+            var data = pathData[0];
+            var cellIndex = GetIndex(data.X, data.Y);
+            Costs[cellIndex] = data.Cost;
+            MurFins[cellIndex] = data.MurFinInfo;
+            Properties[cellIndex] = data.MiscProperties;
+        }
+        
+        public override TopologyMapC ConvertToC()
+        {
+            var costs = new sbyte[MapConstants.NumCells];
+            var murfins = new sbyte[MapConstants.NumCells];
+            var properties = new sbyte[MapConstants.NumCells];
+            var movLos = new sbyte[MapConstants.NumCells];
+            var zs = new short[MapConstants.NumCells];
+            var heights = new sbyte[MapConstants.NumCells];
+
+            for (var x = X; x < X + MapConstants.MapWidth; ++x)
+            {
+                for (var y = Y; y < Y + MapConstants.MapLength; ++y)
+                {
+                    var cellIndex = GetIndex(x, y);
+                    var positionIndex = GetPositionIndex(x, y);
+                    costs[positionIndex] = Costs[cellIndex];
+                    murfins[positionIndex] = MurFins[cellIndex];
+                    properties[positionIndex] = Properties[cellIndex];
+                    zs[positionIndex] = Z;
+                }
+            }
+
+            return new TopologyMapC
+            {
+                X = X,
+                Y = Y,
+                Z = Z,
+                Costs = costs,
+                MurFins = murfins,
+                Properties = properties,
+                MovLos = movLos,
+                Zs = zs,
+                Heights = heights
+            };
         }
 
         private int GetIndex(int x, int y)
@@ -766,23 +878,30 @@ public class TopologyData
             var cellIndex = yIndex * MapConstants.MapWidth + xIndex;
             return TopologyIndexerHelper.GetIndex(Cells, cellIndex, Costs.Length);
         }
+        
+        private int GetPositionIndex(int x, int y)
+        {
+            var xIndex = x - X;
+            var yIndex = y - Y;
+            return yIndex * MapConstants.MapWidth + xIndex;
+        }
     }
 
-    private class TopologyMapC : TopologyMapBlockedCells
+    public class TopologyMapC : TopologyMapBlockedCells
     {
         private const sbyte MovMask = 0x01;
         private const sbyte LosMask = 0x02;
 
-        [JsonPropertyName("costs")] private sbyte[] Costs { get; set; } = new sbyte[MapConstants.NumCells];
-        [JsonPropertyName("wallCells")] private sbyte[] MurFins { get; set; } = new sbyte[MapConstants.NumCells];
-        [JsonPropertyName("properties")] private sbyte[] Properties { get; set; } = new sbyte[MapConstants.NumCells];
-        [JsonPropertyName("movLos")] private sbyte[] MovLos { get; set; } = new sbyte[MapConstants.NumCells];
-        [JsonPropertyName("zs")] private short[] Zs { get; set; } = new short[MapConstants.NumCells];
-        [JsonPropertyName("heights")] private sbyte[] Heights { get; set; } = new sbyte[MapConstants.NumCells];
+        [JsonPropertyName("costs")] public sbyte[] Costs { get; set; } = new sbyte[MapConstants.NumCells];
+        [JsonPropertyName("wallCells")] public sbyte[] MurFins { get; set; } = new sbyte[MapConstants.NumCells];
+        [JsonPropertyName("properties")] public sbyte[] Properties { get; set; } = new sbyte[MapConstants.NumCells];
+        [JsonPropertyName("movLos")] public sbyte[] MovLos { get; set; } = new sbyte[MapConstants.NumCells];
+        [JsonPropertyName("zs")] public short[] Zs { get; set; } = new short[MapConstants.NumCells];
+        [JsonPropertyName("heights")] public sbyte[] Heights { get; set; } = new sbyte[MapConstants.NumCells];
         
-        public TopologyMapC(sbyte header)
+        public TopologyMapC()
         {
-            Header = header;
+            Header = (2 << 4) | MethodC;
         }
         
         public override void Load(ExtendedDataInputStream reader)
@@ -798,10 +917,24 @@ public class TopologyData
                 Heights[i] = reader.ReadByte();
                 MovLos[i] = reader.ReadByte();
             }
+            
+            GD.Print($"({X},{Y},{Z})");
+            GD.Print($"Costs: [{string.Join(", ", Costs)}]");
+            GD.Print($"MurFins: [{string.Join(", ", MurFins)}]");
+            GD.Print($"Properties: [{string.Join(", ", Properties)}]");
+            GD.Print($"Zs: [{string.Join(", ", Zs)}]");
+            GD.Print($"Heights: [{string.Join(", ", Heights)}]");
+            GD.Print($"MovLos: [{string.Join(", ", MovLos)}]");
+        }
+
+        public void LoadFromGfx(GfxData.Partition partition)
+        {
+            
         }
         
         public override void Save(OutputBitStream writer)
         {
+            writer.WriteByte(Header);
             base.Save(writer);
 
             for (var i = 0; i < MapConstants.NumCells; ++i)
@@ -815,10 +948,10 @@ public class TopologyData
             }
         }
 
-        public override int GetPathData(int x, int y, CellPathData[] cellPathData, int index)
+        public override void GetPathData(int x, int y, CellPathData[] cellPathData, int index)
         {
             if (!CheckPathData(x, y, cellPathData))
-                return 0;
+                return;
             
             var pathData = cellPathData[index];
             pathData.X = x;
@@ -831,13 +964,12 @@ public class TopologyData
             pathData.Cost = Costs[cellIndex];
             pathData.MurFinInfo = MurFins[cellIndex];
             pathData.MiscProperties = Properties[cellIndex];
-            return 1;
         }
 
-        public override int GetVisibilityData(int x, int y, CellVisibilityData[] cellVisibilityData, int index)
+        public override void GetVisibilityData(int x, int y, CellVisibilityData[] cellVisibilityData, int index)
         {
             if (!CheckVisibilityData(x, y, cellVisibilityData))
-                return 0;
+                return;
             
             var visibilityData = cellVisibilityData[index];
             visibilityData.X = x;
@@ -847,7 +979,31 @@ public class TopologyData
             visibilityData.Z = Zs[cellIndex];
             visibilityData.CanViewThrough = (MovLos[cellIndex] & LosMask) == LosMask;
             visibilityData.Height = Heights[cellIndex];
+        }
+        
+        public override int GetZCount(int x, int y)
+        {
             return 1;
+        }
+        
+        public override void UpdateData(CellPathData[] pathData, CellVisibilityData[] visibilityData)
+        {
+            if (pathData.Length == 0) 
+                return;
+            var data = pathData[0];
+            var visibility = visibilityData[0];
+            var cellIndex = GetIndex(data.X, data.Y);
+            Costs[cellIndex] = data.Cost;
+            MurFins[cellIndex] = data.MurFinInfo;
+            Properties[cellIndex] = data.MiscProperties;
+            MovLos[cellIndex] = (sbyte)((data.CanMoveThrough ? MovMask : 0) | (visibility.CanViewThrough ? LosMask : 0));
+            Zs[cellIndex] = data.Z;
+            Heights[cellIndex] = data.Height;
+        }
+        
+        public override TopologyMapC ConvertToC()
+        {
+            return this;
         }
 
         private int GetIndex(int x, int y)
@@ -858,22 +1014,22 @@ public class TopologyData
         }
     }
 
-    private class TopologyMapCi : TopologyMapBlockedCells
+    public class TopologyMapCi : TopologyMapBlockedCells
     {
         private const sbyte MovMask = 0x01;
         private const sbyte LosMask = 0x02;
 
-        [JsonPropertyName("costs")] private sbyte[] Costs { get; set; }
-        [JsonPropertyName("wallCells")] private sbyte[] MurFins { get; set; }
-        [JsonPropertyName("properties")] private sbyte[] Properties { get; set; }
-        [JsonPropertyName("movLos")] private sbyte[] MovLos { get; set; }
-        [JsonPropertyName("zs")] private short[] Zs { get; set; }
-        [JsonPropertyName("heights")] private sbyte[] Heights { get; set; }
-        [JsonPropertyName("cells")] private long[] Cells { get; set; }
+        [JsonPropertyName("costs")] public sbyte[] Costs { get; set; }
+        [JsonPropertyName("wallCells")] public sbyte[] MurFins { get; set; }
+        [JsonPropertyName("properties")] public sbyte[] Properties { get; set; }
+        [JsonPropertyName("movLos")] public sbyte[] MovLos { get; set; }
+        [JsonPropertyName("zs")] public short[] Zs { get; set; }
+        [JsonPropertyName("heights")] public sbyte[] Heights { get; set; }
+        [JsonPropertyName("cells")] public long[] Cells { get; set; }
 
-        public TopologyMapCi(sbyte header)
+        public TopologyMapCi()
         {
-            Header = header;
+            Header = (2 << 4) | MethodCi;
         }
         
         public override void Load(ExtendedDataInputStream reader)
@@ -899,10 +1055,25 @@ public class TopologyData
             
             var cellSize = reader.ReadByte() & 0xFF;
             Cells = TopologyIndexerHelper.CreateFor(Cells, cellSize, reader);
+            
+            GD.Print($"({X},{Y},{Z})");
+            GD.Print($"Costs: [{string.Join(", ", Costs)}]");
+            GD.Print($"MurFins: [{string.Join(", ", MurFins)}]");
+            GD.Print($"Properties: [{string.Join(", ", Properties)}]");
+            GD.Print($"Zs: [{string.Join(", ", Zs)}]");
+            GD.Print($"Heights: [{string.Join(", ", Heights)}]");
+            GD.Print($"MovLos: [{string.Join(", ", MovLos)}]");
+        }
+
+        public void LoadFromGfx(GfxData.Partition partition)
+        {
+            X = partition.X;
+            Y = partition.Y;
         }
         
         public override void Save(OutputBitStream writer)
         {
+            writer.WriteByte(Header);
             base.Save(writer);
 
             writer.WriteByte(unchecked((sbyte)Costs.Length));
@@ -919,10 +1090,10 @@ public class TopologyData
             writer.WriteByte(unchecked((sbyte)Cells.Length));
         }
         
-        public override int GetPathData(int x, int y, CellPathData[] cellPathData, int index)
+        public override void GetPathData(int x, int y, CellPathData[] cellPathData, int index)
         {
             if (!CheckPathData(x, y, cellPathData))
-                return 0;
+                return;
 
             var pathData = cellPathData[index];
             pathData.X = x;
@@ -935,13 +1106,12 @@ public class TopologyData
             pathData.Cost = Costs[tab];
             pathData.MurFinInfo = MurFins[tab];
             pathData.MiscProperties = Properties[tab];
-            return 1;
         }
 
-        public override int GetVisibilityData(int x, int y, CellVisibilityData[] cellVisibilityData, int index)
+        public override void GetVisibilityData(int x, int y, CellVisibilityData[] cellVisibilityData, int index)
         {
             if (!CheckVisibilityData(x, y, cellVisibilityData))
-                return 0;
+                return;
             
             var visibilityData = cellVisibilityData[index];
             visibilityData.X = x;
@@ -951,7 +1121,64 @@ public class TopologyData
             visibilityData.Z = Zs[tab];
             visibilityData.CanViewThrough = (MovLos[tab] & LosMask) == LosMask;
             visibilityData.Height = Heights[tab];
+        }
+        
+        public override int GetZCount(int x, int y)
+        {
             return 1;
+        }
+        
+        public override void UpdateData(CellPathData[] pathData, CellVisibilityData[] visibilityData)
+        {
+            if (pathData.Length == 0) 
+                return;
+            var data = pathData[0];
+            var visibility = visibilityData[0];
+            var cellIndex = GetIndex(data.X, data.Y);
+            Costs[cellIndex] = data.Cost;
+            MurFins[cellIndex] = data.MurFinInfo;
+            Properties[cellIndex] = data.MiscProperties;
+            MovLos[cellIndex] = (sbyte)((data.CanMoveThrough ? MovMask : 0) | (visibility.CanViewThrough ? LosMask : 0));
+            Zs[cellIndex] = data.Z;
+            Heights[cellIndex] = data.Height;
+        }
+        
+        public override TopologyMapC ConvertToC()
+        {
+            var costs = new sbyte[MapConstants.NumCells];
+            var murfins = new sbyte[MapConstants.NumCells];
+            var properties = new sbyte[MapConstants.NumCells];
+            var movLos = new sbyte[MapConstants.NumCells];
+            var zs = new short[MapConstants.NumCells];
+            var heights = new sbyte[MapConstants.NumCells];
+
+            for (var x = X; x < X + MapConstants.MapWidth; ++x)
+            {
+                for (var y = Y; y < Y + MapConstants.MapLength; ++y)
+                {
+                    var cellIndex = GetIndex(x, y);
+                    var positionIndex = GetPositionIndex(x, y);
+                    costs[positionIndex] = Costs[cellIndex];
+                    murfins[positionIndex] = MurFins[cellIndex];
+                    properties[positionIndex] = Properties[cellIndex];
+                    movLos[positionIndex] = MovLos[cellIndex];
+                    zs[positionIndex] = Zs[cellIndex];
+                    heights[positionIndex] = Heights[cellIndex];
+                }
+            }
+
+            return new TopologyMapC
+            {
+                X = X,
+                Y = Y,
+                Z = Z,
+                Costs = costs,
+                MurFins = murfins,
+                Properties = properties,
+                MovLos = movLos,
+                Zs = zs,
+                Heights = heights
+            };
         }
 
         private int GetIndex(int x, int y)
@@ -961,9 +1188,16 @@ public class TopologyData
             var cellIndex = yIndex * MapConstants.MapWidth + xIndex;
             return TopologyIndexerHelper.GetIndex(Cells, cellIndex, Costs.Length);
         }
+        
+        private int GetPositionIndex(int x, int y)
+        {
+            var xIndex = x - X;
+            var yIndex = y - Y;
+            return yIndex * MapConstants.MapWidth + xIndex;
+        }
     }
 
-    private class TopologyMapDi : TopologyMapBlockedCells
+    public class TopologyMapDi : TopologyMapBlockedCells
     {
         private static readonly List<int> Indexes = [];
         private static readonly Lock Mutex = new();
@@ -972,18 +1206,18 @@ public class TopologyData
         private const sbyte LosMask = 0x02;
         private const int IndexOffset = 1;
 
-        [JsonPropertyName("costs")] private sbyte[] Costs { get; set; }
-        [JsonPropertyName("wallCells")] private sbyte[] MurFins { get; set; }
-        [JsonPropertyName("properties")] private sbyte[] Properties { get; set; }
-        [JsonPropertyName("movLos")] private sbyte[] MovLos { get; set; }
-        [JsonPropertyName("zs")] private short[] Zs { get; set; }
-        [JsonPropertyName("heights")] private sbyte[] Heights { get; set; }
-        [JsonPropertyName("cells")] private long[] Cells { get; set; }
-        [JsonPropertyName("cellsWithMultiZ")] private int[] CellsWithMultiZ { get; set; }
+        [JsonPropertyName("costs")] public sbyte[] Costs { get; set; }
+        [JsonPropertyName("wallCells")] public sbyte[] MurFins { get; set; }
+        [JsonPropertyName("properties")] public sbyte[] Properties { get; set; }
+        [JsonPropertyName("movLos")] public sbyte[] MovLos { get; set; }
+        [JsonPropertyName("zs")] public short[] Zs { get; set; }
+        [JsonPropertyName("heights")] public sbyte[] Heights { get; set; }
+        [JsonPropertyName("cells")] public long[] Cells { get; set; }
+        [JsonPropertyName("cellsWithMultiZ")] public int[] CellsWithMultiZ { get; set; }
         
-        public TopologyMapDi(sbyte header)
+        public TopologyMapDi()
         {
-            Header = header;
+            Header = (2 << 4) | MethodDi;
         }
         
         public override void Load(ExtendedDataInputStream reader)
@@ -1016,10 +1250,20 @@ public class TopologyData
             {
                 CellsWithMultiZ[i] = reader.ReadInt();
             }
+            
+            GD.Print($"({X},{Y},{Z})");
+            GD.Print($"Costs: [{string.Join(", ", Costs)}]");
+            GD.Print($"MurFins: [{string.Join(", ", MurFins)}]");
+            GD.Print($"Properties: [{string.Join(", ", Properties)}]");
+            GD.Print($"Zs: [{string.Join(", ", Zs)}]");
+            GD.Print($"Heights: [{string.Join(", ", Heights)}]");
+            GD.Print($"MovLos: [{string.Join(", ", MovLos)}]");
+            GD.Print($"CellsWithMultiZ: [{string.Join(", ", CellsWithMultiZ)}]");
         }
         
         public override void Save(OutputBitStream writer)
         {
+            writer.WriteByte(Header);
             base.Save(writer);
             
             writer.WriteByte(unchecked((sbyte)Costs.Length));
@@ -1042,7 +1286,7 @@ public class TopologyData
             }
         }
         
-        public override int GetPathData(int x, int y, CellPathData[] cellPathData, int index)
+        public override void GetPathData(int x, int y, CellPathData[] cellPathData, int index)
         {
             var cellIndex = GetIndex(x, y);
             if (cellIndex != 0)
@@ -1051,7 +1295,7 @@ public class TopologyData
                 pathData.X = x;
                 pathData.Y = y;
                 FillPathData(pathData, cellIndex - IndexOffset);
-                return 1;
+                return;
             }
 
             using (Mutex.EnterScope())
@@ -1065,11 +1309,10 @@ public class TopologyData
                     pathData.Y = y;
                     FillPathData(pathData, tab[i]);
                 }
-                return zCount;
             }
         }
 
-        public override int GetVisibilityData(int x, int y, CellVisibilityData[] cellVisibilityData, int index)
+        public override void GetVisibilityData(int x, int y, CellVisibilityData[] cellVisibilityData, int index)
         {
             var cellIndex = GetIndex(x, y);
             if (cellIndex != 0)
@@ -1078,7 +1321,7 @@ public class TopologyData
                 visibilityData.X = x;
                 visibilityData.Y = y;
                 FillVisibilityData(visibilityData, cellIndex - IndexOffset);
-                return 1;
+                return;
             }
 
             using (Mutex.EnterScope())
@@ -1092,8 +1335,70 @@ public class TopologyData
                     visibilityData.Y = y;
                     FillVisibilityData(visibilityData, tab[i]);
                 }
-                return zCount;
             }
+        }
+        
+        public override int GetZCount(int x, int y)
+        {
+            return GetIndex(x, y) != 0 ? 1 : GetMultiIndex(x - X, y - Y, Indexes).Count;
+        }
+        
+        public override void UpdateData(CellPathData[] pathData, CellVisibilityData[] visibilityData)
+        {
+            if (pathData.Length == 0) 
+                return;
+            var data = pathData[0];
+            var visibility = visibilityData[0];
+            var cellIndex = GetIndex(data.X, data.Y);
+            Costs[cellIndex] = data.Cost;
+            MurFins[cellIndex] = data.MurFinInfo;
+            Properties[cellIndex] = data.MiscProperties;
+            MovLos[cellIndex] = (sbyte)((data.CanMoveThrough ? MovMask : 0) | (visibility.CanViewThrough ? LosMask : 0));
+            Zs[cellIndex] = data.Z;
+            Heights[cellIndex] = data.Height;
+        }
+        
+        public override TopologyMapC ConvertToC()
+        {
+            var costs = new sbyte[MapConstants.NumCells];
+            var murfins = new sbyte[MapConstants.NumCells];
+            var properties = new sbyte[MapConstants.NumCells];
+            var movLos = new sbyte[MapConstants.NumCells];
+            var zs = new short[MapConstants.NumCells];
+            var heights = new sbyte[MapConstants.NumCells];
+
+            for (var x = X; x < X + MapConstants.MapWidth; ++x)
+            {
+                for (var y = Y; y < Y + MapConstants.MapLength; ++y)
+                {
+                    var cellIndex = GetIndex(x, y);
+                    var positionIndex = GetPositionIndex(x, y);
+                    if (cellIndex == 0)
+                        cellIndex = GetValidIndex(x, y);
+                    if (cellIndex < 0 || cellIndex >= Costs.Length)
+                        continue;
+               
+                    costs[positionIndex] = Costs[cellIndex];
+                    murfins[positionIndex] = MurFins[cellIndex];
+                    properties[positionIndex] = Properties[cellIndex];
+                    movLos[positionIndex] = MovLos[cellIndex];
+                    zs[positionIndex] = Zs[cellIndex];
+                    heights[positionIndex] = Heights[cellIndex];
+                }
+            }
+
+            return new TopologyMapC
+            {
+                X = X,
+                Y = Y,
+                Z = Z,
+                Costs = costs,
+                MurFins = murfins,
+                Properties = properties,
+                MovLos = movLos,
+                Zs = zs,
+                Heights = heights
+            };
         }
         
         private int GetIndex(int x, int y)
@@ -1102,6 +1407,13 @@ public class TopologyData
             var yIndex = y - Y;
             var cellIndex = yIndex * MapConstants.MapWidth + xIndex;
             return TopologyIndexerHelper.GetIndex(Cells, cellIndex, Costs.Length);
+        }
+
+        private int GetPositionIndex(int x, int y)
+        {
+            var xIndex = x - X;
+            var yIndex = y - Y;
+            return yIndex * MapConstants.MapWidth + xIndex;
         }
 
         private List<int> GetMultiIndex(int x, int y, List<int> indexes)
@@ -1129,6 +1441,39 @@ public class TopologyData
             }
             
             return indexes;
+        }
+
+        private int GetValidIndex(int x, int y)
+        {
+            var indexes = GetMultiIndex(x - X, y - Y, Indexes);
+
+            var valid = indexes.FindAll(i => Costs[i] >= 0);
+            var invalid = indexes.FindAll(i => Costs[i] == -1);
+
+            if (valid.Count == 0)
+                return invalid.MaxBy(i => Zs[i]);
+            if (invalid.Count == 0)
+                return valid.MaxBy(i => Zs[i]);
+
+            valid = valid.OrderByDescending(i => Zs[i]).ToList();
+            foreach (var validIndex in valid)
+            {
+                var z = Zs[validIndex];
+                if (z is < -13 or > 13)
+                    continue;
+                
+                var isValid = true;
+                foreach (var invalidIndex in invalid)
+                {
+                    var invalidZ = Zs[invalidIndex] - Heights[invalidIndex];
+                    var zDiff = invalidZ - z;
+                    if (zDiff is >= 0 and < 7)
+                        isValid = false;
+                }
+                if (isValid) 
+                    return validIndex;
+            }
+            return -1;
         }
 
         private void FillPathData(CellPathData data, int cellIndex)
@@ -1192,18 +1537,14 @@ public class TopologyData
 
         public static short GetZIndex(CellPathData[] cellPathData, TopologyMap topologyMap, int x, int y, short z)
         {
-            var pathData = topologyMap.GetPathData(x, y, cellPathData, 0);
-
-            if (pathData == 1)
-                return (short)(cellPathData[0].Z == z ? 0 : -1);
-
-            for (var i = 0; i < pathData; i++)
+            
+            var zCount = topologyMap.GetZCount(x, y);
+            for (var i = 0; i < zCount; i++)
             {
                 if (cellPathData[i].Z != z || cellPathData[i].CanMoveThrough)
                     continue;
                 return (short)i;
             }
-            
             return -1;
         }
 

@@ -95,7 +95,7 @@ public partial class Tile : Sprite2D
         if (!GlobalData.Instance.ValidAssets.TryGetValue(-1, out var asset)) return;
         if (!GlobalData.Instance.ValidAssets.TryGetValue(-2, out var asset2)) return;
         PathData = pathData;
-        Data = PathData.CanMoveThrough ? asset : asset2;
+        Data = PathData.Cost != -1 ? asset : asset2;
         Texture = Data.Texture;
     }
 

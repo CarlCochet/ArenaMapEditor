@@ -65,12 +65,15 @@ position = Vector2(7.85589e-05, 3.15309e-05)
 scale = Vector2(4700, 3300)
 texture = SubResource("CompressedTexture2D_g5138")
 
+[node name="GFX" type="Node2D" parent="."]
+
 [node name="Path" type="Node2D" parent="."]
+modulate = Color(1, 1, 1, 0.5019608)
 
 [node name="Visibility" type="Node2D" parent="."]
 
 [node name="Light" type="Node2D" parent="."]
+modulate = Color(1, 1, 1, 0.5019608)
 
 [node name="Fight" type="Node2D" parent="."]
-
-[node name="GFX" type="Node2D" parent="."]
+modulate = Color(1, 1, 1, 0.5019608)

@@ -9,7 +9,8 @@ public partial class Editor : Node2D
 	[Export] private AssetsPreview _assetsPreview;
 	[Export] private Tools _tools;
 	[Export] private Overlay _overlay;
-	[Export] private FileDialog _fileDialog;
+	[Export] private FileDialog _openDialog;
+	[Export] private FileDialog _saveDialog;
 	[Export] private Inspector _inspector;
 	[Export] private Gizmo _gizmo;
 
@@ -18,7 +19,6 @@ public partial class Editor : Node2D
 	private int _x;
 	private int _y;
 	private int _z;
-	private Enums.FileDialogMode _mode;
 	
 	public override void _Ready()
 	{
@@ -77,7 +77,26 @@ public partial class Editor : Node2D
 	
 	private void _OnTileSelected(object sender, Map.TileSelectedEventArgs e)
 	{
-		GD.Print("Selected tile: " + e.Element.CommonData.Id);
+		GD.Print($"Selected tile: {e.Element.CommonData.Id}");
+		
+		if (e.PathData != null)
+		{
+			GD.Print("Path data:");
+			foreach (var data in e.PathData)
+			{
+				GD.Print($"({data.X}, {data.Y}, {data.Z}) | CanMoveThrough: {data.CanMoveThrough} | Cost: {data.Cost} | Height: {data.Height} | MurFinInfo: {data.MurFinInfo} | MiscProperties: {data.MiscProperties}");
+			}
+		}
+		
+		if (e.VisibilityData != null) 
+		{
+			GD.Print("Visibility data:");
+			foreach (var data in e.VisibilityData)
+			{
+				GD.Print($"({data.X}, {data.Y}, {data.Z}) | CanViewThrough: {data.CanViewThrough} | Height: {data.Height}");
+			}
+		}
+		
 		_inspector.Update(e.Element);
 		_assetsPreview.Update(e.Element);
 		_tools.Update(e.Element);
@@ -139,14 +158,12 @@ public partial class Editor : Node2D
 	
 	private void _OnLocateArenaPressed(object sender, EventArgs eventArgs)
 	{
-		_fileDialog.Visible = true;
-		_mode = Enums.FileDialogMode.Open;
+		_openDialog.Visible = true;
 	}
 	
 	private void _OnMapExportedPressed(object sender, EventArgs e)
 	{
-		_fileDialog.Visible = true;
-		_mode = Enums.FileDialogMode.Save;
+		_saveDialog.Visible = true;
 	}
 	
 	private void _OnMapSelected(object sender, Tools.MapSelectedEventArgs eventArgs)
@@ -161,19 +178,17 @@ public partial class Editor : Node2D
 
 	private void _OnDirectorySelected(string dir)
 	{
-		switch (_mode) 
-		{
-			case Enums.FileDialogMode.Open:
-				LoadMapList(dir);
-				break;
-			case Enums.FileDialogMode.Save:
-				SaveMap(dir);
-				break;
-		}
+		LoadMapList(dir);
+	}
+
+	private void _OnSaveDirectorySelected(string dir)
+	{
+		SaveMap(dir);
 	}
 
 	private void SaveMap(string dir)
 	{
+		DirAccess.MakeDirRecursiveAbsolute(dir);
 		using var dirAccess = DirAccess.Open(dir);
 		var directories = dirAccess.GetDirectories();
 		var files = dirAccess.GetFiles();
