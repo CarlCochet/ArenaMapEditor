@@ -79,23 +79,23 @@ public partial class Editor : Node2D
 	{
 		GD.Print($"Selected tile: {e.Element.CommonData.Id}");
 		
-		if (e.PathData != null)
-		{
-			GD.Print("Path data:");
-			foreach (var data in e.PathData)
-			{
-				GD.Print($"({data.X}, {data.Y}, {data.Z}) | CanMoveThrough: {data.CanMoveThrough} | Cost: {data.Cost} | Height: {data.Height} | MurFinInfo: {data.MurFinInfo} | MiscProperties: {data.MiscProperties}");
-			}
-		}
-		
-		if (e.VisibilityData != null) 
-		{
-			GD.Print("Visibility data:");
-			foreach (var data in e.VisibilityData)
-			{
-				GD.Print($"({data.X}, {data.Y}, {data.Z}) | CanViewThrough: {data.CanViewThrough} | Height: {data.Height}");
-			}
-		}
+		// if (e.PathData != null)
+		// {
+		// 	GD.Print("Path data:");
+		// 	foreach (var data in e.PathData)
+		// 	{
+		// 		GD.Print($"({data.X}, {data.Y}, {data.Z}) | CanMoveThrough: {data.CanMoveThrough} | Cost: {data.Cost} | Height: {data.Height} | MurFinInfo: {data.MurFinInfo} | MiscProperties: {data.MiscProperties}");
+		// 	}
+		// }
+		//
+		// if (e.VisibilityData != null) 
+		// {
+		// 	GD.Print("Visibility data:");
+		// 	foreach (var data in e.VisibilityData)
+		// 	{
+		// 		GD.Print($"({data.X}, {data.Y}, {data.Z}) | CanViewThrough: {data.CanViewThrough} | Height: {data.Height}");
+		// 	}
+		// }
 		
 		_inspector.Update(e.Element);
 		_assetsPreview.Update(e.Element);

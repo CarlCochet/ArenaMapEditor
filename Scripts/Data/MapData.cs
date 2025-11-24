@@ -23,15 +23,16 @@ public class MapData
 
     public void Load(string path)
     {
-        try
-        {
-            Topology = new TopologyData(Id);
-            Topology.Load($"{path}/maps/tplg");
-        }
-        catch (Exception e)
-        {
-            GD.PrintErr($"Error loading TOPOLOGY for map {Id}: {e.Message}");
-        }
+        Topology = new TopologyData(Id);
+        Topology.Load($"{path}/maps/tplg");
+        // try
+        // {
+        //     
+        // }
+        // catch (Exception e)
+        // {
+        //     GD.PrintErr($"Error loading TOPOLOGY for map {Id}: {e.Message}");
+        // }
         
         try
         {

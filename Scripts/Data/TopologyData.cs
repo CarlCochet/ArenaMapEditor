@@ -92,7 +92,7 @@ public class TopologyData
         {
             foreach (var mapInstance in InstanceSet.Maps)
             {
-                var topologyMap = mapInstance.TopoMap;
+                var topologyMap = mapInstance.TopoC;
                 var mapX = topologyMap.X / MapConstants.MapWidth;
                 var mapY = topologyMap.Y / MapConstants.MapLength;
                 var fileName = $"{mapX}_{mapY}";
@@ -121,7 +121,7 @@ public class TopologyData
         var data = new
         {
             worldId = Id,
-            topologyMap = InstanceSet.Maps.Select(m => m.TopoMap).ToList()
+            topologyMap = InstanceSet.Maps.Select(m => m.TopoC).ToList()
         };
 
         var json = JsonSerializer.Serialize(data, _options);
@@ -130,42 +130,22 @@ public class TopologyData
 
     public CellPathData[] GetPathData(int x, int y)
     {
-        var topologyMap = InstanceSet.GetTopologyMap(x, y);
-        if (topologyMap == null)
+        var topoC = InstanceSet.GetTopologyMap(x, y);
+        if (topoC == null)
             return null;
-        
-        var zCount = topologyMap.GetZCount(x, y);
-        if (zCount == 0)
-            return null;
-        
-        var cellPathData = new CellPathData[zCount];
-        for (var i = 0; i < zCount; i++)
-        {
-            cellPathData[i] = new CellPathData();
-        }
-        topologyMap.GetPathData(x, y, cellPathData, 0);
-        
-        return cellPathData;
+        CellPathData[] path = [new()];
+        topoC.GetPathData(x, y, path, 0);
+        return path;
     }
     
     public CellVisibilityData[] GetVisibilityData(int x, int y)
     {
-        var topologyMap = InstanceSet.GetTopologyMap(x, y);
-        if (topologyMap == null)
+        var topoC = InstanceSet.GetTopologyMap(x, y);
+        if (topoC == null)
             return null;
-
-        var zCount = topologyMap.GetZCount(x, y);
-        if (zCount == 0)
-            return null;
-        
-        var cellVisibilityData = new CellVisibilityData[zCount];
-        for (var i = 0; i < zCount; i++)
-        {
-            cellVisibilityData[i] = new CellVisibilityData();
-        }
-        topologyMap.GetVisibilityData(x, y, cellVisibilityData, 0);
-        
-        return cellVisibilityData;
+        CellVisibilityData[] visibility = [new()];
+        topoC.GetVisibilityData(x, y, visibility, 0);
+        return visibility;
     }
     
     private long GetHashCode(int worldId, long x, long y, int instanceId)
@@ -199,7 +179,7 @@ public class TopologyData
                 return null;
             
             var index = GetMapIndex(x, y);
-            return index < 0 || index >= Maps.Count ? null : Maps[index]?.TopoMap;
+            return index < 0 || index >= Maps.Count ? null : Maps[index]?.TopoC;
         }
 
         public bool IsInMap(int x, int y)
@@ -245,8 +225,8 @@ public class TopologyData
 
         public void Sort()
         {
-            Maps = Maps.OrderBy(instance => instance.TopoMap.Y)
-                .ThenBy(instance => instance.TopoMap.X)
+            Maps = Maps.OrderBy(instance => instance.TopoC.Y)
+                .ThenBy(instance => instance.TopoC.X)
                 .ToList();
         }
 
@@ -257,8 +237,8 @@ public class TopologyData
 
             for (var index = 0; index < Maps.Count; index++)
             {
-                var mapX = Maps[index].TopoMap.X;
-                var mapY = Maps[index].TopoMap.Y;
+                var mapX = Maps[index].TopoC.X;
+                var mapY = Maps[index].TopoC.Y;
                 if (x >= mapX && x < mapX + MapConstants.MapWidth && y >= mapY && y < mapY + MapConstants.MapLength)
                     return index;
             }
@@ -269,7 +249,7 @@ public class TopologyData
 
     public class TopologyMapInstance
     {
-        public TopologyMapC TopoMap { get; set; }
+        public TopologyMapC TopoC { get; set; }
         private ByteArrayBitSet EntirelyBlockedCells { get; set; } = new(324);
         private ByteArrayBitSet UsedInFight { get; set; } = new(324);
         private int NonBlockedCellsNumber { get; set; }
@@ -286,17 +266,17 @@ public class TopologyData
 
         public bool IsBlocked(int x, int y)
         {
-            x -= TopoMap.X;
-            y -= TopoMap.Y;
+            x -= TopoC.X;
+            y -= TopoC.Y;
             return EntirelyBlockedCells.Get(y * MapConstants.MapWidth + x);
         }
 
         private int GetMurFinType(int x, int y, int z)
         {
-            if (!TopoMap.IsInMap(x, y))
+            if (!TopoC.IsInMap(x, y))
                 return 0;
 
-            var zCount = TopoMap.GetZCount(x, y);
+            var zCount = TopoC.GetZCount(x, y);
             if (zCount == 0)
                 return 0;
 
@@ -315,8 +295,8 @@ public class TopologyData
 
         private bool IsUsedInFight(int x, int y)
         {
-            x -= TopoMap.X;
-            y -= TopoMap.Y;
+            x -= TopoC.X;
+            y -= TopoC.Y;
             return UsedInFight.Get(y * MapConstants.MapWidth + x);
         }
 
@@ -327,8 +307,8 @@ public class TopologyData
 
             if (blocked)
             {
-                x -= TopoMap.X;
-                y -= TopoMap.Y;
+                x -= TopoC.X;
+                y -= TopoC.Y;
                 EntirelyBlockedCells.Set(y * MapConstants.MapWidth + x, true);
                 NonBlockedCellsNumber--;
                 return;
@@ -337,8 +317,8 @@ public class TopologyData
             if (IsTopologyMapCellBlocked(x, y))
                 return;
             
-            x -= TopoMap.X;
-            y -= TopoMap.Y;
+            x -= TopoC.X;
+            y -= TopoC.Y;
             EntirelyBlockedCells.Set(y * MapConstants.MapWidth + x, false);
             NonBlockedCellsNumber++;
         }
@@ -350,8 +330,8 @@ public class TopologyData
 
             if (usedInFight)
             {
-                x -= TopoMap.X;
-                y -= TopoMap.Y;
+                x -= TopoC.X;
+                y -= TopoC.Y;
                 UsedInFight.Set(y * MapConstants.MapWidth + x, true);
                 return;
             }
@@ -359,18 +339,18 @@ public class TopologyData
             if (IsBlocked(x, y))
                 return;
             
-            x -= TopoMap.X;
-            y -= TopoMap.Y;
+            x -= TopoC.X;
+            y -= TopoC.Y;
             UsedInFight.Set(y * MapConstants.MapWidth + x, false);
         }
 
         private void SetTopologyMap(TopologyMap topologyMap)
         {
-            TopoMap = topologyMap.ConvertToC();
+            TopoC = topologyMap.ConvertToC();
             EntirelyBlockedCells.SetAll(false);
             NonBlockedCellsNumber = 324;
-            var x = TopoMap.X;
-            var y = TopoMap.Y;
+            var x = TopoC.X;
+            var y = TopoC.Y;
             var index = 0;
 
             for (var i = 0; i < MapConstants.MapLength; i++)
@@ -389,7 +369,7 @@ public class TopologyData
 
         private bool IsTopologyMapCellBlocked(int x, int y)
         {
-            var zCount = TopoMap.GetZCount(x, y);
+            var zCount = TopoC.GetZCount(x, y);
             for (var i = 0; i < zCount; i++)
             {
                 if (PathData[i].Cost != -1)
@@ -1375,9 +1355,12 @@ public class TopologyData
                     var positionIndex = GetPositionIndex(x, y);
                     if (cellIndex == 0)
                         cellIndex = GetValidIndex(x, y);
+                    else
+                        cellIndex -= IndexOffset;
                     if (cellIndex < 0 || cellIndex >= Costs.Length)
                         continue;
-               
+                    
+                    
                     costs[positionIndex] = Costs[cellIndex];
                     murfins[positionIndex] = MurFins[cellIndex];
                     properties[positionIndex] = Properties[cellIndex];
@@ -1446,6 +1429,8 @@ public class TopologyData
         private int GetValidIndex(int x, int y)
         {
             var indexes = GetMultiIndex(x - X, y - Y, Indexes);
+            if (indexes.Count == 0)
+                return -1;
 
             var valid = indexes.FindAll(i => Costs[i] >= 0);
             var invalid = indexes.FindAll(i => Costs[i] == -1);
@@ -1473,7 +1458,7 @@ public class TopologyData
                 if (isValid) 
                     return validIndex;
             }
-            return -1;
+            return invalid.MaxBy(i => Zs[i]);
         }
 
         private void FillPathData(CellPathData data, int cellIndex)
