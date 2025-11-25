@@ -6,8 +6,7 @@ public partial class AssetsPreview : Control
 {
 	[Export] private GridContainer _container;
 	[Export] private PackedScene _component;
-	[Export] private LineEdit _pageInput;
-	[Export] private Label _pageTotal;
+	[Export] private SpinBox _pageSpin;
 	
 	private List<PreviewComponent> _components = [];
 	private int _currentPage;
@@ -25,12 +24,14 @@ public partial class AssetsPreview : Control
 	{
 		GetTree().GetRoot().SizeChanged += OnSizeChanged;
 		_pageSize = (GetWindow().Size.Y - HeaderHeight) / AssetSize * ColumnCount;
+		_pageSpin.ValueChanged += _OnCurrentSubmitted;
 	}
 
 	private void OnSizeChanged()
 	{
 		var newPageSize = (GetWindow().Size.Y - HeaderHeight) / AssetSize * ColumnCount;
-		if (_pageSize == newPageSize) return;
+		if (_pageSize == newPageSize)
+			return;
 		
 		var currentPageCount = _totalElements / _pageSize;
 		var newPageCount = _totalElements / newPageSize;
@@ -49,9 +50,10 @@ public partial class AssetsPreview : Control
 			_currentPage = 0;
 		
 		_totalElements = GlobalData.Instance.AssetIds.Length;
-		
-		_pageInput.Text = (_currentPage + 1).ToString();
-		_pageTotal.Text = $"/{_totalElements / _pageSize + 1}";
+
+		_pageSpin.Value = _currentPage;
+		_pageSpin.Suffix = $"/{_totalElements / _pageSize}";
+		_pageSpin.MaxValue = (double)_totalElements / _pageSize;
 		
 		_biome = biome;
 		_category = category;
@@ -108,14 +110,9 @@ public partial class AssetsPreview : Control
 		DisplayAssets(_biome, _category, _mode);
 	}
 
-	private void _OnCurrentSubmitted(string newPage)
+	private void _OnCurrentSubmitted(double newPage)
 	{
-		if (!int.TryParse(newPage, out var page))
-		{
-			_pageInput.Text = (_currentPage + 1).ToString();
-			return;
-		}
-		_currentPage = Math.Max(0, Math.Min(page - 1, _totalElements / _pageSize));
+		_currentPage = (int)newPage;
 		DisplayAssets(_biome, _category, _mode);
 	}
 }

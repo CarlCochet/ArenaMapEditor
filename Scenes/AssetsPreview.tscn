@@ -1,15 +1,9 @@
-[gd_scene load_steps=9 format=3 uid="uid://b4nf4nw6chsmc"]
+[gd_scene load_steps=3 format=3 uid="uid://b4nf4nw6chsmc"]
 
 [ext_resource type="Script" uid="uid://c42ddxkl0brw5" path="res://Scripts/AssetsPreview.cs" id="1_11bbo"]
 [ext_resource type="PackedScene" uid="uid://bogtigjjsearp" path="res://Scenes/PreviewComponent.tscn" id="2_7i1jo"]
-[ext_resource type="Texture2D" uid="uid://6jjbc4m8j2kd" path="res://Assets/UI/SmallLeft.png" id="3_j8xal"]
-[ext_resource type="Texture2D" uid="uid://oaugjupvgxo2" path="res://Assets/UI/SmallLeft_pressed.png" id="4_2sh8c"]
-[ext_resource type="Texture2D" uid="uid://b4gral60js4aq" path="res://Assets/UI/SmallLeft_hover.png" id="5_3ege1"]
-[ext_resource type="Texture2D" uid="uid://bycwvshved5e5" path="res://Assets/UI/SmallRight.png" id="6_3m2r7"]
-[ext_resource type="Texture2D" uid="uid://doqfnqg2iev2n" path="res://Assets/UI/SmallRight_pressed.png" id="7_y6q5p"]
-[ext_resource type="Texture2D" uid="uid://c2q0rbe64ws2m" path="res://Assets/UI/SmallRight_hover.png" id="8_n4tih"]
 
-[node name="AssetsPreview" type="Control" node_paths=PackedStringArray("_container", "_pageInput", "_pageTotal")]
+[node name="AssetsPreview" type="Control" node_paths=PackedStringArray("_container", "_pageSpin")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -19,8 +13,7 @@ grow_vertical = 2
 script = ExtResource("1_11bbo")
 _container = NodePath("Container")
 _component = ExtResource("2_7i1jo")
-_pageInput = NodePath("HBoxContainer/Current")
-_pageTotal = NodePath("HBoxContainer/Total")
+_pageSpin = NodePath("HBoxContainer/MarginContainer/SpinBox")
 
 [node name="Container" type="GridContainer" parent="."]
 layout_mode = 1
@@ -45,29 +38,17 @@ grow_vertical = 0
 size_flags_horizontal = 4
 size_flags_vertical = 8
 
-[node name="Previous" type="TextureButton" parent="HBoxContainer"]
+[node name="MarginContainer" type="MarginContainer" parent="HBoxContainer"]
 layout_mode = 2
-texture_normal = ExtResource("3_j8xal")
-texture_pressed = ExtResource("4_2sh8c")
-texture_hover = ExtResource("5_3ege1")
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
 
-[node name="Current" type="LineEdit" parent="HBoxContainer"]
+[node name="SpinBox" type="SpinBox" parent="HBoxContainer/MarginContainer"]
 layout_mode = 2
-theme_override_constants/minimum_character_width = 2
-text = "43"
+mouse_filter = 1
+min_value = 1.0
+value = 1.0
+rounded = true
 alignment = 2
-max_length = 2
-
-[node name="Total" type="Label" parent="HBoxContainer"]
-layout_mode = 2
-text = "/ 43"
-
-[node name="Next" type="TextureButton" parent="HBoxContainer"]
-layout_mode = 2
-texture_normal = ExtResource("6_3m2r7")
-texture_pressed = ExtResource("7_y6q5p")
-texture_hover = ExtResource("8_n4tih")
-
-[connection signal="pressed" from="HBoxContainer/Previous" to="." method="_OnPreviousPressed"]
-[connection signal="text_changed" from="HBoxContainer/Current" to="." method="_OnCurrentChanged"]
-[connection signal="pressed" from="HBoxContainer/Next" to="." method="_OnNextPressed"]

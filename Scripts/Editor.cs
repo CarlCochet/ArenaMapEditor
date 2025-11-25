@@ -42,6 +42,15 @@ public partial class Editor : Node2D
 		_overlay.HeightChangePressed += _OnHeightChangePressed;
 		_overlay.HighlightHeightPressed += _OnHighlightHeightPressed;
 		
+		_assetsPreview.MouseEntered += _OnAssetPreviewEntered;
+		_assetsPreview.MouseExited += _OnAssetPreviewExited;
+
+		_inspector.ElementUpdated += _OnElementUpdated;
+		_inspector.TopologyUpdated += _OnTopologyUpdated;
+		_inspector.MouseEntered += _OnAssetPreviewEntered;
+		_inspector.MouseExited += _OnAssetPreviewExited;
+		
+		
 		_map.TileSelected += _OnTileSelected;
 		if (GlobalData.Instance.Settings != null)
 			_OnDirectorySelected(GlobalData.Instance.Settings.ArenaPath);
@@ -79,25 +88,21 @@ public partial class Editor : Node2D
 	{
 		GD.Print($"Selected tile: {e.Element.CommonData.Id}");
 		
-		// if (e.PathData != null)
-		// {
-		// 	GD.Print("Path data:");
-		// 	foreach (var data in e.PathData)
-		// 	{
-		// 		GD.Print($"({data.X}, {data.Y}, {data.Z}) | CanMoveThrough: {data.CanMoveThrough} | Cost: {data.Cost} | Height: {data.Height} | MurFinInfo: {data.MurFinInfo} | MiscProperties: {data.MiscProperties}");
-		// 	}
-		// }
-		//
-		// if (e.VisibilityData != null) 
-		// {
-		// 	GD.Print("Visibility data:");
-		// 	foreach (var data in e.VisibilityData)
-		// 	{
-		// 		GD.Print($"({data.X}, {data.Y}, {data.Z}) | CanViewThrough: {data.CanViewThrough} | Height: {data.Height}");
-		// 	}
-		// }
+		if (e.PathData != null)
+		{
+			var data = e.PathData;
+			GD.Print("Path data:");
+			GD.Print($"({data.X}, {data.Y}, {data.Z}) | CanMoveThrough: {data.CanMoveThrough} | Cost: {data.Cost} | Height: {data.Height} | MurFinInfo: {data.MurFinInfo} | MiscProperties: {data.MiscProperties}");
+		}
 		
-		_inspector.Update(e.Element);
+		if (e.VisibilityData != null)
+		{
+			var data = e.VisibilityData;
+			GD.Print("Visibility data:");
+			GD.Print($"({data.X}, {data.Y}, {data.Z}) | CanViewThrough: {data.CanViewThrough} | Height: {data.Height}");
+		}
+		
+		_inspector.Update(e.Element, e.PathData, e.VisibilityData);
 		_assetsPreview.Update(e.Element);
 		_tools.Update(e.Element);
 		_overlay.Update(e.Element);
@@ -144,6 +149,16 @@ public partial class Editor : Node2D
 	private void _OnPreviewChangePressed(object sender, Overlay.PreviewChangedEventArgs e)
 	{
 		
+	}
+	
+	private void _OnElementUpdated(object sender, Inspector.ElementUpdatedEventArgs e)
+	{
+		_map.UpdateElement(e.Element);
+	}
+
+	private void _OnTopologyUpdated(object sender, Inspector.TopologyUpdatedEventArgs e)
+	{
+		_map.UpdateTopology(e.Path, e.Visibility);
 	}
 	
 	private void _OnAssetPreviewEntered()

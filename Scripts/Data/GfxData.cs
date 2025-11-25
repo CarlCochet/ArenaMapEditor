@@ -113,6 +113,11 @@ public class GfxData
         }
     }
 
+    public void Update(GfxData.Element elementData)
+    {
+        
+    }
+
     public class Partition
     {
         public string Id { get; set; }

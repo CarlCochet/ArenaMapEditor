@@ -23,16 +23,15 @@ public class MapData
 
     public void Load(string path)
     {
-        Topology = new TopologyData(Id);
-        Topology.Load($"{path}/maps/tplg");
-        // try
-        // {
-        //     
-        // }
-        // catch (Exception e)
-        // {
-        //     GD.PrintErr($"Error loading TOPOLOGY for map {Id}: {e.Message}");
-        // }
+        try
+        {
+            Topology = new TopologyData(Id);
+            Topology.Load($"{path}/maps/tplg");
+        }
+        catch (Exception e)
+        {
+            GD.PrintErr($"Error loading TOPOLOGY for map {Id}: {e.Message}");
+        }
         
         try
         {
@@ -100,6 +99,16 @@ public class MapData
         Env.Save($"{path}/env");
         
         Topology.SaveJson(path);
+    }
+
+    public void UpdateElement(GfxData.Element elementData)
+    {
+        Gfx.Update(elementData);
+    }
+
+    public void UpdateTopology(TopologyData.CellPathData path, TopologyData.CellVisibilityData visibility)
+    {
+        Topology.Update(path, visibility);
     }
 
     private void LoadAmbiance(string path)

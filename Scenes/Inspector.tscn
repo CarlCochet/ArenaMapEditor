@@ -1,26 +1,32 @@
-[gd_scene load_steps=7 format=3 uid="uid://btqhc3kx587xd"]
+[gd_scene load_steps=9 format=3 uid="uid://btqhc3kx587xd"]
 
-[ext_resource type="Script" path="res://Scripts/Inspector.cs" id="1_1h3p3"]
+[ext_resource type="Script" uid="uid://b66rnlu421f51" path="res://Scripts/Inspector.cs" id="1_1h3p3"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_68wyj"]
 outline_size = 1
 
 [sub_resource type="LabelSettings" id="LabelSettings_iqetc"]
 font_size = 12
-font_color = Color(0.618939, 0.38417, 0.435581, 1)
+font_color = Color(0.92156863, 0.38431373, 0.43529412, 1)
 
 [sub_resource type="LabelSettings" id="LabelSettings_i7sm1"]
 font_size = 12
-font_color = Color(0.35596, 0.504772, 0.392635, 1)
+font_color = Color(0.35686275, 0.76862746, 0.39215687, 1)
 
 [sub_resource type="LabelSettings" id="LabelSettings_fojw4"]
 font_size = 12
-font_color = Color(0.379557, 0.623797, 1, 1)
+font_color = Color(0.2704473, 0.43544453, 1, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_ubnha"]
+font_size = 12
 
 [sub_resource type="LabelSettings" id="LabelSettings_c8tcb"]
 font_size = 12
 
-[node name="Inspector" type="Control" node_paths=PackedStringArray("_cellX", "_cellY", "_cellZ", "_offsetX", "_offsetY", "_height", "_gfxId", "_order", "_hashcode", "_groupId", "_layerIndex", "_groupLayer", "_properties", "_sound", "_slope", "_shader", "_mask", "_walkable", "_occluder", "_flip", "_animated", "_color")]
+[sub_resource type="LabelSettings" id="LabelSettings_mnv65"]
+font_size = 12
+
+[node name="Inspector" type="Control" node_paths=PackedStringArray("_cellX", "_cellY", "_cellZ", "_offsetX", "_offsetY", "_height", "_gfxId", "_order", "_hashcode", "_groupId", "_layerIndex", "_groupLayer", "_properties", "_sound", "_slope", "_shader", "_mask", "_walkable", "_occluder", "_flip", "_animated", "_color", "_topoX", "_topoY", "_topoZ", "_topoHeight", "_cost", "_canMoveThrough", "_canViewThrough", "_murFinInfo", "_miscProperties")]
 custom_minimum_size = Vector2(250, 550)
 layout_mode = 3
 anchors_preset = 15
@@ -29,28 +35,37 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_1h3p3")
-_cellX = NodePath("ScrollContainer/MarginContainer/VBoxContainer/PositionContainer/X/LineEdit")
-_cellY = NodePath("ScrollContainer/MarginContainer/VBoxContainer/PositionContainer/Y/LineEdit")
-_cellZ = NodePath("ScrollContainer/MarginContainer/VBoxContainer/PositionContainer/Z/LineEdit")
-_offsetX = NodePath("ScrollContainer/MarginContainer/VBoxContainer/OffsetContainer/X/LineEdit")
-_offsetY = NodePath("ScrollContainer/MarginContainer/VBoxContainer/OffsetContainer/Y/LineEdit")
-_height = NodePath("ScrollContainer/MarginContainer/VBoxContainer/OffsetContainer/Height/LineEdit")
-_gfxId = NodePath("ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/GfxId/LineEdit")
-_order = NodePath("ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Order/LineEdit")
-_hashcode = NodePath("ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Hash/LineEdit")
-_groupId = NodePath("ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Group/LineEdit")
-_layerIndex = NodePath("ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Index/LineEdit")
-_groupLayer = NodePath("ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Layer/LineEdit")
-_properties = NodePath("ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Properties/LineEdit")
-_sound = NodePath("ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Sound/LineEdit")
-_slope = NodePath("ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Slope/LineEdit")
-_shader = NodePath("ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer/Shader/LineEdit")
-_mask = NodePath("ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer/Mask/LineEdit")
+_cellX = NodePath("ScrollContainer/MarginContainer/VBoxContainer/PositionContainer/X/SpinBox")
+_cellY = NodePath("ScrollContainer/MarginContainer/VBoxContainer/PositionContainer/Y/SpinBox")
+_cellZ = NodePath("ScrollContainer/MarginContainer/VBoxContainer/PositionContainer/Z/SpinBox")
+_offsetX = NodePath("ScrollContainer/MarginContainer/VBoxContainer/OffsetContainer/X/Label2")
+_offsetY = NodePath("ScrollContainer/MarginContainer/VBoxContainer/OffsetContainer/Y/Label2")
+_height = NodePath("ScrollContainer/MarginContainer/VBoxContainer/OffsetContainer/Height/SpinBox")
+_gfxId = NodePath("ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/GfxId/Label2")
+_order = NodePath("ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Order/SpinBox")
+_hashcode = NodePath("ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Hash/Label2")
+_groupId = NodePath("ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Group/SpinBox")
+_layerIndex = NodePath("ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Index/SpinBox")
+_groupLayer = NodePath("ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Layer/SpinBox")
+_properties = NodePath("ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Properties/Label2")
+_sound = NodePath("ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Sound/Label2")
+_slope = NodePath("ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Sound/Label2")
+_shader = NodePath("ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer/Shader/Label2")
+_mask = NodePath("ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer/Mask/Label2")
 _walkable = NodePath("ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Walkable/CheckBox")
 _occluder = NodePath("ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer/Occluder/CheckBox")
 _flip = NodePath("ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer/Flip/CheckBox")
 _animated = NodePath("ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer/Animated/CheckBox")
 _color = NodePath("ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer/Color/ColorPickerButton")
+_topoX = NodePath("ScrollContainer/MarginContainer/VBoxContainer/TopologyContainer/X/SpinBox")
+_topoY = NodePath("ScrollContainer/MarginContainer/VBoxContainer/TopologyContainer/Y/SpinBox")
+_topoZ = NodePath("ScrollContainer/MarginContainer/VBoxContainer/TopologyContainer/Z/SpinBox")
+_topoHeight = NodePath("ScrollContainer/MarginContainer/VBoxContainer/TopologyContainer/Height/SpinBox")
+_cost = NodePath("ScrollContainer/MarginContainer/VBoxContainer/TopologyContainer/Cost/SpinBox")
+_canMoveThrough = NodePath("ScrollContainer/MarginContainer/VBoxContainer/TopologyContainer/CanMoveThrough/CheckBox")
+_canViewThrough = NodePath("ScrollContainer/MarginContainer/VBoxContainer/TopologyContainer/CanViewThrough/CheckBox")
+_murFinInfo = NodePath("ScrollContainer/MarginContainer/VBoxContainer/TopologyContainer/MurFinInfo/SpinBox")
+_miscProperties = NodePath("ScrollContainer/MarginContainer/VBoxContainer/TopologyContainer/MiscProperties/SpinBox")
 
 [node name="ScrollContainer" type="ScrollContainer" parent="."]
 custom_minimum_size = Vector2(250, 550)
@@ -95,13 +110,12 @@ layout_mode = 2
 text = "X"
 label_settings = SubResource("LabelSettings_iqetc")
 
-[node name="LineEdit" type="LineEdit" parent="ScrollContainer/MarginContainer/VBoxContainer/PositionContainer/X"]
-custom_minimum_size = Vector2(100, 0)
+[node name="SpinBox" type="SpinBox" parent="ScrollContainer/MarginContainer/VBoxContainer/PositionContainer/X"]
 layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 12
-max_length = 9
-caret_blink = true
+mouse_filter = 1
+min_value = -2147483600.0
+max_value = 2147483647.0
+rounded = true
 
 [node name="Y" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/PositionContainer"]
 layout_mode = 2
@@ -113,13 +127,12 @@ layout_mode = 2
 text = "Y"
 label_settings = SubResource("LabelSettings_i7sm1")
 
-[node name="LineEdit" type="LineEdit" parent="ScrollContainer/MarginContainer/VBoxContainer/PositionContainer/Y"]
-custom_minimum_size = Vector2(100, 0)
+[node name="SpinBox" type="SpinBox" parent="ScrollContainer/MarginContainer/VBoxContainer/PositionContainer/Y"]
 layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 12
-max_length = 9
-caret_blink = true
+mouse_filter = 1
+min_value = -2147483600.0
+max_value = 2147483647.0
+rounded = true
 
 [node name="Z" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/PositionContainer"]
 layout_mode = 2
@@ -131,13 +144,12 @@ layout_mode = 2
 text = "Z"
 label_settings = SubResource("LabelSettings_fojw4")
 
-[node name="LineEdit" type="LineEdit" parent="ScrollContainer/MarginContainer/VBoxContainer/PositionContainer/Z"]
-custom_minimum_size = Vector2(100, 0)
+[node name="SpinBox" type="SpinBox" parent="ScrollContainer/MarginContainer/VBoxContainer/PositionContainer/Z"]
 layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 12
-max_length = 9
-caret_blink = true
+mouse_filter = 1
+min_value = -32768.0
+max_value = 32767.0
+rounded = true
 
 [node name="Offset" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
@@ -159,15 +171,10 @@ layout_mode = 2
 text = "X"
 label_settings = SubResource("LabelSettings_iqetc")
 
-[node name="LineEdit" type="LineEdit" parent="ScrollContainer/MarginContainer/VBoxContainer/OffsetContainer/X"]
-custom_minimum_size = Vector2(100, 0)
+[node name="Label2" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/OffsetContainer/X"]
+custom_minimum_size = Vector2(86, 0)
 layout_mode = 2
-size_flags_horizontal = 3
-focus_mode = 0
-theme_override_font_sizes/font_size = 12
-max_length = 9
-flat = true
-caret_blink = true
+label_settings = SubResource("LabelSettings_ubnha")
 
 [node name="Y" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/OffsetContainer"]
 layout_mode = 2
@@ -179,15 +186,10 @@ layout_mode = 2
 text = "Y"
 label_settings = SubResource("LabelSettings_i7sm1")
 
-[node name="LineEdit" type="LineEdit" parent="ScrollContainer/MarginContainer/VBoxContainer/OffsetContainer/Y"]
-custom_minimum_size = Vector2(100, 0)
+[node name="Label2" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/OffsetContainer/Y"]
+custom_minimum_size = Vector2(86, 0)
 layout_mode = 2
-size_flags_horizontal = 3
-focus_mode = 0
-theme_override_font_sizes/font_size = 12
-max_length = 9
-flat = true
-caret_blink = true
+label_settings = SubResource("LabelSettings_ubnha")
 
 [node name="Height" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/OffsetContainer"]
 layout_mode = 2
@@ -199,13 +201,12 @@ layout_mode = 2
 text = "Height"
 label_settings = SubResource("LabelSettings_c8tcb")
 
-[node name="LineEdit" type="LineEdit" parent="ScrollContainer/MarginContainer/VBoxContainer/OffsetContainer/Height"]
-custom_minimum_size = Vector2(100, 0)
+[node name="SpinBox" type="SpinBox" parent="ScrollContainer/MarginContainer/VBoxContainer/OffsetContainer/Height"]
 layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 12
-max_length = 9
-caret_blink = true
+mouse_filter = 1
+min_value = -128.0
+max_value = 127.0
+rounded = true
 
 [node name="Misc" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
@@ -227,15 +228,10 @@ layout_mode = 2
 text = "GfxId"
 label_settings = SubResource("LabelSettings_c8tcb")
 
-[node name="LineEdit" type="LineEdit" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/GfxId"]
-custom_minimum_size = Vector2(100, 0)
+[node name="Label2" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/GfxId"]
+custom_minimum_size = Vector2(86, 0)
 layout_mode = 2
-size_flags_horizontal = 3
-focus_mode = 0
-theme_override_font_sizes/font_size = 12
-max_length = 9
-flat = true
-caret_blink = true
+label_settings = SubResource("LabelSettings_ubnha")
 
 [node name="Order" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer"]
 layout_mode = 2
@@ -247,13 +243,12 @@ layout_mode = 2
 text = "Order"
 label_settings = SubResource("LabelSettings_c8tcb")
 
-[node name="LineEdit" type="LineEdit" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Order"]
-custom_minimum_size = Vector2(100, 0)
+[node name="SpinBox" type="SpinBox" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Order"]
 layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 12
-max_length = 9
-caret_blink = true
+mouse_filter = 1
+min_value = -128.0
+max_value = 127.0
+rounded = true
 
 [node name="Hash" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer"]
 layout_mode = 2
@@ -265,14 +260,10 @@ layout_mode = 2
 text = "Hashcode"
 label_settings = SubResource("LabelSettings_c8tcb")
 
-[node name="LineEdit" type="LineEdit" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Hash"]
-custom_minimum_size = Vector2(100, 0)
+[node name="Label2" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Hash"]
+custom_minimum_size = Vector2(86, 0)
 layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 12
-max_length = 15
-flat = true
-caret_blink = true
+label_settings = SubResource("LabelSettings_ubnha")
 
 [node name="Group" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer"]
 layout_mode = 2
@@ -284,13 +275,12 @@ layout_mode = 2
 text = "Group Id"
 label_settings = SubResource("LabelSettings_c8tcb")
 
-[node name="LineEdit" type="LineEdit" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Group"]
-custom_minimum_size = Vector2(100, 0)
+[node name="SpinBox" type="SpinBox" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Group"]
 layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 12
-max_length = 9
-caret_blink = true
+mouse_filter = 1
+min_value = -2147483600.0
+max_value = 2147483647.0
+rounded = true
 
 [node name="Index" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer"]
 layout_mode = 2
@@ -302,13 +292,12 @@ layout_mode = 2
 text = "Layer Index"
 label_settings = SubResource("LabelSettings_c8tcb")
 
-[node name="LineEdit" type="LineEdit" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Index"]
-custom_minimum_size = Vector2(100, 0)
+[node name="SpinBox" type="SpinBox" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Index"]
 layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 12
-max_length = 9
-caret_blink = true
+mouse_filter = 1
+min_value = -128.0
+max_value = 127.0
+rounded = true
 
 [node name="Layer" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer"]
 layout_mode = 2
@@ -320,13 +309,12 @@ layout_mode = 2
 text = "Group Layer"
 label_settings = SubResource("LabelSettings_c8tcb")
 
-[node name="LineEdit" type="LineEdit" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Layer"]
-custom_minimum_size = Vector2(100, 0)
+[node name="SpinBox" type="SpinBox" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Layer"]
 layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 12
-max_length = 9
-caret_blink = true
+mouse_filter = 1
+min_value = -2147483600.0
+max_value = 2147483647.0
+rounded = true
 
 [node name="Properties" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer"]
 layout_mode = 2
@@ -338,15 +326,10 @@ layout_mode = 2
 text = "Properties"
 label_settings = SubResource("LabelSettings_c8tcb")
 
-[node name="LineEdit" type="LineEdit" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Properties"]
-custom_minimum_size = Vector2(100, 0)
+[node name="Label2" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Properties"]
+custom_minimum_size = Vector2(86, 0)
 layout_mode = 2
-size_flags_horizontal = 3
-focus_mode = 0
-theme_override_font_sizes/font_size = 12
-max_length = 9
-flat = true
-caret_blink = true
+label_settings = SubResource("LabelSettings_ubnha")
 
 [node name="Sound" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer"]
 layout_mode = 2
@@ -358,15 +341,10 @@ layout_mode = 2
 text = "Sound"
 label_settings = SubResource("LabelSettings_c8tcb")
 
-[node name="LineEdit" type="LineEdit" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Sound"]
-custom_minimum_size = Vector2(100, 0)
+[node name="Label2" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Sound"]
+custom_minimum_size = Vector2(86, 0)
 layout_mode = 2
-size_flags_horizontal = 3
-focus_mode = 0
-theme_override_font_sizes/font_size = 12
-max_length = 9
-flat = true
-caret_blink = true
+label_settings = SubResource("LabelSettings_ubnha")
 
 [node name="Slope" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer"]
 layout_mode = 2
@@ -378,15 +356,10 @@ layout_mode = 2
 text = "Slope"
 label_settings = SubResource("LabelSettings_c8tcb")
 
-[node name="LineEdit" type="LineEdit" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Slope"]
-custom_minimum_size = Vector2(100, 0)
+[node name="Label2" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Slope"]
+custom_minimum_size = Vector2(86, 0)
 layout_mode = 2
-size_flags_horizontal = 3
-focus_mode = 0
-theme_override_font_sizes/font_size = 12
-max_length = 9
-flat = true
-caret_blink = true
+label_settings = SubResource("LabelSettings_ubnha")
 
 [node name="Walkable" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer"]
 layout_mode = 2
@@ -401,6 +374,7 @@ label_settings = SubResource("LabelSettings_c8tcb")
 [node name="CheckBox" type="CheckBox" parent="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Walkable"]
 layout_mode = 2
 focus_mode = 0
+mouse_filter = 1
 disabled = true
 flat = true
 
@@ -427,6 +401,7 @@ label_settings = SubResource("LabelSettings_c8tcb")
 [node name="ColorPickerButton" type="ColorPickerButton" parent="ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer/Color"]
 custom_minimum_size = Vector2(25, 25)
 layout_mode = 2
+mouse_filter = 1
 color = Color(1, 1, 1, 1)
 
 [node name="Shader" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer"]
@@ -439,15 +414,10 @@ layout_mode = 2
 text = "Shader"
 label_settings = SubResource("LabelSettings_c8tcb")
 
-[node name="LineEdit" type="LineEdit" parent="ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer/Shader"]
-custom_minimum_size = Vector2(100, 0)
+[node name="Label2" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer/Shader"]
+custom_minimum_size = Vector2(86, 0)
 layout_mode = 2
-size_flags_horizontal = 3
-focus_mode = 0
-theme_override_font_sizes/font_size = 12
-max_length = 9
-flat = true
-caret_blink = true
+label_settings = SubResource("LabelSettings_ubnha")
 
 [node name="Mask" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer"]
 layout_mode = 2
@@ -459,15 +429,10 @@ layout_mode = 2
 text = "Mask"
 label_settings = SubResource("LabelSettings_c8tcb")
 
-[node name="LineEdit" type="LineEdit" parent="ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer/Mask"]
-custom_minimum_size = Vector2(100, 0)
+[node name="Label2" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer/Mask"]
+custom_minimum_size = Vector2(86, 0)
 layout_mode = 2
-size_flags_horizontal = 3
-focus_mode = 0
-theme_override_font_sizes/font_size = 12
-max_length = 9
-flat = true
-caret_blink = true
+label_settings = SubResource("LabelSettings_ubnha")
 
 [node name="Occluder" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer"]
 layout_mode = 2
@@ -481,6 +446,7 @@ label_settings = SubResource("LabelSettings_c8tcb")
 
 [node name="CheckBox" type="CheckBox" parent="ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer/Occluder"]
 layout_mode = 2
+mouse_filter = 1
 
 [node name="Flip" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer"]
 layout_mode = 2
@@ -495,6 +461,7 @@ label_settings = SubResource("LabelSettings_c8tcb")
 [node name="CheckBox" type="CheckBox" parent="ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer/Flip"]
 layout_mode = 2
 focus_mode = 0
+mouse_filter = 1
 disabled = true
 
 [node name="Animated" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer"]
@@ -510,15 +477,168 @@ label_settings = SubResource("LabelSettings_c8tcb")
 [node name="CheckBox" type="CheckBox" parent="ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer/Animated"]
 layout_mode = 2
 focus_mode = 0
+mouse_filter = 1
 disabled = true
 
-[connection signal="text_submitted" from="ScrollContainer/MarginContainer/VBoxContainer/PositionContainer/X/LineEdit" to="." method="_OnXSubmitted"]
-[connection signal="text_submitted" from="ScrollContainer/MarginContainer/VBoxContainer/PositionContainer/Y/LineEdit" to="." method="_OnYSubmitted"]
-[connection signal="text_submitted" from="ScrollContainer/MarginContainer/VBoxContainer/PositionContainer/Z/LineEdit" to="." method="_OnZSubmitted"]
-[connection signal="text_submitted" from="ScrollContainer/MarginContainer/VBoxContainer/OffsetContainer/Height/LineEdit" to="." method="_OnHeightSubmitted"]
-[connection signal="text_submitted" from="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Order/LineEdit" to="." method="_OnOrderSubmitted"]
-[connection signal="text_submitted" from="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Group/LineEdit" to="." method="_OnGroupIdSubmitted"]
-[connection signal="text_submitted" from="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Index/LineEdit" to="." method="_OnLayerIndexSubmitted"]
-[connection signal="text_submitted" from="ScrollContainer/MarginContainer/VBoxContainer/MiscContainer/Layer/LineEdit" to="." method="_OnGroupLayerSubmitted"]
+[node name="Topology" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Topologie"
+label_settings = SubResource("LabelSettings_68wyj")
+horizontal_alignment = 1
+
+[node name="TopologyContainer" type="VBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 1
+
+[node name="X" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/TopologyContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/TopologyContainer/X"]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "X"
+label_settings = SubResource("LabelSettings_iqetc")
+
+[node name="SpinBox" type="SpinBox" parent="ScrollContainer/MarginContainer/VBoxContainer/TopologyContainer/X"]
+layout_mode = 2
+mouse_filter = 1
+min_value = -2147483600.0
+max_value = 2147483647.0
+rounded = true
+
+[node name="Y" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/TopologyContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/TopologyContainer/Y"]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "Y"
+label_settings = SubResource("LabelSettings_i7sm1")
+
+[node name="SpinBox" type="SpinBox" parent="ScrollContainer/MarginContainer/VBoxContainer/TopologyContainer/Y"]
+layout_mode = 2
+mouse_filter = 1
+min_value = -2147483600.0
+max_value = 2147483647.0
+rounded = true
+
+[node name="Z" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/TopologyContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/TopologyContainer/Z"]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "Z"
+label_settings = SubResource("LabelSettings_fojw4")
+
+[node name="SpinBox" type="SpinBox" parent="ScrollContainer/MarginContainer/VBoxContainer/TopologyContainer/Z"]
+layout_mode = 2
+mouse_filter = 1
+min_value = -32768.0
+max_value = 32767.0
+rounded = true
+
+[node name="Height" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/TopologyContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/TopologyContainer/Height"]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "Height"
+label_settings = SubResource("LabelSettings_mnv65")
+
+[node name="SpinBox" type="SpinBox" parent="ScrollContainer/MarginContainer/VBoxContainer/TopologyContainer/Height"]
+layout_mode = 2
+mouse_filter = 1
+min_value = -128.0
+max_value = 127.0
+rounded = true
+
+[node name="Cost" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/TopologyContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/TopologyContainer/Cost"]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "Cost"
+label_settings = SubResource("LabelSettings_mnv65")
+
+[node name="SpinBox" type="SpinBox" parent="ScrollContainer/MarginContainer/VBoxContainer/TopologyContainer/Cost"]
+layout_mode = 2
+mouse_filter = 1
+min_value = -128.0
+max_value = 127.0
+rounded = true
+
+[node name="CanMoveThrough" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/TopologyContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/TopologyContainer/CanMoveThrough"]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "Move"
+label_settings = SubResource("LabelSettings_c8tcb")
+
+[node name="CheckBox" type="CheckBox" parent="ScrollContainer/MarginContainer/VBoxContainer/TopologyContainer/CanMoveThrough"]
+layout_mode = 2
+focus_mode = 0
+mouse_filter = 1
+disabled = true
+
+[node name="CanViewThrough" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/TopologyContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/TopologyContainer/CanViewThrough"]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "View"
+label_settings = SubResource("LabelSettings_c8tcb")
+
+[node name="CheckBox" type="CheckBox" parent="ScrollContainer/MarginContainer/VBoxContainer/TopologyContainer/CanViewThrough"]
+layout_mode = 2
+focus_mode = 0
+mouse_filter = 1
+disabled = true
+
+[node name="MurFinInfo" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/TopologyContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/TopologyContainer/MurFinInfo"]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "MurFin Info"
+label_settings = SubResource("LabelSettings_mnv65")
+
+[node name="SpinBox" type="SpinBox" parent="ScrollContainer/MarginContainer/VBoxContainer/TopologyContainer/MurFinInfo"]
+layout_mode = 2
+mouse_filter = 1
+min_value = -128.0
+max_value = 127.0
+rounded = true
+
+[node name="MiscProperties" type="HBoxContainer" parent="ScrollContainer/MarginContainer/VBoxContainer/TopologyContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/VBoxContainer/TopologyContainer/MiscProperties"]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "Properties"
+label_settings = SubResource("LabelSettings_mnv65")
+
+[node name="SpinBox" type="SpinBox" parent="ScrollContainer/MarginContainer/VBoxContainer/TopologyContainer/MiscProperties"]
+layout_mode = 2
+mouse_filter = 1
+min_value = -128.0
+max_value = 127.0
+rounded = true
+
 [connection signal="color_changed" from="ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer/Color/ColorPickerButton" to="." method="_OnColorChanged"]
-[connection signal="toggled" from="ScrollContainer/MarginContainer/VBoxContainer/VisualsContainer/Occluder/CheckBox" to="." method="_OnOccluderToggled"]

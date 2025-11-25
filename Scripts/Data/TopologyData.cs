@@ -128,24 +128,30 @@ public class TopologyData
         File.WriteAllText($"{path}/{Id}.json", json);
     }
 
-    public CellPathData[] GetPathData(int x, int y)
+    public CellPathData GetPathData(int x, int y)
     {
         var topoC = InstanceSet.GetTopologyMap(x, y);
         if (topoC == null)
             return null;
         CellPathData[] path = [new()];
         topoC.GetPathData(x, y, path, 0);
-        return path;
+        return path[0];
     }
     
-    public CellVisibilityData[] GetVisibilityData(int x, int y)
+    public CellVisibilityData GetVisibilityData(int x, int y)
     {
         var topoC = InstanceSet.GetTopologyMap(x, y);
         if (topoC == null)
             return null;
         CellVisibilityData[] visibility = [new()];
         topoC.GetVisibilityData(x, y, visibility, 0);
-        return visibility;
+        return visibility[0];
+    }
+
+    public void Update(CellPathData pathData, CellVisibilityData visibilityData)
+    {
+        var topoC = InstanceSet.GetTopologyMap(pathData.X, pathData.Y);
+        topoC?.UpdateData(pathData, visibilityData);
     }
     
     private long GetHashCode(int worldId, long x, long y, int instanceId)
@@ -406,7 +412,7 @@ public class TopologyData
         
         public abstract int GetZCount(int x, int y);
         
-        public abstract void UpdateData(CellPathData[] pathData, CellVisibilityData[] visibilityData);
+        public abstract void UpdateData(CellPathData pathData, CellVisibilityData visibilityData);
 
         public abstract TopologyMapC ConvertToC();
 
@@ -560,14 +566,11 @@ public class TopologyData
             return 1;
         }
 
-        public override void UpdateData(CellPathData[] pathData, CellVisibilityData[] visibilityData)
+        public override void UpdateData(CellPathData pathData, CellVisibilityData visibilityData)
         {
-            if (pathData.Length == 0) 
-                return;
-            var data = pathData[0];
-            Cost = data.Cost;
-            MurFin = data.MurFinInfo;
-            Property = data.MiscProperties;
+            Cost = pathData.Cost;
+            MurFin = pathData.MurFinInfo;
+            Property = pathData.MiscProperties;
         }
 
         public override TopologyMapC ConvertToC()
@@ -690,15 +693,12 @@ public class TopologyData
             };
         }
         
-        public override void UpdateData(CellPathData[] pathData, CellVisibilityData[] visibilityData)
+        public override void UpdateData(CellPathData pathData, CellVisibilityData visibilityData)
         {
-            if (pathData.Length == 0) 
-                return;
-            var data = pathData[0];
-            var cellIndex = GetIndex(data.X, data.Y);
-            Costs[cellIndex] = data.Cost;
-            MurFins[cellIndex] = data.MurFinInfo;
-            Properties[cellIndex] = data.MiscProperties;
+            var cellIndex = GetIndex(pathData.X, pathData.Y);
+            Costs[cellIndex] = pathData.Cost;
+            MurFins[cellIndex] = pathData.MurFinInfo;
+            Properties[cellIndex] = pathData.MiscProperties;
         }
 
         private int GetIndex(int x, int y)
@@ -804,15 +804,13 @@ public class TopologyData
             return 1;
         }
         
-        public override void UpdateData(CellPathData[] pathData, CellVisibilityData[] visibilityData)
+        public override void UpdateData(CellPathData pathData, CellVisibilityData visibilityData)
         {
-            if (pathData.Length == 0) 
-                return;
-            var data = pathData[0];
-            var cellIndex = GetIndex(data.X, data.Y);
-            Costs[cellIndex] = data.Cost;
-            MurFins[cellIndex] = data.MurFinInfo;
-            Properties[cellIndex] = data.MiscProperties;
+
+            var cellIndex = GetIndex(pathData.X, pathData.Y);
+            Costs[cellIndex] = pathData.Cost;
+            MurFins[cellIndex] = pathData.MurFinInfo;
+            Properties[cellIndex] = pathData.MiscProperties;
         }
         
         public override TopologyMapC ConvertToC()
@@ -966,19 +964,15 @@ public class TopologyData
             return 1;
         }
         
-        public override void UpdateData(CellPathData[] pathData, CellVisibilityData[] visibilityData)
+        public override void UpdateData(CellPathData pathData, CellVisibilityData visibilityData)
         {
-            if (pathData.Length == 0) 
-                return;
-            var data = pathData[0];
-            var visibility = visibilityData[0];
-            var cellIndex = GetIndex(data.X, data.Y);
-            Costs[cellIndex] = data.Cost;
-            MurFins[cellIndex] = data.MurFinInfo;
-            Properties[cellIndex] = data.MiscProperties;
-            MovLos[cellIndex] = (sbyte)((data.CanMoveThrough ? MovMask : 0) | (visibility.CanViewThrough ? LosMask : 0));
-            Zs[cellIndex] = data.Z;
-            Heights[cellIndex] = data.Height;
+            var cellIndex = GetIndex(pathData.X, pathData.Y);
+            Costs[cellIndex] = pathData.Cost;
+            MurFins[cellIndex] = pathData.MurFinInfo;
+            Properties[cellIndex] = pathData.MiscProperties;
+            MovLos[cellIndex] = (sbyte)((pathData.CanMoveThrough ? MovMask : 0) | (visibilityData.CanViewThrough ? LosMask : 0));
+            Zs[cellIndex] = pathData.Z;
+            Heights[cellIndex] = pathData.Height;
         }
         
         public override TopologyMapC ConvertToC()
@@ -1108,19 +1102,15 @@ public class TopologyData
             return 1;
         }
         
-        public override void UpdateData(CellPathData[] pathData, CellVisibilityData[] visibilityData)
+        public override void UpdateData(CellPathData pathData, CellVisibilityData visibilityData)
         {
-            if (pathData.Length == 0) 
-                return;
-            var data = pathData[0];
-            var visibility = visibilityData[0];
-            var cellIndex = GetIndex(data.X, data.Y);
-            Costs[cellIndex] = data.Cost;
-            MurFins[cellIndex] = data.MurFinInfo;
-            Properties[cellIndex] = data.MiscProperties;
-            MovLos[cellIndex] = (sbyte)((data.CanMoveThrough ? MovMask : 0) | (visibility.CanViewThrough ? LosMask : 0));
-            Zs[cellIndex] = data.Z;
-            Heights[cellIndex] = data.Height;
+            var cellIndex = GetIndex(pathData.X, pathData.Y);
+            Costs[cellIndex] = pathData.Cost;
+            MurFins[cellIndex] = pathData.MurFinInfo;
+            Properties[cellIndex] = pathData.MiscProperties;
+            MovLos[cellIndex] = (sbyte)((pathData.CanMoveThrough ? MovMask : 0) | (visibilityData.CanViewThrough ? LosMask : 0));
+            Zs[cellIndex] = pathData.Z;
+            Heights[cellIndex] = pathData.Height;
         }
         
         public override TopologyMapC ConvertToC()
@@ -1323,19 +1313,15 @@ public class TopologyData
             return GetIndex(x, y) != 0 ? 1 : GetMultiIndex(x - X, y - Y, Indexes).Count;
         }
         
-        public override void UpdateData(CellPathData[] pathData, CellVisibilityData[] visibilityData)
+        public override void UpdateData(CellPathData pathData, CellVisibilityData visibilityData)
         {
-            if (pathData.Length == 0) 
-                return;
-            var data = pathData[0];
-            var visibility = visibilityData[0];
-            var cellIndex = GetIndex(data.X, data.Y);
-            Costs[cellIndex] = data.Cost;
-            MurFins[cellIndex] = data.MurFinInfo;
-            Properties[cellIndex] = data.MiscProperties;
-            MovLos[cellIndex] = (sbyte)((data.CanMoveThrough ? MovMask : 0) | (visibility.CanViewThrough ? LosMask : 0));
-            Zs[cellIndex] = data.Z;
-            Heights[cellIndex] = data.Height;
+            var cellIndex = GetIndex(pathData.X, pathData.Y);
+            Costs[cellIndex] = pathData.Cost;
+            MurFins[cellIndex] = pathData.MurFinInfo;
+            Properties[cellIndex] = pathData.MiscProperties;
+            MovLos[cellIndex] = (sbyte)((pathData.CanMoveThrough ? MovMask : 0) | (visibilityData.CanViewThrough ? LosMask : 0));
+            Zs[cellIndex] = pathData.Z;
+            Heights[cellIndex] = pathData.Height;
         }
         
         public override TopologyMapC ConvertToC()
