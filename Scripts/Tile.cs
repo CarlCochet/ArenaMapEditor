@@ -44,10 +44,8 @@ public partial class Tile : Sprite2D
 
     private void DrawIsometricCube()
     {
-        if (VisibilityData.CanViewThrough || VisibilityData.Height <= 0)
-        {
+        if (VisibilityData.CanViewThrough)
             return;
-        }
         
         var cubeHeight = VisibilityData.Height * ElevationStep;
         const float halfWidth = CellWidth * 0.5f;

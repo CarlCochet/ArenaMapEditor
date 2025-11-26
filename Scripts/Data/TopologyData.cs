@@ -400,7 +400,7 @@ public class TopologyData
         protected const sbyte InfiniteCost = -1;
         protected const sbyte DefaultCost = 7;
      
-        public sbyte Header { get; set; }
+        [JsonIgnore] public sbyte Header { get; set; }
         
         [JsonPropertyName("posX")] public int X { get; set; }
         [JsonPropertyName("posY")] public int Y { get; set; }
