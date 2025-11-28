@@ -19,6 +19,7 @@ public partial class Editor : Node2D
 	private int _x;
 	private int _y;
 	private int _z;
+	private string _lastDir;
 	
 	public override void _Ready()
 	{
@@ -60,6 +61,14 @@ public partial class Editor : Node2D
 	{
 		if (_map.SelectedTiles.Count == 0)
 			return;
+		if (Input.IsActionJustPressed("save"))
+		{
+			if (_lastDir != null)
+				SaveMap(_lastDir);
+			else
+				_saveDialog.Visible = true;
+		}
+			
 		
 		_gizmo.Position = _map.SelectedTiles[0].GetGlobalTransformWithCanvas().Origin;
 	}
@@ -183,8 +192,9 @@ public partial class Editor : Node2D
 	
 	private void _OnMapSelected(object sender, Tools.MapSelectedEventArgs eventArgs)
 	{
-		var mapData = new MapData(eventArgs.MapName);
-		mapData.Load(_contentPath);
+		var mapData = GlobalData.Instance.Maps[eventArgs.MapName];
+		if (mapData == null)
+			return;
 		_map.Load(mapData, Enums.Mode.Gfx);
 		_filter.UpdateBiome(Enums.Biome.Global);
 		_filter.UpdateCategory(Enums.Category.Global);
@@ -205,21 +215,19 @@ public partial class Editor : Node2D
 	{
 		DirAccess.MakeDirRecursiveAbsolute(dir);
 		using var dirAccess = DirAccess.Open(dir);
-		var directories = dirAccess.GetDirectories();
-		var files = dirAccess.GetFiles();
-		if (files.Length > 0 || directories.Length > 0)
-		{
-			GD.PrintErr("Map directory is not empty.");
-			return;
-		}
 
 		dirAccess.MakeDir("env");
 		dirAccess.MakeDir("fight");
 		dirAccess.MakeDir("gfx");
 		dirAccess.MakeDir("light");
 		dirAccess.MakeDir("tplg");
-		
-		_map.Save(dir);
+		dirAccess.MakeDir("json");
+
+		foreach (var map in GlobalData.Instance.Maps.Values)
+		{
+			map.Save(dir);
+		}
+		_lastDir = dir;
 	}
 
 	private void LoadMapList(string dir)
@@ -234,6 +242,9 @@ public partial class Editor : Node2D
 		GlobalData.Instance.Settings.ArenaPath = dir;
 		
 		_contentPath = $"{GlobalData.Instance.Settings.ArenaPath}/game/contents";
+		GlobalData.Instance.LoadElements($"{_contentPath}/maps/data.jar");
+		GlobalData.Instance.LoadPlaylists($"{_contentPath}/maps_sounds.jar");
+		
 		using var dirAccess = DirAccess.Open($"{_contentPath}/maps/fight");
 		if (dirAccess == null)
 			return;
@@ -247,14 +258,14 @@ public partial class Editor : Node2D
 				continue;
 			if (!name.EndsWith(".jar"))
 				continue;
-			mapNames.Add(name.Split(".")[0]);
+			var mapName = name.Split(".")[0];
+			mapNames.Add(mapName);
+			GlobalData.Instance.LoadMap(mapName);
 			name = dirAccess.GetNext();
 		}
 		dirAccess.ListDirEnd();
 		
 		_tools.SetMapOptions(mapNames);
-		GlobalData.Instance.LoadElements($"{_contentPath}/maps/data.jar");
-		GlobalData.Instance.LoadPlaylists($"{_contentPath}/maps_sounds.jar");
 		GlobalData.Instance.SaveSettings();
 	}
 

@@ -92,13 +92,20 @@ public class MapData
 
     public void Save(string path)
     {
-        Topology.Save($"{path}/tplg");
-        Light.Save($"{path}/light");
-        Gfx.Save($"{path}/gfx");
-        Fight.Save($"{path}/fight");
-        Env.Save($"{path}/env");
+        var dirAccess = DirAccess.Open(path);
+        dirAccess.MakeDir($"tplg/{Id}");
+        dirAccess.MakeDir($"light/{Id}");
+        dirAccess.MakeDir($"gfx/{Id}");
+        dirAccess.MakeDir($"fight/{Id}");
+        dirAccess.MakeDir($"env/{Id}");
         
-        Topology.SaveJson(path);
+        Topology.Save($"{path}/tplg/{Id}");
+        Light.Save($"{path}/light/{Id}");
+        Gfx.Save($"{path}/gfx/{Id}");
+        Fight.Save($"{path}/fight/{Id}");
+        Env.Save($"{path}/env/{Id}");
+        
+        Topology.SaveJson($"{path}/json");
     }
 
     public void UpdateElement(GfxData.Element elementData)

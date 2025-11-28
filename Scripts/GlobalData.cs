@@ -26,6 +26,7 @@ public class GlobalData
 
     public Dictionary<int, ElementData> Elements { get; set; } = new();
     public Dictionary<short, PlaylistData> Playlists { get; set; } = new();
+    public Dictionary<string, MapData> Maps { get; set; } = new();
     
     private static GlobalData _instance;
     private static readonly Lock Lock = new();
@@ -45,6 +46,12 @@ public class GlobalData
         }
     }
 
+    public void LoadMap(string mapName)
+    {
+        Maps[mapName] = new MapData(mapName);
+        Maps[mapName].Load($"{Settings.ArenaPath}/game/contents");
+    }
+ 
     public void LoadAssets()
     {
         using var file = FileAccess.Open("res://Assets/metadata.json", FileAccess.ModeFlags.Read);

@@ -40,7 +40,6 @@ public class TopologyData
 
     public void Load(string path)
     {
-        GD.Print($"----------------------------------------------- Loading topology for map {Id} -----------------------------------------------");
         using var archive = ZipFile.OpenRead($"{path}/{Id}.jar");
         
         foreach (var entry in archive.Entries)
@@ -85,34 +84,18 @@ public class TopologyData
 
     public void Save(string path)
     {
-        var tempDir = Path.Combine(Path.GetTempPath(), $"topology_{Id}_{Guid.NewGuid()}");
-        Directory.CreateDirectory(tempDir);
+        foreach (var mapInstance in InstanceSet.Maps)
+        {
+            var topologyMap = mapInstance.TopoC;
+            var mapX = topologyMap.X / MapConstants.MapWidth;
+            var mapY = topologyMap.Y / MapConstants.MapLength;
+            var fileName = $"{mapX}_{mapY}";
+            var filePath = Path.Combine(path, fileName);
         
-        try
-        {
-            foreach (var mapInstance in InstanceSet.Maps)
-            {
-                var topologyMap = mapInstance.TopoC;
-                var mapX = topologyMap.X / MapConstants.MapWidth;
-                var mapY = topologyMap.Y / MapConstants.MapLength;
-                var fileName = $"{mapX}_{mapY}";
-                var filePath = Path.Combine(tempDir, fileName);
-            
-                using var fileStream = File.Create(filePath);
-                using var writer = new OutputBitStream(fileStream);
-                writer.WriteByte(topologyMap.Header);
-                topologyMap.Save(writer);
-            }
-            
-            var jarPath = Path.Combine(path, $"{Id}.jar");
-            if (File.Exists(jarPath))
-                File.Delete(jarPath);
-            ZipFile.CreateFromDirectory(tempDir, jarPath);
-        }
-        finally
-        {
-            if (Directory.Exists(tempDir))
-                Directory.Delete(tempDir, true);
+            using var fileStream = File.Create(filePath);
+            using var writer = new OutputBitStream(fileStream);
+            writer.WriteByte(topologyMap.Header);
+            topologyMap.Save(writer);
         }
     }
 
@@ -125,7 +108,7 @@ public class TopologyData
         };
 
         var json = JsonSerializer.Serialize(data, _options);
-        File.WriteAllText($"{path}/{Id}.json", json);
+        File.WriteAllText($"{path}/map_{Id}.json", json);
     }
 
     public CellPathData GetPathData(int x, int y)
@@ -492,6 +475,7 @@ public class TopologyData
         [JsonPropertyName("cost")] public sbyte Cost { get; set; }
         [JsonPropertyName("wallCell")] public sbyte MurFin { get; set; }
         [JsonPropertyName("property")] public sbyte Property { get; set; }
+        [JsonPropertyName("type")] public string Type => "topologyMapA";
 
         public TopologyMapA()
         {
@@ -505,11 +489,6 @@ public class TopologyData
             Cost = reader.ReadByte();
             MurFin = reader.ReadByte();
             Property = reader.ReadByte();
-            
-            GD.Print($"({X},{Y},{Z})");
-            GD.Print($"Costs: [{string.Join(", ", Cost)}]");
-            GD.Print($"MurFins: [{string.Join(", ", MurFin)}]");
-            GD.Print($"Properties: [{string.Join(", ", Property)}]");
         }
 
         public void LoadFromGfx(GfxData.Partition partition)
@@ -605,6 +584,7 @@ public class TopologyData
         [JsonPropertyName("costs")] public sbyte[] Costs { get; set; } = new sbyte[MapConstants.NumCells];
         [JsonPropertyName("wallCells")] public sbyte[] MurFins { get; set; } = new sbyte[MapConstants.NumCells];
         [JsonPropertyName("properties")] public sbyte[] Properties { get; set; } = new sbyte[MapConstants.NumCells];
+        [JsonPropertyName("type")] public string Type => "topologyMapB";
         
         public TopologyMapB()
         {
@@ -621,11 +601,6 @@ public class TopologyData
                 MurFins[i] = reader.ReadByte();
                 Properties[i] = reader.ReadByte();
             }
-            
-            GD.Print($"({X},{Y},{Z})");
-            GD.Print($"Costs: [{string.Join(", ", Costs)}]");
-            GD.Print($"MurFins: [{string.Join(", ", MurFins)}]");
-            GD.Print($"Properties: [{string.Join(", ", Properties)}]");
         }
         
         public override void Save(OutputBitStream writer)
@@ -715,6 +690,7 @@ public class TopologyData
         [JsonPropertyName("wallCells")] public sbyte[] MurFins { get; set; }
         [JsonPropertyName("properties")] public sbyte[] Properties { get; set; }
         [JsonPropertyName("cells")] public int[] Cells { get; set; }
+        [JsonPropertyName("type")] public string Type => "topologyMapBi";
 
         private sbyte _cellSize;
         
@@ -742,12 +718,6 @@ public class TopologyData
             var cellSize = reader.ReadByte() & 0xFF;
             Cells = new int[cellSize];
             Cells = TopologyIndexerHelper.CreateFor(Cells, cellSize, reader);
-            
-            GD.Print($"({X},{Y},{Z})");
-            GD.Print($"Costs: [{string.Join(", ", Costs)}]");
-            GD.Print($"MurFins: [{string.Join(", ", MurFins)}]");
-            GD.Print($"Properties: [{string.Join(", ", Properties)}]");
-            GD.Print($"Cells: [{string.Join(", ", Cells)}]");
         }
         
         public override void Save(OutputBitStream writer)
@@ -876,6 +846,7 @@ public class TopologyData
         [JsonPropertyName("movLos")] public sbyte[] MovLos { get; set; } = new sbyte[MapConstants.NumCells];
         [JsonPropertyName("zs")] public short[] Zs { get; set; } = new short[MapConstants.NumCells];
         [JsonPropertyName("heights")] public sbyte[] Heights { get; set; } = new sbyte[MapConstants.NumCells];
+        [JsonPropertyName("type")] public string Type => "topologyMapC";
         
         public TopologyMapC()
         {
@@ -895,14 +866,6 @@ public class TopologyData
                 Heights[i] = reader.ReadByte();
                 MovLos[i] = reader.ReadByte();
             }
-            
-            GD.Print($"({X},{Y},{Z})");
-            GD.Print($"Costs: [{string.Join(", ", Costs)}]");
-            GD.Print($"MurFins: [{string.Join(", ", MurFins)}]");
-            GD.Print($"Properties: [{string.Join(", ", Properties)}]");
-            GD.Print($"Zs: [{string.Join(", ", Zs)}]");
-            GD.Print($"Heights: [{string.Join(", ", Heights)}]");
-            GD.Print($"MovLos: [{string.Join(", ", MovLos)}]");
         }
 
         public void LoadFromGfx(GfxData.Partition partition)
@@ -1000,6 +963,7 @@ public class TopologyData
         [JsonPropertyName("zs")] public short[] Zs { get; set; }
         [JsonPropertyName("heights")] public sbyte[] Heights { get; set; }
         [JsonPropertyName("cells")] public long[] Cells { get; set; }
+        [JsonPropertyName("type")] public string Type => "topologyMapCi";
 
         public TopologyMapCi()
         {
@@ -1029,14 +993,6 @@ public class TopologyData
             
             var cellSize = reader.ReadByte() & 0xFF;
             Cells = TopologyIndexerHelper.CreateFor(Cells, cellSize, reader);
-            
-            GD.Print($"({X},{Y},{Z})");
-            GD.Print($"Costs: [{string.Join(", ", Costs)}]");
-            GD.Print($"MurFins: [{string.Join(", ", MurFins)}]");
-            GD.Print($"Properties: [{string.Join(", ", Properties)}]");
-            GD.Print($"Zs: [{string.Join(", ", Zs)}]");
-            GD.Print($"Heights: [{string.Join(", ", Heights)}]");
-            GD.Print($"MovLos: [{string.Join(", ", MovLos)}]");
         }
 
         public void LoadFromGfx(GfxData.Partition partition)
@@ -1184,6 +1140,7 @@ public class TopologyData
         [JsonPropertyName("heights")] public sbyte[] Heights { get; set; }
         [JsonPropertyName("cells")] public long[] Cells { get; set; }
         [JsonPropertyName("cellsWithMultiZ")] public int[] CellsWithMultiZ { get; set; }
+        [JsonPropertyName("type")] public string Type => "topologyMapDi";
         
         public TopologyMapDi()
         {
@@ -1220,15 +1177,6 @@ public class TopologyData
             {
                 CellsWithMultiZ[i] = reader.ReadInt();
             }
-            
-            GD.Print($"({X},{Y},{Z})");
-            GD.Print($"Costs: [{string.Join(", ", Costs)}]");
-            GD.Print($"MurFins: [{string.Join(", ", MurFins)}]");
-            GD.Print($"Properties: [{string.Join(", ", Properties)}]");
-            GD.Print($"Zs: [{string.Join(", ", Zs)}]");
-            GD.Print($"Heights: [{string.Join(", ", Heights)}]");
-            GD.Print($"MovLos: [{string.Join(", ", MovLos)}]");
-            GD.Print($"CellsWithMultiZ: [{string.Join(", ", CellsWithMultiZ)}]");
         }
         
         public override void Save(OutputBitStream writer)
