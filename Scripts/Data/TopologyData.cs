@@ -24,7 +24,7 @@ public class TopologyData
     private readonly JsonSerializerOptions _options = new()
     {
         WriteIndented = true,
-        Converters = { new SByteArrayBase64Converter() }
+        Converters = { new SByteArrayBase64Converter(), new ShortArrayCompactConverter() }
     };
     
     public int Id { get; set; }
@@ -60,10 +60,12 @@ public class TopologyData
             var header = reader.ReadByte();
             var version = (sbyte)((header & VersionMask) >> VersionNumberPosition);
             var topologyMethod = (sbyte)((header & MethodMask) >> MethodNumberPosition);
+            
+            if (topologyMethod == MethodA)
+                continue;
 
             TopologyMap topologyMap = topologyMethod switch
             {
-                MethodA => new TopologyMapA(),
                 MethodB => new TopologyMapB(),
                 MethodBi => new TopologyMapBi(),
                 MethodC => new TopologyMapC(),
@@ -87,6 +89,9 @@ public class TopologyData
         foreach (var mapInstance in InstanceSet.Maps)
         {
             var topologyMap = mapInstance.TopoC;
+            if (topologyMap == null)
+                continue;
+            
             var mapX = topologyMap.X / MapConstants.MapWidth;
             var mapY = topologyMap.Y / MapConstants.MapLength;
             var fileName = $"{mapX}_{mapY}";
@@ -104,7 +109,10 @@ public class TopologyData
         var data = new
         {
             worldId = Id,
-            topologyMap = InstanceSet.Maps.Select(m => m.TopoC).ToList()
+            topologyMap = InstanceSet.Maps
+                .Select(m => m.TopoC)
+                .Where(m => m != null)
+                .ToList()
         };
 
         var json = JsonSerializer.Serialize(data, _options);
@@ -336,6 +344,9 @@ public class TopologyData
         private void SetTopologyMap(TopologyMap topologyMap)
         {
             TopoC = topologyMap.ConvertToC();
+            if (TopoC == null)
+                return;
+            
             EntirelyBlockedCells.SetAll(false);
             NonBlockedCellsNumber = 324;
             var x = TopoC.X;
@@ -503,7 +514,6 @@ public class TopologyData
 
         public override void Save(OutputBitStream writer)
         {
-            writer.WriteByte(Header);
             base.Save(writer);
             
             writer.WriteByte(Cost);
@@ -554,18 +564,7 @@ public class TopologyData
 
         public override TopologyMapC ConvertToC()
         {
-            return new TopologyMapC
-            {
-                X = X,
-                Y = Y,
-                Z = Z,
-                Costs = Enumerable.Repeat(Cost, MapConstants.NumCells).ToArray(),
-                MurFins = Enumerable.Repeat(MurFin, MapConstants.NumCells).ToArray(),
-                Properties = Enumerable.Repeat(Property, MapConstants.NumCells).ToArray(),
-                MovLos = new sbyte[MapConstants.NumCells],
-                Zs = new short[MapConstants.NumCells],
-                Heights = new sbyte[MapConstants.NumCells]
-            };
+            return null;
         }
 
         public void FillBlockedCells(ByteArrayBitSet bitSet)
@@ -605,7 +604,6 @@ public class TopologyData
         
         public override void Save(OutputBitStream writer)
         {
-            writer.WriteByte(Header);
             base.Save(writer);
 
             for (var i = 0; i < MapConstants.NumCells; ++i)
@@ -722,7 +720,6 @@ public class TopologyData
         
         public override void Save(OutputBitStream writer)
         {
-            writer.WriteByte(Header);
             base.Save(writer);
             
             var indexSize = (sbyte)Costs.Length;
@@ -875,7 +872,7 @@ public class TopologyData
         
         public override void Save(OutputBitStream writer)
         {
-            writer.WriteByte(Header);
+            // writer.WriteByte(Header);
             base.Save(writer);
 
             for (var i = 0; i < MapConstants.NumCells; ++i)
@@ -1003,7 +1000,6 @@ public class TopologyData
         
         public override void Save(OutputBitStream writer)
         {
-            writer.WriteByte(Header);
             base.Save(writer);
 
             writer.WriteByte(unchecked((sbyte)Costs.Length));
@@ -1181,7 +1177,6 @@ public class TopologyData
         
         public override void Save(OutputBitStream writer)
         {
-            writer.WriteByte(Header);
             base.Save(writer);
             
             writer.WriteByte(unchecked((sbyte)Costs.Length));
@@ -1492,20 +1487,16 @@ public class TopologyData
         public sbyte Height { get; set; }
     }
     
-    public class SByteArrayBase64Converter : JsonConverter<sbyte[]>
+    private class SByteArrayBase64Converter : JsonConverter<sbyte[]>
     {
         public override sbyte[] Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             if (reader.TokenType == JsonTokenType.Null)
-            {
                 return null;
-            }
 
             var base64String = reader.GetString();
             if (string.IsNullOrEmpty(base64String))
-            {
                 return [];
-            }
 
             var bytes = Convert.FromBase64String(base64String);
             var sbyteArray = new sbyte[bytes.Length];
@@ -1525,6 +1516,33 @@ public class TopologyData
             Buffer.BlockCopy(value, 0, bytes, 0, value.Length);
             var base64String = Convert.ToBase64String(bytes);
             writer.WriteStringValue(base64String);
+        }
+    }
+    
+    private class ShortArrayCompactConverter : JsonConverter<short[]>
+    {
+        public override short[] Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            return reader.TokenType == JsonTokenType.Null ? null : JsonSerializer.Deserialize<short[]>(ref reader, options);
+        }
+
+        public override void Write(Utf8JsonWriter writer, short[] value, JsonSerializerOptions options)
+        {
+            if (value == null)
+            {
+                writer.WriteNullValue();
+                return;
+            }
+
+            var sb = new System.Text.StringBuilder();
+            sb.Append('[');
+            for (var i = 0; i < value.Length; i++)
+            {
+                if (i > 0) sb.Append(", ");
+                sb.Append(value[i]);
+            }
+            sb.Append(']');
+            writer.WriteRawValue(sb.ToString());
         }
     }
 }

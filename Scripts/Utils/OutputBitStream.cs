@@ -54,9 +54,7 @@ public class OutputBitStream : IDisposable, IAsyncDisposable
     public static int GetFpBitsLength(double value)
     {
         if (value == 0.0)
-        {
             return 1;
-        }
 
         var longValue = (long)(value * 65536.0);
         return GetSignedBitsLength(longValue);
@@ -71,14 +69,9 @@ public class OutputBitStream : IDisposable, IAsyncDisposable
     {
         int bitsLength;
         if (value == 0L)
-        {
             bitsLength = 0;
-        }
         else
-        {
             bitsLength = (int)(Math.Floor(Math.Log(Math.Abs(value)) / Math.Log(2.0)) + 2.0);
-        }
-
         return bitsLength;
     }
 
@@ -90,9 +83,7 @@ public class OutputBitStream : IDisposable, IAsyncDisposable
     public void Align()
     {
         if (_bitCursor <= 0)
-        {
             return;
-        }
         
         _stream.WriteByte((byte)_bitBuffer);
         _offset++;
@@ -109,9 +100,7 @@ public class OutputBitStream : IDisposable, IAsyncDisposable
     public void EnableCompression()
     {
         if (_compressed)
-        {
             return;
-        }
         
         _stream = new DeflateStream(_stream, CompressionLevel.Optimal, false);
         _compressed = true;
@@ -131,9 +120,7 @@ public class OutputBitStream : IDisposable, IAsyncDisposable
     {
         Align();
         if (buffer == null)
-        {
             return;
-        }
         
         foreach (var b in buffer)
         {
@@ -145,7 +132,7 @@ public class OutputBitStream : IDisposable, IAsyncDisposable
     public void WriteDouble(double value)
     {
         var longBits = BitConverter.DoubleToInt64Bits(value);
-        var bytes = new sbyte[]
+        var bytes = new[]
         {
             (sbyte)(longBits >> 32), (sbyte)(longBits >> 40), (sbyte)(longBits >> 48), (sbyte)(longBits >> 56),
             (sbyte)longBits, (sbyte)(longBits >> 8), (sbyte)(longBits >> 16), (sbyte)(longBits >> 24)
@@ -180,13 +167,9 @@ public class OutputBitStream : IDisposable, IAsyncDisposable
         if (exponent != 0)
         {
             if (exponent == 255)
-            {
                 newExponent = 31;
-            }
             else
-            {
                 newExponent = exponent - 127 + 15;
-            }
         }
 
         var newMantissa = 0;
@@ -252,9 +235,7 @@ public class OutputBitStream : IDisposable, IAsyncDisposable
     {
         var requiredBits = GetSignedBitsLength(value);
         if (nBits < requiredBits)
-        {
             throw new IOException($"At least {requiredBits} bits needed for representation of {value}");
-        }
 
         WriteInteger(value, nBits);
     }
@@ -306,14 +287,10 @@ public class OutputBitStream : IDisposable, IAsyncDisposable
         {
             _bitCursor++;
             if ((1L << (i - 1) & value) != 0L)
-            {
                 _bitBuffer = _bitBuffer | (1 << (8 - _bitCursor));
-            }
 
             if (_bitCursor != 8)
-            {
                 continue;
-            }
             
             _stream.WriteByte((byte)_bitBuffer);
             _offset++;
@@ -326,9 +303,8 @@ public class OutputBitStream : IDisposable, IAsyncDisposable
     {
         Align();
         if (buffer == null)
-        {
             return;
-        }
+        
         
         for (var i = 0; i < length; i++)
         {
@@ -346,13 +322,8 @@ public class OutputBitStream : IDisposable, IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         if (_stream != null)
-        {
             await _stream.DisposeAsync();
-        }
-
         if (_memoryStream != null)
-        {
             await _memoryStream.DisposeAsync();
-        }
     }
 }
