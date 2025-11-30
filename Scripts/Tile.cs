@@ -12,7 +12,7 @@ public partial class Tile : Sprite2D
     public int Y { get; set; }
     public int Z { get; set; }
 
-    public bool Highlighted;
+    public bool Highlighted = true;
     public Enums.Mode Mode;
 	
     private const int CellWidth = 86;
@@ -161,6 +161,9 @@ public partial class Tile : Sprite2D
  
     public bool IsValidPixel(Vector2 position)
     {
+        if (!Highlighted)
+            return false;
+        
         var localPos = ToLocal(position);
         if (!GetRect().HasPoint(localPos))
             return false;

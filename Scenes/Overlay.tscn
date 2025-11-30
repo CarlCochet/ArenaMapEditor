@@ -36,8 +36,8 @@ _previousButton = NodePath("SelectorPreview/HBoxContainer/Previous")
 _nextButton = NodePath("SelectorPreview/HBoxContainer/Next")
 _generateButton = NodePath("MarginContainer/Button")
 _upButton = NodePath("HeightModifier/VBoxContainer/Up")
-_downButton = NodePath("HeightModifier/VBoxContainer/Highlight")
-_highlightButton = NodePath("HeightModifier/VBoxContainer/Down")
+_downButton = NodePath("HeightModifier/VBoxContainer/Down")
+_highlightButton = NodePath("HeightModifier/VBoxContainer/Highlight")
 
 [node name="SelectorPreview" type="MarginContainer" parent="."]
 layout_mode = 1
