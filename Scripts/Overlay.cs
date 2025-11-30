@@ -5,16 +5,28 @@ public partial class Overlay : Control
 {
 	[Export] private TextureRect _preview;
 	[Export] private Label _position;
+	[Export] private TextureButton _previousButton;
+	[Export] private TextureButton _nextButton;
+	[Export] private Button _generateButton;
+	[Export] private TextureButton _upButton;
+	[Export] private TextureButton _downButton;
+	[Export] private TextureButton _highlightButton;
 
-	public event EventHandler<PreviewChangedEventArgs> PreviewChangePressed;
-	public event EventHandler<OffsetChangedEventArgs> OffsetChangeUp;
-	public event EventHandler<OffsetChangedEventArgs> OffsetChangeDown;
-	public event EventHandler CenterPressed;
-	public event EventHandler<HeightChangedEventArgs> HeightChangePressed;
-	public event EventHandler HighlightHeightPressed;
-	
-	
-	public override void _Ready() { }
+	public event EventHandler<PreviewChangedEventArgs> PreviewChanged;
+	public event EventHandler<HeightChangedEventArgs> HeightChanged;
+	public event EventHandler<HighlightHeightToggledEventArgs> HighlightHeightToggled;
+	public event EventHandler GenerateTopologyPressed;
+
+
+	public override void _Ready()
+	{
+		_previousButton.Pressed += _OnPreviousPressed;
+		_nextButton.Pressed += _OnNextPressed;
+		_generateButton.Pressed += _OnGeneratePressed;
+		_upButton.Pressed += _OnUpPressed;
+		_downButton.Pressed += _OnDownPressed;
+		_highlightButton.Toggled += _OnHighlightToggled;
+	}
 
 	public void UpdatePosition(int x, int y, int z)
 	{
@@ -35,72 +47,32 @@ public partial class Overlay : Control
 
 	private void _OnPreviousPressed()
 	{
-		PreviewChangePressed?.Invoke(this, new PreviewChangedEventArgs(Enums.Direction.Left));
+		PreviewChanged?.Invoke(this, new PreviewChangedEventArgs(Enums.Direction.Left));
 	}
 
 	private void _OnNextPressed()
 	{
-		PreviewChangePressed?.Invoke(this, new PreviewChangedEventArgs(Enums.Direction.Right));
+		PreviewChanged?.Invoke(this, new PreviewChangedEventArgs(Enums.Direction.Right));
 	}
 
-	private void _OnOffsetUpDown()
+	private void _OnGeneratePressed()
 	{
-		OffsetChangeDown?.Invoke(this, new OffsetChangedEventArgs(Enums.Direction.Up));
+		GenerateTopologyPressed?.Invoke(this, EventArgs.Empty);
 	}
 
-	private void _OnOffsetUpUp()
+	private void _OnUpPressed()
 	{
-		OffsetChangeUp?.Invoke(this, new OffsetChangedEventArgs(Enums.Direction.Up));
-	}
-	
-	private void _OnOffsetLeftDown()
-	{
-		OffsetChangeDown?.Invoke(this, new OffsetChangedEventArgs(Enums.Direction.Left));
+		HeightChanged?.Invoke(this, new HeightChangedEventArgs(Enums.Direction.Up));
 	}
 
-	private void _OnOffsetLeftUp()
+	private void _OnDownPressed()
 	{
-		OffsetChangeUp?.Invoke(this, new OffsetChangedEventArgs(Enums.Direction.Left));
-	}
-	
-	private void _OnOffsetRightDown()
-	{
-		OffsetChangeDown?.Invoke(this, new OffsetChangedEventArgs(Enums.Direction.Right));
+		HeightChanged?.Invoke(this, new HeightChangedEventArgs(Enums.Direction.Down));
 	}
 
-	private void _OnOffsetRightUp()
+	private void _OnHighlightToggled(bool toggledOn)
 	{
-		OffsetChangeUp?.Invoke(this, new OffsetChangedEventArgs(Enums.Direction.Right));
-	}
-	
-	private void _OnOffsetDownDown()
-	{
-		OffsetChangeDown?.Invoke(this, new OffsetChangedEventArgs(Enums.Direction.Down));	
-	}
-
-	private void _OnOffsetDownUp()
-	{
-		OffsetChangeUp?.Invoke(this, new OffsetChangedEventArgs(Enums.Direction.Down));
-	}
-
-	private void _OnCenterPressed()
-	{
-		CenterPressed?.Invoke(this, EventArgs.Empty);
-	}
-
-	private void _OnHeightUpPressed()
-	{
-		HeightChangePressed?.Invoke(this, new HeightChangedEventArgs(Enums.Direction.Up));
-	}
-
-	private void _OnHeightDownPressed()
-	{
-		HeightChangePressed?.Invoke(this, new HeightChangedEventArgs(Enums.Direction.Down));
-	}
-
-	private void _OnHighlightHeightPressed()
-	{
-		HighlightHeightPressed?.Invoke(this, EventArgs.Empty);
+		HighlightHeightToggled?.Invoke(this, new HighlightHeightToggledEventArgs(toggledOn));
 	}
 
 	public class PreviewChangedEventArgs(Enums.Direction direction) : EventArgs
@@ -108,13 +80,13 @@ public partial class Overlay : Control
 		public Enums.Direction Direction => direction;
 	}
 
-	public class OffsetChangedEventArgs(Enums.Direction direction) : EventArgs
+	public class HeightChangedEventArgs(Enums.Direction direction) : EventArgs
 	{
 		public Enums.Direction Direction => direction;
 	}
 
-	public class HeightChangedEventArgs(Enums.Direction direction) : EventArgs
+	public class HighlightHeightToggledEventArgs(bool toggledOn) : EventArgs
 	{
-		public Enums.Direction Direction => direction;
+		public bool ToggledOn => toggledOn;
 	}
 }

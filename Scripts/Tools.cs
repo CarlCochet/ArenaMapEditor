@@ -9,9 +9,17 @@ public partial class Tools : Control
 	[Export] private TextureButton _brushButton;
 	[Export] private TextureButton _lineButton;
 	[Export] private TextureButton _areaButton;
-	[Export] private LineEdit _sizeField;
+	[Export] private TextureButton _eraserButton;
+	[Export] private TextureButton _flipButton;
+	[Export] private SpinBox _sizeField;
 	[Export] private OptionButton _loadButton;
 	[Export] private ColorPickerButton _colorPickerButton;
+	[Export] private TextureButton _undoButton;
+	[Export] private TextureButton _redoButton;
+	[Export] private TextureButton _newMapButton;
+	[Export] private TextureButton _locateButton;
+	[Export] private TextureButton _exportButton;
+	[Export] private OptionButton _loadMapButton;
 
 	public event EventHandler FlipPressed;
 	public event EventHandler<ColorChangedEventArgs> ColorChanged;
@@ -21,8 +29,24 @@ public partial class Tools : Control
 	public event EventHandler LocateArenaPressed;
 	public event EventHandler<MapSelectedEventArgs> MapSelected;
 	public event EventHandler ExportMapPressed;
-	
-	public override void _Ready() { }
+
+	public override void _Ready()
+	{
+		_selectButton.Pressed += _OnSelectPressed;
+		_brushButton.Pressed += _OnBrushPressed;
+		_lineButton.Pressed += _OnLinePressed;
+		_areaButton.Pressed += _OnAreaPressed;
+		_eraserButton.Pressed += _OnEraserPressed;
+		_flipButton.Pressed += _OnFlipPressed;
+		_sizeField.ValueChanged += _OnSizeChanged;
+		_colorPickerButton.ColorChanged += _OnColorChanged;
+		_undoButton.Pressed += _OnUndoPressed;
+		_redoButton.Pressed += _OnRedoPressed;
+		_newMapButton.Pressed += _OnNewPressed;
+		_locateButton.Pressed += _OnLocatePressed;
+		_exportButton.Pressed += _OnExportPressed;
+		_loadMapButton.ItemSelected += _OnMapSelected;
+	}
 
 	public void SetMapOptions(List<string> mapNames)
 	{
@@ -34,7 +58,6 @@ public partial class Tools : Control
 		{
 			_loadButton.AddItem(orderedNames[i], i);
 		}
-
 		_loadButton.Selected = -1;
 	}
 
@@ -46,42 +69,45 @@ public partial class Tools : Control
 	private void _OnSelectPressed()
 	{
 		GlobalData.Instance.SelectedTool = Enums.Tool.Select;
+		ResetTools();
 		_selectButton.SetPressed(true);
-		_brushButton.SetPressed(false);
-		_lineButton.SetPressed(false);
-		_areaButton.SetPressed(false);
 	}
 	
 	private void _OnBrushPressed()
 	{
 		GlobalData.Instance.SelectedTool = Enums.Tool.Brush;
-		_selectButton.SetPressed(false);
+		ResetTools();
 		_brushButton.SetPressed(true);
-		_lineButton.SetPressed(false);
-		_areaButton.SetPressed(false);
 	}
 	
 	private void _OnLinePressed()
 	{
 		GlobalData.Instance.SelectedTool = Enums.Tool.Line;
-		_selectButton.SetPressed(false);
-		_brushButton.SetPressed(false);
+		ResetTools();
 		_lineButton.SetPressed(true);
-		_areaButton.SetPressed(false);
 	}
 	
 	private void _OnAreaPressed()
 	{
 		GlobalData.Instance.SelectedTool = Enums.Tool.Area;
-		_selectButton.SetPressed(false);
-		_brushButton.SetPressed(false);
-		_lineButton.SetPressed(false);
+		ResetTools();
 		_areaButton.SetPressed(true);
 	}
 
-	private void _OnEraserToggled(bool toggledOn)
+	private void _OnEraserPressed()
 	{
-		GlobalData.Instance.Erasing = toggledOn;
+		GlobalData.Instance.SelectedTool = Enums.Tool.Erase;
+		ResetTools();
+		_eraserButton.SetPressed(true);
+	}
+
+	private void ResetTools()
+	{
+		_selectButton.SetPressed(false);
+		_brushButton.SetPressed(false);
+		_lineButton.SetPressed(false);
+		_areaButton.SetPressed(false);
+		_eraserButton.SetPressed(false);
 	}
 
 	private void _OnFlipPressed()
@@ -89,16 +115,9 @@ public partial class Tools : Control
 		FlipPressed?.Invoke(this, EventArgs.Empty);
 	}
 	
-	private void _OnSizeChanged(string newSize)
+	private void _OnSizeChanged(double newSize)
 	{
-		if (int.TryParse(newSize, out var size))
-		{
-			size = Math.Clamp(size, 1, 99);
-			GlobalData.Instance.BrushSize = size;
-			_sizeField.Text = size.ToString();
-			return;
-		}
-		_sizeField.Text = GlobalData.Instance.BrushSize.ToString();
+		GlobalData.Instance.BrushSize = (int)newSize;
 	}
 
 	private void _OnColorChanged(Color color)
@@ -126,9 +145,9 @@ public partial class Tools : Control
 		LocateArenaPressed?.Invoke(this, EventArgs.Empty);
 	}
 
-	private void _OnMapSelected(int index)
+	private void _OnMapSelected(long index)
 	{
-		var name = _loadButton.GetItemText(index);
+		var name = _loadButton.GetItemText((int)index);
 		MapSelected?.Invoke(this, new MapSelectedEventArgs(name));
 	}
 

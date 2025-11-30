@@ -38,7 +38,7 @@
 [sub_resource type="LabelSettings" id="LabelSettings_kgn1q"]
 font_size = 14
 
-[node name="Tools" type="Control" node_paths=PackedStringArray("_selectButton", "_brushButton", "_lineButton", "_areaButton", "_sizeField", "_loadButton", "_colorPickerButton")]
+[node name="Tools" type="Control" node_paths=PackedStringArray("_selectButton", "_brushButton", "_lineButton", "_areaButton", "_eraserButton", "_flipButton", "_sizeField", "_loadButton", "_colorPickerButton", "_undoButton", "_redoButton", "_newMapButton", "_locateButton", "_exportButton", "_loadMapButton")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -50,9 +50,17 @@ _selectButton = NodePath("MarginContainer/HBoxContainer/Selector")
 _brushButton = NodePath("MarginContainer/HBoxContainer/Brush")
 _lineButton = NodePath("MarginContainer/HBoxContainer/Line")
 _areaButton = NodePath("MarginContainer/HBoxContainer/Area")
-_sizeField = NodePath("MarginContainer/HBoxContainer/BrushSize/Size")
+_eraserButton = NodePath("MarginContainer/HBoxContainer/Eraser")
+_flipButton = NodePath("MarginContainer/HBoxContainer/Flip")
+_sizeField = NodePath("MarginContainer/HBoxContainer/BrushSize/SizeField")
 _loadButton = NodePath("MarginContainer2/HBoxContainer/LoadMap")
 _colorPickerButton = NodePath("MarginContainer/HBoxContainer/ColorPicker")
+_undoButton = NodePath("MarginContainer/HBoxContainer/Undo")
+_redoButton = NodePath("MarginContainer/HBoxContainer/Redo")
+_newMapButton = NodePath("MarginContainer2/HBoxContainer/NewMap")
+_locateButton = NodePath("MarginContainer2/HBoxContainer/LocateArena")
+_exportButton = NodePath("MarginContainer2/HBoxContainer/ExportMap")
+_loadMapButton = NodePath("MarginContainer2/HBoxContainer/LoadMap")
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
 layout_mode = 0
@@ -116,7 +124,7 @@ texture_pressed = ExtResource("18_bsk82")
 texture_hover = ExtResource("19_74djj")
 
 [node name="BrushSize" type="Control" parent="MarginContainer/HBoxContainer"]
-custom_minimum_size = Vector2(115, 0)
+custom_minimum_size = Vector2(170, 0)
 layout_mode = 2
 
 [node name="SizeLabel" type="Label" parent="MarginContainer/HBoxContainer/BrushSize"]
@@ -129,19 +137,14 @@ text = "Taille:"
 label_settings = SubResource("LabelSettings_kgn1q")
 vertical_alignment = 1
 
-[node name="Size" type="LineEdit" parent="MarginContainer/HBoxContainer/BrushSize"]
+[node name="SizeField" type="SpinBox" parent="MarginContainer/HBoxContainer/BrushSize"]
 layout_mode = 0
-offset_left = 78.0
-offset_right = 113.0
-offset_bottom = 30.0
-theme_override_constants/minimum_character_width = 2
-theme_override_font_sizes/font_size = 14
-text = "1"
+offset_left = 79.0
+offset_right = 165.5625
+offset_bottom = 31.0
+min_value = 1.0
+value = 1.0
 alignment = 1
-max_length = 2
-context_menu_enabled = false
-virtual_keyboard_type = 3
-caret_blink = true
 
 [node name="ColorPicker" type="ColorPickerButton" parent="MarginContainer/HBoxContainer"]
 custom_minimum_size = Vector2(30, 0)
@@ -203,18 +206,3 @@ texture_hover = ExtResource("34_or3wh")
 custom_minimum_size = Vector2(130, 30)
 layout_mode = 2
 tooltip_text = "Sélectionner carte du client Arena (localiser Arena avant utilisation)"
-
-[connection signal="pressed" from="MarginContainer/HBoxContainer/Selector" to="." method="_OnSelectPressed"]
-[connection signal="pressed" from="MarginContainer/HBoxContainer/Brush" to="." method="_OnBrushPressed"]
-[connection signal="pressed" from="MarginContainer/HBoxContainer/Line" to="." method="_OnLinePressed"]
-[connection signal="pressed" from="MarginContainer/HBoxContainer/Area" to="." method="_OnAreaPressed"]
-[connection signal="toggled" from="MarginContainer/HBoxContainer/Eraser" to="." method="_OnEraserToggled"]
-[connection signal="pressed" from="MarginContainer/HBoxContainer/Flip" to="." method="_OnFlipPressed"]
-[connection signal="text_changed" from="MarginContainer/HBoxContainer/BrushSize/Size" to="." method="_OnSizeChanged"]
-[connection signal="color_changed" from="MarginContainer/HBoxContainer/ColorPicker" to="." method="_OnColorChanged"]
-[connection signal="pressed" from="MarginContainer/HBoxContainer/Undo" to="." method="_OnUndoPressed"]
-[connection signal="pressed" from="MarginContainer/HBoxContainer/Redo" to="." method="_OnRedoPressed"]
-[connection signal="pressed" from="MarginContainer2/HBoxContainer/NewMap" to="." method="_OnNewPressed"]
-[connection signal="pressed" from="MarginContainer2/HBoxContainer/ExportMap" to="." method="_OnExportPressed"]
-[connection signal="pressed" from="MarginContainer2/HBoxContainer/LocateArena" to="." method="_OnLocatePressed"]
-[connection signal="item_selected" from="MarginContainer2/HBoxContainer/LoadMap" to="." method="_OnMapSelected"]

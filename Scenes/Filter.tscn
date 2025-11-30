@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://bd4spy67wa1ic"]
 
-[ext_resource type="Script" path="res://Scripts/Filter.cs" id="1_ajv58"]
+[ext_resource type="Script" uid="uid://0isfc62nmil3" path="res://Scripts/Filter.cs" id="1_ajv58"]
 
 [node name="Filter" type="Control" node_paths=PackedStringArray("_biomeButton", "_categoryButton", "_modeButton")]
 layout_mode = 3
@@ -42,6 +42,7 @@ layout_mode = 2
 selected = 0
 item_count = 12
 popup/item_0/text = "Global"
+popup/item_0/id = 0
 popup/item_1/text = "Volcan"
 popup/item_1/id = 1
 popup/item_2/text = "Foret"
@@ -70,6 +71,7 @@ layout_mode = 2
 selected = 0
 item_count = 15
 popup/item_0/text = "Global"
+popup/item_0/id = 0
 popup/item_1/text = "Base"
 popup/item_1/id = 1
 popup/item_2/text = "Plante"
@@ -109,18 +111,26 @@ layout_mode = 2
 [node name="ModeButton" type="OptionButton" parent="MarginContainer/GridContainer"]
 layout_mode = 2
 selected = 0
-item_count = 6
+item_count = 4
 popup/item_0/text = "GFX"
-popup/item_1/text = "GFX Present"
+popup/item_0/id = 0
+popup/item_1/text = "Topologie"
 popup/item_1/id = 1
-popup/item_2/text = "Déplacement"
-popup/item_2/id = 5
-popup/item_3/text = "Visibilité"
-popup/item_3/id = 5
-popup/item_4/text = "Lumière"
-popup/item_4/id = 3
-popup/item_5/text = "Combat"
-popup/item_5/id = 4
+popup/item_2/text = "Lumière"
+popup/item_2/id = 2
+popup/item_3/text = "Combat"
+popup/item_3/id = 3
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/GridContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="MarginContainer/GridContainer/HBoxContainer"]
+layout_mode = 2
+text = "Utilisés :"
+
+[node name="CheckBox" type="CheckBox" parent="MarginContainer/GridContainer/HBoxContainer"]
+layout_mode = 2
 
 [connection signal="item_selected" from="MarginContainer/GridContainer/BiomeButton" to="." method="_OnBiomeSelected"]
 [connection signal="item_selected" from="MarginContainer/GridContainer/CategoryButton" to="." method="_OnCategorySelected"]

@@ -16,6 +16,7 @@ public static class Enums
         Brush = 2,
         Line = 3,
         Area = 4,
+        Erase = 5,
     }
     
     public enum Biome
@@ -56,11 +57,9 @@ public static class Enums
     public enum Mode
     {
         Gfx = 0,
-        GfxCurrent = 1,
-        Path = 2,
-        Visibility = 3,
-        Light = 4,
-        Fight = 5,
+        Topology = 1,
+        Light = 2,
+        Fight = 3,
     }
 
     public enum Direction

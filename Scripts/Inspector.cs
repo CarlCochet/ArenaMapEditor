@@ -189,6 +189,7 @@ public partial class Inspector : Control
     {
         if (_suppressSignals) return;
         _pathData.X = (int) value;
+        _visibilityData.X = (int) value;
         TopologyUpdated?.Invoke(this, new TopologyUpdatedEventArgs(_pathData, _visibilityData));
     }
     
@@ -196,6 +197,7 @@ public partial class Inspector : Control
     {
         if (_suppressSignals) return;
         _pathData.Y = (int) value;
+        _visibilityData.Y = (int) value;
         TopologyUpdated?.Invoke(this, new TopologyUpdatedEventArgs(_pathData, _visibilityData));
     }
     
@@ -203,6 +205,7 @@ public partial class Inspector : Control
     {
         if (_suppressSignals) return;
         _pathData.Z = (short) value;
+        _visibilityData.Z = (short) value;
         TopologyUpdated?.Invoke(this, new TopologyUpdatedEventArgs(_pathData, _visibilityData));
     }
     
@@ -210,6 +213,7 @@ public partial class Inspector : Control
     {
         if (_suppressSignals) return;
         _pathData.Height = (sbyte) value;
+        _visibilityData.Height = (sbyte) value;
         TopologyUpdated?.Invoke(this, new TopologyUpdatedEventArgs(_pathData, _visibilityData));
     }
     

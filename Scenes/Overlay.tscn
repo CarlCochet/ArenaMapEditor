@@ -1,27 +1,12 @@
-[gd_scene load_steps=33 format=3 uid="uid://bs7nf7ebx8s4w"]
+[gd_scene load_steps=18 format=3 uid="uid://bs7nf7ebx8s4w"]
 
-[ext_resource type="Script" path="res://Scripts/Overlay.cs" id="1_ic50a"]
+[ext_resource type="Script" uid="uid://ba23v0xvpcgoi" path="res://Scripts/Overlay.cs" id="1_ic50a"]
 [ext_resource type="Texture2D" uid="uid://dma4ldynf4oya" path="res://Assets/UI/Left.png" id="2_20wea"]
 [ext_resource type="Texture2D" uid="uid://7qaoo6dboem5" path="res://Assets/UI/Left_pressed.png" id="3_37y85"]
 [ext_resource type="Texture2D" uid="uid://bfcnwd7vecws1" path="res://Assets/UI/Left_hover.png" id="4_mhq33"]
 [ext_resource type="Texture2D" uid="uid://tvtswomkdeek" path="res://Assets/UI/Right.png" id="5_evixr"]
 [ext_resource type="Texture2D" uid="uid://dlej3nplh23md" path="res://Assets/UI/Right_pressed.png" id="6_5nyjn"]
 [ext_resource type="Texture2D" uid="uid://bk6jlsaadiyp1" path="res://Assets/UI/Right_hover.png" id="7_apyyq"]
-[ext_resource type="Texture2D" uid="uid://dx5tolm3tylfu" path="res://Assets/UI/SmallUp.png" id="8_dc7ay"]
-[ext_resource type="Texture2D" uid="uid://cmd5o65y427fk" path="res://Assets/UI/SmallUp_pressed.png" id="9_dw2yv"]
-[ext_resource type="Texture2D" uid="uid://h3tikydpti15" path="res://Assets/UI/SmallUp_hover.png" id="10_ywdh2"]
-[ext_resource type="Texture2D" uid="uid://6jjbc4m8j2kd" path="res://Assets/UI/SmallLeft.png" id="11_luxum"]
-[ext_resource type="Texture2D" uid="uid://oaugjupvgxo2" path="res://Assets/UI/SmallLeft_pressed.png" id="12_chytj"]
-[ext_resource type="Texture2D" uid="uid://b4gral60js4aq" path="res://Assets/UI/SmallLeft_hover.png" id="13_uj7n0"]
-[ext_resource type="Texture2D" uid="uid://blltuc5fboj5g" path="res://Assets/UI/SmallCenter.png" id="14_pw3t6"]
-[ext_resource type="Texture2D" uid="uid://p1vd4bp7h0q6" path="res://Assets/UI/SmallCenter_pressed.png" id="15_e0lu3"]
-[ext_resource type="Texture2D" uid="uid://8tave7y27sk" path="res://Assets/UI/SmallCenter_hover.png" id="16_mpq11"]
-[ext_resource type="Texture2D" uid="uid://bycwvshved5e5" path="res://Assets/UI/SmallRight.png" id="17_10btl"]
-[ext_resource type="Texture2D" uid="uid://doqfnqg2iev2n" path="res://Assets/UI/SmallRight_pressed.png" id="18_8qxqv"]
-[ext_resource type="Texture2D" uid="uid://c2q0rbe64ws2m" path="res://Assets/UI/SmallRight_hover.png" id="19_x3nyi"]
-[ext_resource type="Texture2D" uid="uid://bf4ruxoukcs72" path="res://Assets/UI/SmallDown.png" id="20_gaiu0"]
-[ext_resource type="Texture2D" uid="uid://b177p71btkwmv" path="res://Assets/UI/SmallDown_pressed.png" id="21_10ghs"]
-[ext_resource type="Texture2D" uid="uid://dua6io0ix1ghi" path="res://Assets/UI/SmallDown_hover.png" id="22_qowd6"]
 [ext_resource type="Texture2D" uid="uid://br0rb1wx0df8s" path="res://Assets/UI/Up.png" id="23_gjujf"]
 [ext_resource type="Texture2D" uid="uid://bvwya61gde7ts" path="res://Assets/UI/Up_pressed.png" id="24_uuvrw"]
 [ext_resource type="Texture2D" uid="uid://cncenmqpng0e2" path="res://Assets/UI/Up_hover.png" id="25_dosm3"]
@@ -37,7 +22,7 @@ font_size = 24
 outline_size = 3
 outline_color = Color(0, 0, 0, 1)
 
-[node name="Overlay" type="Control" node_paths=PackedStringArray("_preview", "_position")]
+[node name="Overlay" type="Control" node_paths=PackedStringArray("_preview", "_position", "_previousButton", "_nextButton", "_generateButton", "_upButton", "_downButton", "_highlightButton")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -47,6 +32,12 @@ grow_vertical = 2
 script = ExtResource("1_ic50a")
 _preview = NodePath("SelectorPreview/HBoxContainer/Background/Background2/Preview")
 _position = NodePath("Position/Label")
+_previousButton = NodePath("SelectorPreview/HBoxContainer/Previous")
+_nextButton = NodePath("SelectorPreview/HBoxContainer/Next")
+_generateButton = NodePath("MarginContainer/Button")
+_upButton = NodePath("HeightModifier/VBoxContainer/Up")
+_downButton = NodePath("HeightModifier/VBoxContainer/Highlight")
+_highlightButton = NodePath("HeightModifier/VBoxContainer/Down")
 
 [node name="SelectorPreview" type="MarginContainer" parent="."]
 layout_mode = 1
@@ -110,12 +101,12 @@ texture_normal = ExtResource("5_evixr")
 texture_pressed = ExtResource("6_5nyjn")
 texture_hover = ExtResource("7_apyyq")
 
-[node name="Offsetter" type="MarginContainer" parent="."]
+[node name="MarginContainer" type="MarginContainer" parent="."]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -40.0
+offset_left = -155.0
 offset_bottom = 40.0
 grow_horizontal = 0
 theme_override_constants/margin_left = 5
@@ -123,48 +114,10 @@ theme_override_constants/margin_top = 5
 theme_override_constants/margin_right = 5
 theme_override_constants/margin_bottom = 5
 
-[node name="GridContainer" type="GridContainer" parent="Offsetter"]
+[node name="Button" type="Button" parent="MarginContainer"]
+custom_minimum_size = Vector2(170, 40)
 layout_mode = 2
-columns = 3
-
-[node name="Control" type="Control" parent="Offsetter/GridContainer"]
-layout_mode = 2
-
-[node name="Up" type="TextureButton" parent="Offsetter/GridContainer"]
-layout_mode = 2
-texture_normal = ExtResource("8_dc7ay")
-texture_pressed = ExtResource("9_dw2yv")
-texture_hover = ExtResource("10_ywdh2")
-
-[node name="Control2" type="Control" parent="Offsetter/GridContainer"]
-layout_mode = 2
-
-[node name="Left" type="TextureButton" parent="Offsetter/GridContainer"]
-layout_mode = 2
-texture_normal = ExtResource("11_luxum")
-texture_pressed = ExtResource("12_chytj")
-texture_hover = ExtResource("13_uj7n0")
-
-[node name="Center" type="TextureButton" parent="Offsetter/GridContainer"]
-layout_mode = 2
-texture_normal = ExtResource("14_pw3t6")
-texture_pressed = ExtResource("15_e0lu3")
-texture_hover = ExtResource("16_mpq11")
-
-[node name="Right" type="TextureButton" parent="Offsetter/GridContainer"]
-layout_mode = 2
-texture_normal = ExtResource("17_10btl")
-texture_pressed = ExtResource("18_8qxqv")
-texture_hover = ExtResource("19_x3nyi")
-
-[node name="Control3" type="Control" parent="Offsetter/GridContainer"]
-layout_mode = 2
-
-[node name="Down" type="TextureButton" parent="Offsetter/GridContainer"]
-layout_mode = 2
-texture_normal = ExtResource("20_gaiu0")
-texture_pressed = ExtResource("21_10ghs")
-texture_hover = ExtResource("22_qowd6")
+text = "Generate Topology"
 
 [node name="Position" type="MarginContainer" parent="."]
 layout_mode = 1
@@ -214,6 +167,7 @@ texture_hover = ExtResource("25_dosm3")
 
 [node name="Highlight" type="TextureButton" parent="HeightModifier/VBoxContainer"]
 layout_mode = 2
+toggle_mode = true
 texture_normal = ExtResource("26_2hu0k")
 texture_pressed = ExtResource("27_dputo")
 texture_hover = ExtResource("28_sv3im")
@@ -226,15 +180,6 @@ texture_hover = ExtResource("28_xtvus")
 
 [connection signal="pressed" from="SelectorPreview/HBoxContainer/Previous" to="." method="_OnPreviousPressed"]
 [connection signal="pressed" from="SelectorPreview/HBoxContainer/Next" to="." method="_OnNextPressed"]
-[connection signal="button_down" from="Offsetter/GridContainer/Up" to="." method="_OnOffsetUpDown"]
-[connection signal="button_up" from="Offsetter/GridContainer/Up" to="." method="_OnOffsetUpUp"]
-[connection signal="button_down" from="Offsetter/GridContainer/Left" to="." method="_OnOffsetLeftDown"]
-[connection signal="button_up" from="Offsetter/GridContainer/Left" to="." method="_OnOffsetLeftUp"]
-[connection signal="pressed" from="Offsetter/GridContainer/Center" to="." method="_OnCenterPressed"]
-[connection signal="button_down" from="Offsetter/GridContainer/Right" to="." method="_OnOffsetRightDown"]
-[connection signal="button_up" from="Offsetter/GridContainer/Right" to="." method="_OnOffsetRightUp"]
-[connection signal="button_down" from="Offsetter/GridContainer/Down" to="." method="_OnOffsetDownDown"]
-[connection signal="button_up" from="Offsetter/GridContainer/Down" to="." method="_OnOffsetDownUp"]
 [connection signal="pressed" from="HeightModifier/VBoxContainer/Up" to="." method="_OnHeightUpPressed"]
 [connection signal="pressed" from="HeightModifier/VBoxContainer/Highlight" to="." method="_OnHighlightHeightPressed"]
 [connection signal="pressed" from="HeightModifier/VBoxContainer/Down" to="." method="_OnHeightDownPressed"]

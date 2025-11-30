@@ -8,6 +8,12 @@ public partial class Tile : Sprite2D
     public TopologyData.CellPathData PathData;
     public TopologyData.CellVisibilityData VisibilityData;
     
+    public int X { get; set; }
+    public int Y { get; set; }
+    public int Z { get; set; }
+
+    public bool Highlighted;
+    public Enums.Mode Mode;
 	
     private const int CellWidth = 86;
     private const int CellHeight = 43;
@@ -21,9 +27,13 @@ public partial class Tile : Sprite2D
     private Color _leftColor = new(0.7f, 0.7f, 0.7f);
     private Color _rightColor = new(0.5f, 0.5f, 0.5f);
     
-    private Color _topHighlightColor = new(0.3f, 0.9f, 0.3f);
-    private Color _leftHighlightColor = new(0.2f, 0.7f, 0.2f);
-    private Color _rightHighlightColor = new(0.1f, 0.5f, 0.1f);
+    private Color _topObstacleColor = new(0.4f, 0.4f, 0.4f, 0.75f);
+    private Color _leftObstacleColor = new(0.3f, 0.3f, 0.3f, 0.75f);
+    private Color _rightObstacleColor = new(0.2f, 0.2f, 0.2f, 0.75f);
+    
+    private Color _topHighlightColor = new(0.3f, 1.0f, 0.3f);
+    private Color _leftHighlightColor = new(0.2f, 0.8f, 0.2f);
+    private Color _rightHighlightColor = new(0.1f, 0.6f, 0.1f);
 
     public override void _Ready()
     {
@@ -51,9 +61,9 @@ public partial class Tile : Sprite2D
         const float halfWidth = CellWidth * 0.5f;
         const float halfHeight = CellHeight * 0.5f;
 
-        Vector2[] topFace = [new(0, -halfHeight), new(halfWidth, 0), new(0, halfHeight), new(-halfWidth, 0)];
-        Vector2[] leftFace = [new(-halfWidth, 0), new(-halfWidth, cubeHeight), new(0, halfHeight + cubeHeight), new(0, halfHeight)];
-        Vector2[] rightFace = [new(0, halfHeight), new(0, halfHeight + cubeHeight), new(halfWidth, cubeHeight), new(halfWidth, 0)];
+        Vector2[] topFace = [new(0, -halfHeight), new(halfWidth, 0), new(0, halfHeight), new(-halfWidth, 0), new(0, -halfHeight)];
+        Vector2[] leftFace = [new(-halfWidth, 0), new(-halfWidth, cubeHeight), new(0, halfHeight + cubeHeight), new(0, halfHeight), new(-halfWidth, 0)];
+        Vector2[] rightFace = [new(0, halfHeight), new(0, halfHeight + cubeHeight), new(halfWidth, cubeHeight), new(halfWidth, 0), new(0, halfHeight)];
 
         if (_isSelected)
         {
@@ -61,45 +71,53 @@ public partial class Tile : Sprite2D
             DrawColoredPolygon(rightFace, _rightHighlightColor);
             DrawColoredPolygon(topFace, _topHighlightColor);
         }
-        else
+        if (!_isSelected && PathData.Cost == -1)
+        {
+            DrawColoredPolygon(leftFace, _leftObstacleColor);
+            DrawColoredPolygon(rightFace, _rightObstacleColor);
+            DrawColoredPolygon(topFace, _topObstacleColor);
+        }
+        if (!_isSelected && PathData.Cost != -1)
         {
             DrawColoredPolygon(leftFace, _leftColor);
             DrawColoredPolygon(rightFace, _rightColor);
             DrawColoredPolygon(topFace, _topColor);
         }
 
-        DrawPolylineColors(topFace.AsSpan(), [Colors.Black, Colors.Black, Colors.Black, Colors.Black], 1.0f, true);
+        DrawPolylineColors(topFace.AsSpan(), [Colors.Black, Colors.Black, Colors.Black, Colors.Black], 0.5f, true);
         DrawPolylineColors(leftFace.AsSpan(), [Colors.Black, Colors.Black, Colors.Black, Colors.Black], 1.0f, false);
         DrawPolylineColors(rightFace.AsSpan(), [Colors.Black, Colors.Black, Colors.Black, Colors.Black], 1.0f, false);
     }
 
     public void SetElementData(GfxData.Element element)
     {
+        Mode = Enums.Mode.Gfx;
         // Data = GlobalData.Instance.Assets[element.CommonData.GfxId].Copy();
         if (!GlobalData.Instance.ValidAssets.TryGetValue(element.CommonData.GfxId, out var asset)) return;
         Data = asset.Copy();
         Element = element;
         Texture = Data.Texture;
-        _baseColor = Colors.White;
         _baseColor = Element.Colors.Length < 3
             ? Colors.White
             : new Color(0.7f + 0.3f * Element.Colors[0], 0.7f + 0.3f * Element.Colors[1], 0.7f + 0.3f * Element.Colors[2]);
         // _baseColor = Element.Colors.Length < 3 ? Colors.White : new Color(Element.Colors[0], Element.Colors[1], Element.Colors[2]);
         SelfModulate = _baseColor;
+        PositionToIso(element.CellX, element.CellY, element.CellZ, element.Height, element.CommonData.OriginX, element.CommonData.OriginY);
+        X = element.CellX;
+        Y = element.CellY;
+        Z = element.CellZ;
+        FlipH = element.CommonData.Flip;
     }
 
-    public void SetPathData(TopologyData.CellPathData pathData)
+    public void SetTopology(TopologyData.CellPathData pathData, TopologyData.CellVisibilityData visibilityData)
     {
-        if (!GlobalData.Instance.ValidAssets.TryGetValue(-1, out var asset)) return;
-        if (!GlobalData.Instance.ValidAssets.TryGetValue(-2, out var asset2)) return;
+        Mode = Enums.Mode.Topology;
         PathData = pathData;
-        Data = PathData.Cost != -1 ? asset : asset2;
-        Texture = Data.Texture;
-    }
-
-    public void SetVisibilityData(TopologyData.CellVisibilityData visibilityData)
-    {
         VisibilityData = visibilityData;
+        PositionToIso(VisibilityData.X, VisibilityData.Y, VisibilityData.Z - VisibilityData.Height, -VisibilityData.Height, 0, 0);
+        X = VisibilityData.X;
+        Y = VisibilityData.Y;
+        Z = VisibilityData.Z;
         QueueRedraw();
     }
 	
@@ -113,6 +131,8 @@ public partial class Tile : Sprite2D
 
     public void Unselect()
     {
+        if (!_isSelected)
+            return;
         SelfModulate = _baseColor;
         _isSelected = false;
         QueueRedraw();
@@ -120,11 +140,25 @@ public partial class Tile : Sprite2D
 
     public void Select()
     {
+        if (_isSelected)
+            return;
         SelfModulate = _highlightColor;
         _isSelected = true;
         QueueRedraw();
     }
 
+    public void Highlight()
+    {
+        SelfModulate = _baseColor with { A = 1.0f };
+        Highlighted = true;
+    }
+
+    public void RemoveHighlight()
+    {
+        SelfModulate = _baseColor with { A = 0.25f };
+        Highlighted = false;
+    }
+ 
     public bool IsValidPixel(Vector2 position)
     {
         var localPos = ToLocal(position);

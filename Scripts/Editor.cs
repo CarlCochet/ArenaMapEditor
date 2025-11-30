@@ -36,12 +36,10 @@ public partial class Editor : Node2D
 		_tools.LocateArenaPressed += _OnLocateArenaPressed;
 		_tools.ExportMapPressed += _OnMapExportedPressed;
 
-		_overlay.PreviewChangePressed += _OnPreviewChangePressed;
-		_overlay.OffsetChangeDown += _OnOffsetChangeDown;
-		_overlay.OffsetChangeUp += _OnOffsetChangeUp;
-		_overlay.CenterPressed += _OnCenterPressed;
-		_overlay.HeightChangePressed += _OnHeightChangePressed;
-		_overlay.HighlightHeightPressed += _OnHighlightHeightPressed;
+		_overlay.PreviewChanged += _OnPreviewChanged;
+		_overlay.HeightChanged += _OnHeightChanged;
+		_overlay.HighlightHeightToggled += OnHighlightHeightToggled;
+		_overlay.GenerateTopologyPressed += _OnGenerateTopologyPressed;
 		
 		_assetsPreview.MouseEntered += _OnAssetPreviewEntered;
 		_assetsPreview.MouseExited += _OnAssetPreviewExited;
@@ -59,8 +57,6 @@ public partial class Editor : Node2D
 
 	public override void _Process(double delta)
 	{
-		if (_map.SelectedTiles.Count == 0)
-			return;
 		if (Input.IsActionJustPressed("save"))
 		{
 			if (_lastDir != null)
@@ -68,8 +64,9 @@ public partial class Editor : Node2D
 			else
 				_saveDialog.Visible = true;
 		}
-			
 		
+		if (_map.SelectedTiles == null || _map.SelectedTiles.Count == 0)
+			return;
 		_gizmo.Position = _map.SelectedTiles[0].GetGlobalTransformWithCanvas().Origin;
 	}
 
@@ -79,7 +76,6 @@ public partial class Editor : Node2D
 		{
 			(_x, _y) = _map.PositionToCoord(GetGlobalMousePosition(), _z);
 			_overlay.UpdatePosition(_x, _y, _z);
-			_map.HighlightTiles(GetGlobalMousePosition());
 		}
 	}
 
@@ -118,44 +114,34 @@ public partial class Editor : Node2D
 		_z = e.Element.CellZ;
 	}
 
-	private void _OnHighlightHeightPressed(object sender, EventArgs e)
+	private void OnHighlightHeightToggled(object sender, Overlay.HighlightHeightToggledEventArgs e)
 	{
-		
+		_map.ToggleHeightHighlight(e.ToggledOn, _z);
 	}
 
-	private void _OnHeightChangePressed(object sender, Overlay.HeightChangedEventArgs e)
+	private void _OnGenerateTopologyPressed(object sender, EventArgs e)
+	{
+		_map.GenerateTopology();
+	}
+
+	private void _OnHeightChanged(object sender, Overlay.HeightChangedEventArgs e)
 	{
 		switch (e.Direction)
 		{
 			case Enums.Direction.Up:
 				_z++;
-				_map.UpdateHeight(_z);
+				_map.UpdateHeightHighlight(_z);
 				_overlay.UpdatePosition(_x, _y, _z);
 				break;
 			case Enums.Direction.Down:
 				_z--;
-				_map.UpdateHeight(_z);
+				_map.UpdateHeightHighlight(_z);
 				_overlay.UpdatePosition(_x, _y, _z);
 				break;
 		}
 	}
 
-	private void _OnCenterPressed(object sender, EventArgs e)
-	{
-		
-	}
-
-	private void _OnOffsetChangeUp(object sender, Overlay.OffsetChangedEventArgs e)
-	{
-		
-	}
-
-	private void _OnOffsetChangeDown(object sender, Overlay.OffsetChangedEventArgs e)
-	{
-		
-	}
-
-	private void _OnPreviewChangePressed(object sender, Overlay.PreviewChangedEventArgs e)
+	private void _OnPreviewChanged(object sender, Overlay.PreviewChangedEventArgs e)
 	{
 		
 	}
@@ -195,7 +181,7 @@ public partial class Editor : Node2D
 		var mapData = GlobalData.Instance.Maps[eventArgs.MapName];
 		if (mapData == null)
 			return;
-		_map.Load(mapData, Enums.Mode.Gfx);
+		_map.Load(mapData);
 		_filter.UpdateBiome(Enums.Biome.Global);
 		_filter.UpdateCategory(Enums.Category.Global);
 		_filter.UpdateMode(Enums.Mode.Gfx);
