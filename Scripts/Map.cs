@@ -32,6 +32,8 @@ public partial class Map : Node2D
     private Enums.Mode _mode;
     private bool _isHighlightActivated;
     private int _z;
+    private bool _pressed;
+    private (int x, int y) _lastCoords = (int.MinValue, int.MinValue);
     
     public event EventHandler<TileSelectedEventArgs> TileSelected;
 
@@ -42,21 +44,63 @@ public partial class Map : Node2D
         CustomCamera.ZoomUpdated += _OnZoomUpdated;
     }
 
+    public override void _Process(double delta)
+    {
+        
+    }
+
     public override void _Input(InputEvent @event)
     {
         if (@event is InputEventMouseMotion)
         {
-            var mousePosition = GetGlobalMousePosition();
-            _gridMaterial.SetShaderParameter("mouse_position", mousePosition);
-            _grid2Material.SetShaderParameter("mouse_position", mousePosition);
+            var globalPosition = GetGlobalMousePosition();
+            _gridMaterial.SetShaderParameter("mouse_position", globalPosition);
+            _grid2Material.SetShaderParameter("mouse_position", globalPosition);
             
-            var coords = PositionToCoord(mousePosition, _z);
+            var coords = PositionToCoord(globalPosition, _z);
             _placementPreview.PositionToIso(coords.x, coords.y, _z);
+            
+            if (!_pressed)
+                return;
+            if (coords.x == _lastCoords.x && coords.y == _lastCoords.y)
+                return;
+            
+            _lastCoords = coords;
+            switch (GlobalData.Instance.SelectedTool)
+            {
+                case Enums.Tool.Erase:
+                    EraseTile(globalPosition);
+                    break;
+                case Enums.Tool.Brush:
+                    PaintTile(globalPosition);
+                    break;
+            }
         }
         if (@event is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } eventMouseButton)
         {
             var globalPosition = GetGlobalMousePosition();
-            SelectTile(globalPosition);
+            _pressed = true;
+            
+            switch (GlobalData.Instance.SelectedTool)
+            {
+                case Enums.Tool.Select:
+                    SelectTile(globalPosition);
+                    break;
+                case Enums.Tool.Erase:
+                    _lastCoords = PositionToCoord(globalPosition, _z);
+                    EraseTile(globalPosition);
+                    break;
+                case Enums.Tool.Brush:
+                    _lastCoords = PositionToCoord(globalPosition, _z);
+                    PaintTile(globalPosition);
+                    break;
+            }
+        }
+
+        if (@event is InputEventMouseButton { Pressed: false, ButtonIndex: MouseButton.Left } eventMouseButton2)
+        {
+            _pressed = false;
+            _lastCoords = (int.MinValue, int.MinValue);
         }
     }
 
@@ -82,14 +126,42 @@ public partial class Map : Node2D
 
     public void UpdateElement(GfxData.Element oldElement, GfxData.Element newElement)
     {
-        _mapData.UpdateElement(oldElement, newElement);
+        _mapData.Gfx.UpdateElement(oldElement, newElement);
         SelectedTiles.FirstOrDefault(t => t.Mode == Enums.Mode.Gfx)?.SetElementData(newElement);
     }
 
     public void UpdateTopologyCell(TopologyData.CellPathData path, TopologyData.CellVisibilityData visibility)
     {
-        _mapData.UpdateTopology(path, visibility);
+        _mapData.Topology.Update(path, visibility);
         SelectedTiles.FirstOrDefault(t => t.Mode == Enums.Mode.Topology)?.SetTopology(path, visibility);
+    }
+
+    public void AddElement(GfxData.Element element)
+    {
+        _mapData.Gfx.AddElement(element);
+        
+        var tile = _tileScene.Instantiate<Tile>();
+        tile.SetElementData(element);
+        tile.Name = element.HashCode.ToString();
+
+        var insertIndex = _gfxTiles.FindIndex(t => t.Element.HashCode > element.HashCode);
+        _gfx.AddChild(tile);
+        if (insertIndex >= 0)
+        {
+            _gfx.MoveChild(tile, insertIndex);
+            _gfxTiles.Insert(insertIndex, tile);
+        }
+        else
+        {
+            _gfxTiles.Add(tile);
+        }
+    }
+
+    public void RemoveElement(GfxData.Element element)
+    {
+        _mapData.Gfx.RemoveElement(element);
+        _gfxTiles.RemoveAll(t => t.Element.HashCode == element.HashCode);
+        _gfx.GetNodeOrNull<Tile>(element.HashCode.ToString())?.QueueFree();
     }
 
     public void UpdateDisplay(Enums.Mode mode)
@@ -261,6 +333,47 @@ public partial class Map : Node2D
         var cellPathData = _mapData.Topology.GetPathData(selectedTile.X, selectedTile.Y);
         var visibilityData = _mapData.Topology.GetVisibilityData(selectedTile.X, selectedTile.Y);
         TileSelected?.Invoke(this, new TileSelectedEventArgs(selectedTile.Element, cellPathData, visibilityData));
+    }
+
+    private void EraseTile(Vector2 position)
+    {
+        if (!CustomCamera.HasFocus)
+            return;
+        
+        var topTile = _gfxTiles
+            .FindAll(t => t.IsValidPixel(position))
+            .OrderBy(t => t.Element.HashCode)
+            .LastOrDefault();
+        if (topTile == null)
+            return;
+        
+        RemoveElement(topTile.Element);
+    }
+
+    private void PaintTile(Vector2 position)
+    {
+        if (!CustomCamera.HasFocus)
+            return;
+        
+        var topTile = _gfxTiles
+            .FindAll(t => t.IsValidPixel(position))
+            .OrderBy(t => t.Element.HashCode)
+            .LastOrDefault();
+        if (topTile == null)
+            return;
+        
+        var element = new GfxData.Element(_placementPreview.X, _placementPreview.Y)
+        {
+            CellZ = _placementPreview.Z,
+            Height = _placementPreview.ElementData.VisualHeight,
+            Left = (int)_placementPreview.GlobalPosition.X,
+            Top = _placementPreview.ElementData.OriginY - (int)_placementPreview.GlobalPosition.Y,
+            Occluder = true,
+            CommonData = _placementPreview.ElementData,
+            Color = Colors.White,
+            Colors = [1f, 1f, 1f]
+        };
+        AddElement(element);
     }
     
     private void _OnZoomUpdated(object sender, Camera.ZoomUpdatedEventArgs e)

@@ -92,22 +92,6 @@ public partial class Editor : Node2D
 	
 	private void _OnTileSelected(object sender, Map.TileSelectedEventArgs e)
 	{
-		GD.Print($"Selected tile: {e.Element.CommonData.Id}");
-		
-		if (e.PathData != null)
-		{
-			var data = e.PathData;
-			GD.Print("Path data:");
-			GD.Print($"({data.X}, {data.Y}, {data.Z}) | CanMoveThrough: {data.CanMoveThrough} | Cost: {data.Cost} | Height: {data.Height} | MurFinInfo: {data.MurFinInfo} | MiscProperties: {data.MiscProperties}");
-		}
-		
-		if (e.VisibilityData != null)
-		{
-			var data = e.VisibilityData;
-			GD.Print("Visibility data:");
-			GD.Print($"({data.X}, {data.Y}, {data.Z}) | CanViewThrough: {data.CanViewThrough} | Height: {data.Height}");
-		}
-		
 		_inspector.Update(e.Element, e.PathData, e.VisibilityData);
 		_assetsPreview.Update(e.Element);
 		_tools.Update(e.Element);

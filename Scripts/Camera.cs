@@ -49,8 +49,7 @@ public partial class Camera : Camera2D
 				UpdateZoom(oldMousePosition);
 			}
 		}
-		
-		// GD.Print("Unhandled Input: " + @event.ToString());
+
 		if (@event is InputEventMouseMotion eventMouseMotion)
 		{
 			if (eventMouseMotion.ButtonMask == MouseButtonMask.Right)

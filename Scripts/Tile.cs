@@ -86,21 +86,19 @@ public partial class Tile : Sprite2D
     public void SetElementData(GfxData.Element element)
     {
         Mode = Enums.Mode.Gfx;
-        // Data = GlobalData.Instance.Assets[element.CommonData.GfxId].Copy();
         if (!GlobalData.Instance.ValidAssets.TryGetValue(element.CommonData.GfxId, out var asset)) return;
         Data = asset.Copy();
         Element = element;
         Texture = Data.Texture;
-        _baseColor = Element.Colors.Length < 3
-            ? Colors.White
-            : new Color(0.7f + 0.3f * Element.Colors[0], 0.7f + 0.3f * Element.Colors[1], 0.7f + 0.3f * Element.Colors[2]);
-        // _baseColor = Element.Colors.Length < 3 ? Colors.White : new Color(Element.Colors[0], Element.Colors[1], Element.Colors[2]);
+        _baseColor = new Color(0.5f + 0.5f * Element.Color[0], 0.5f + 0.5f * Element.Color[1], 0.5f + 0.5f * Element.Color[2]);
+        // _baseColor = Element.Color;
         SelfModulate = _baseColor;
         PositionToIso(element.CellX, element.CellY, element.CellZ, element.Height, element.CommonData.OriginX, element.CommonData.OriginY);
         X = element.CellX;
         Y = element.CellY;
         Z = element.CellZ;
         FlipH = element.CommonData.Flip;
+        Name = element.HashCode.ToString();
     }
 
     public void SetTopology(TopologyData.CellPathData pathData, TopologyData.CellVisibilityData visibilityData)
@@ -117,10 +115,6 @@ public partial class Tile : Sprite2D
 	
     public void PositionToIso(int x, int y, int z, int height, int originX, int originY)
     {
-        if (x == 14 && y == 16)
-        {
-            GD.Print("ZEBI PUTAIN");
-        }
         var newX = (x - y) * GlobalData.CellWidth * 0.5f;
         var newY = (x + y) * GlobalData.CellHeight * 0.5f - (z - height) * GlobalData.ElevationStep;
         Offset = Offset with { X = -originX, Y = -originY };
@@ -140,7 +134,6 @@ public partial class Tile : Sprite2D
     {
         if (_isSelected)
             return;
-        GD.Print(GlobalPosition);
         SelfModulate = _highlightColor;
         _isSelected = true;
         QueueRedraw();
@@ -160,8 +153,12 @@ public partial class Tile : Sprite2D
  
     public bool IsValidPixel(Vector2 position)
     {
+        if (!IsInsideTree() || IsQueuedForDeletion())
+            return false;
+        
         if (!Highlighted)
             return false;
+        
         
         var localPos = ToLocal(position);
         if (!GetRect().HasPoint(localPos))

@@ -108,16 +108,6 @@ public class MapData
         Topology.SaveJson($"{path}/json");
     }
 
-    public void UpdateElement(GfxData.Element oldElement, GfxData.Element newElement)
-    {
-        Gfx.Update(oldElement, newElement);
-    }
-
-    public void UpdateTopology(TopologyData.CellPathData path, TopologyData.CellVisibilityData visibility)
-    {
-        Topology.Update(path, visibility);
-    }
-
     private void LoadAmbiance(string path)
     {
         using var archive = ZipFile.OpenRead(path);

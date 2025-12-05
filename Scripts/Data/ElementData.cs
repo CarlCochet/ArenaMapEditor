@@ -11,26 +11,26 @@ public class ElementData
     public short ImgWidth { get; set; }
     public short ImgHeight { get; set; }
     public int GfxId { get; set; }
-    public byte VisualHeight { get; set; }
-    public byte VisibilityMask { get; set; }
-    public byte ShaderId { get; set; }
-    public byte PropertiesFlag { get; set; }
-    public byte GroundSoundType { get; set; }
-    public byte Slope { get; set; }
+    public sbyte VisualHeight { get; set; }
+    public sbyte VisibilityMask { get; set; }
+    public sbyte ShaderId { get; set; }
+    public sbyte PropertiesFlag { get; set; }
+    public sbyte GroundSoundType { get; set; }
+    public sbyte Slope { get; set; }
     public bool MoveTop { get; set; }
     public bool Walkable { get; set; }
     public bool Animated { get; set; }
     public bool BeforeMobile { get; set; }
     public bool Flip { get; set; }
 
-    public void Load(BinaryReader reader)
+    public void Load(ExtendedDataInputStream reader)
     {
-        Id = reader.ReadInt32();
-        OriginX = reader.ReadInt16();
-        OriginY = reader.ReadInt16();
-        ImgWidth = reader.ReadInt16();
-        ImgHeight = reader.ReadInt16();
-        GfxId = reader.ReadInt32();
+        Id = reader.ReadInt();
+        OriginX = reader.ReadShort();
+        OriginY = reader.ReadShort();
+        ImgWidth = reader.ReadShort();
+        ImgHeight = reader.ReadShort();
+        GfxId = reader.ReadInt();
             
         PropertiesFlag = reader.ReadByte();
             
@@ -38,7 +38,7 @@ public class ElementData
         VisibilityMask = reader.ReadByte();
         ShaderId = reader.ReadByte();
             
-        Slope = (byte)(PropertiesFlag & 15);
+        Slope = (sbyte)(PropertiesFlag & 15);
         Flip = (PropertiesFlag & 16) == 16;
         MoveTop = (PropertiesFlag & 32) == 32;
         BeforeMobile = (PropertiesFlag & 64) == 64;
@@ -64,30 +64,30 @@ public class ElementData
         private bool _flip = flip;
         private bool _export = export;
 
-        public void Load(BinaryReader reader)
+        public void Load(ExtendedDataInputStream reader)
         {
             var animCount = reader.ReadByte() & 0xFF;
             if (animCount == 0)
                 return;
             
-            Duration = reader.ReadInt32();
+            Duration = reader.ReadInt();
             
-            ImageWidth = reader.ReadInt16();
-            ImageHeight = reader.ReadInt16();
-            ImageWidthTotal = reader.ReadInt16();
-            ImageHeightTotal = reader.ReadInt16();
+            ImageWidth = reader.ReadShort();
+            ImageHeight = reader.ReadShort();
+            ImageWidthTotal = reader.ReadShort();
+            ImageHeightTotal = reader.ReadShort();
             
             AnimationTimes = new short[animCount];
             TextureOffsets = new short[animCount * 2];
 
             for (var i = 0; i < animCount; ++i)
             {
-                AnimationTimes[i] = reader.ReadInt16();
+                AnimationTimes[i] = reader.ReadShort();
             }
 
             for (var i = 0; i < animCount * 2; ++i)
             {
-                TextureOffsets[i] = reader.ReadInt16();
+                TextureOffsets[i] = reader.ReadShort();
             }
         }
 

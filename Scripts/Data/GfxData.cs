@@ -8,10 +8,7 @@ using System.Linq;
 public class GfxData
 {
     public int Id { get; set; }
-    public const int MapWidth = 1024;
-    public const int MapHeight = 576;
     public List<Partition> Partitions { get; set; } = [];
-    public Dictionary<long, Partition> PartitionsMap { get; set; } = new();
     
     private const int ElevationStep = 10;
 
@@ -41,6 +38,10 @@ public class GfxData
             Partitions.Add(partition);
         }
         Partitions = Partitions.OrderBy(p => p.X).ThenBy(p => p.Y).ToList();
+        GD.Print($"--------------------- Map {Id} ---------------------");
+        GD.Print(Partitions.SelectMany(p => p.Elements).Count(e => e.CommonData?.GfxId != -1));
+        CleanupDuplicates();
+        GD.Print(Partitions.SelectMany(p => p.Elements).Count(e => e.CommonData?.GfxId != -1));
     }
 
     public void Save(string path)
@@ -57,7 +58,7 @@ public class GfxData
         }
     }
 
-    public void Update(Element oldElement, Element newElement)
+    public void UpdateElement(Element oldElement, Element newElement)
     {
         var partition = Partitions.FirstOrDefault(p => p.Elements.Contains(oldElement));
         if (partition == null)
@@ -67,17 +68,80 @@ public class GfxData
         newElement.ComputeHashCode();
         partition.Elements[index] = newElement;
         partition.SortElements();
+        partition.RecomputeBounds();
     }
 
     public void AddElement(Element element)
     {
-        
+        var partition = Partitions
+            .OrderBy(p => p.DistanceToCenter(element.CellX, element.CellY))
+            .FirstOrDefault();
+        var maxOrder = Partitions
+            .SelectMany(p => p.Elements)
+            .Where(e => e.CellX == element.CellX && e.CellY == element.CellY)
+            .Select(e => (int?)e.AltitudeOrder)
+            .DefaultIfEmpty(-1)
+            .Max() ?? -1;
+        element.AltitudeOrder = (sbyte)(maxOrder + 1);
+        element.ComputeHashCode();
+        partition?.AddElement(element);
     }
 
     public void RemoveElement(Element element)
     {
         var partition = Partitions.FirstOrDefault(p => p.Elements.Contains(element));
         partition?.Elements.Remove(element);
+        partition?.SortElements();
+        
+        var elements = Partitions
+            .SelectMany(p => p.Elements)
+            .Where(e => e.CellX == element.CellX && e.CellY == element.CellY)
+            .OrderBy(e => e.AltitudeOrder)
+            .ToList();
+        
+        for (var i = 0; i < elements.Count; i++)
+        {
+            elements[i].AltitudeOrder = (sbyte)i;
+            elements[i].ComputeHashCode();
+        }
+        Partitions.ForEach(p => p.SortElements());
+    }
+
+    private void CleanupDuplicates()
+    {
+        var seen = new HashSet<(int cellX, int cellY, short cellZ, int gfxId)>();
+        
+        
+        foreach (var partition in Partitions)
+        {
+            var filtered = (from element in partition.Elements 
+                let gfxId = element.CommonData?.GfxId ?? -1 
+                let key = (element.CellX, element.CellY, element.CellZ, gfxId) 
+                where seen.Add(key) 
+                select element)
+                .ToList();
+            partition.Elements = filtered;
+        }
+
+        var elementsByCell = Partitions
+            .SelectMany(p => p.Elements)
+            .GroupBy(e => (e.CellX, e.CellY))
+            .ToList();
+        foreach (var group in elementsByCell)
+        {
+            var ordered = group.OrderBy(e => e.AltitudeOrder).ToList();
+            for (var i = 0; i < ordered.Count; i++)
+            {
+                ordered[i].AltitudeOrder = (sbyte)i;
+                ordered[i].ComputeHashCode();
+            }
+        }
+
+        foreach (var partition in Partitions)
+        {
+            partition.SortElements();
+            partition.RecomputeBounds();
+        }
     }
 
     public class Partition
@@ -99,11 +163,18 @@ public class GfxData
         private int _coordMaxY = int.MinValue;
         private short _coordMaxZ = short.MinValue;
 
+        private int _centerX = int.MinValue;
+        private int _centerY = int.MinValue;
+
+        private Color _color;
+
         public Partition(ZipArchiveEntry entry, short x, short y)
         {
             Id = entry.FullName;
             X = x;
             Y = y;
+            _color = new Color(GlobalData.Instance.Rng.Randf(), GlobalData.Instance.Rng.Randf(),
+                GlobalData.Instance.Rng.Randf());
             Load(entry);
         }
 
@@ -188,6 +259,8 @@ public class GfxData
             }
             
             SortElements();
+            _centerX = (_coordMaxX + _coordMinX) / 2;
+            _centerY = (_coordMaxY + _coordMinY) / 2;
         }
 
         public void Save(OutputBitStream writer)
@@ -312,8 +385,17 @@ public class GfxData
                 .Select(x => x.Element)
                 .ToList();
         }
+        
+        public int DistanceToCenter(int x, int y) => Math.Abs(x - _centerX) + Math.Abs(y - _centerY);
 
-        private void RecomputeBounds()
+        public void AddElement(Element element)
+        {
+            Elements.Add(element);
+            SortElements();
+            RecomputeBounds();
+        }
+        
+        public void RecomputeBounds()
         {
             _coordMinX = int.MaxValue;
             _coordMinY = int.MaxValue;
@@ -331,6 +413,9 @@ public class GfxData
                 _coordMinZ = Math.Min(_coordMinZ, element.CellZ);
                 _coordMaxZ = Math.Max(_coordMaxZ, element.CellZ);
             }
+            
+            _centerX = (_coordMaxX + _coordMinX) / 2;
+            _centerY = (_coordMaxY + _coordMinY) / 2;
         }
         
         private static List<(int minX, int maxX, int minY, int maxY)> BuildRectangles(Dictionary<(int, int), List<Element>> cellMap)

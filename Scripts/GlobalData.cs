@@ -92,9 +92,9 @@ public class GlobalData
         }
         
         using var stream = entry.Open();
-        using var reader = new BinaryReader(stream);
+        var reader = new ExtendedDataInputStream(stream);
         
-        var elementCount = reader.ReadInt32();
+        var elementCount = reader.ReadInt();
         Elements.EnsureCapacity(elementCount);
         
         for (var i = 0; i < elementCount; i++)
