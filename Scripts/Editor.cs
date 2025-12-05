@@ -35,6 +35,7 @@ public partial class Editor : Node2D
 		_tools.MapSelected += _OnMapSelected;
 		_tools.LocateArenaPressed += _OnLocateArenaPressed;
 		_tools.ExportMapPressed += _OnMapExportedPressed;
+		_tools.ToolSelected += _OnToolSelected;
 
 		_overlay.PreviewChanged += _OnPreviewChanged;
 		_overlay.HeightChanged += _OnHeightChanged;
@@ -43,12 +44,12 @@ public partial class Editor : Node2D
 		
 		_assetsPreview.MouseEntered += _OnAssetPreviewEntered;
 		_assetsPreview.MouseExited += _OnAssetPreviewExited;
+		_assetsPreview.AssetSelected += _OnAssetSelected;
 
 		_inspector.ElementUpdated += _OnElementUpdated;
 		_inspector.TopologyUpdated += _OnTopologyUpdated;
 		_inspector.MouseEntered += _OnAssetPreviewEntered;
 		_inspector.MouseExited += _OnAssetPreviewExited;
-		
 		
 		_map.TileSelected += _OnTileSelected;
 		if (GlobalData.Instance.Settings != null)
@@ -130,12 +131,12 @@ public partial class Editor : Node2D
 		{
 			case Enums.Direction.Up:
 				_z++;
-				_map.UpdateHeightHighlight(_z);
+				_map.UpdateHeight(_z);
 				_overlay.UpdatePosition(_x, _y, _z);
 				break;
 			case Enums.Direction.Down:
 				_z--;
-				_map.UpdateHeightHighlight(_z);
+				_map.UpdateHeight(_z);
 				_overlay.UpdatePosition(_x, _y, _z);
 				break;
 		}
@@ -148,12 +149,12 @@ public partial class Editor : Node2D
 	
 	private void _OnElementUpdated(object sender, Inspector.ElementUpdatedEventArgs e)
 	{
-		_map.UpdateElement(e.Element);
+		_map.UpdateElement(e.OldElement, e.NewElement);
 	}
 
 	private void _OnTopologyUpdated(object sender, Inspector.TopologyUpdatedEventArgs e)
 	{
-		_map.UpdateTopology(e.Path, e.Visibility);
+		_map.UpdateTopologyCell(e.Path, e.Visibility);
 	}
 	
 	private void _OnAssetPreviewEntered()
@@ -165,6 +166,11 @@ public partial class Editor : Node2D
 	{
 		_map.UpdateFocus(true);
 	}
+
+	private void _OnAssetSelected(object sender, AssetsPreview.AssetSelectedEventArgs e)
+	{
+		_map.UpdatePreview(e.Element);
+	}
 	
 	private void _OnLocateArenaPressed(object sender, EventArgs eventArgs)
 	{
@@ -174,6 +180,11 @@ public partial class Editor : Node2D
 	private void _OnMapExportedPressed(object sender, EventArgs e)
 	{
 		_saveDialog.Visible = true;
+	}
+
+	private void _OnToolSelected(object sender, Tools.ToolSelectedEventArgs eventArgs)
+	{
+		_map.ShowPlacementPreview(eventArgs.Tool != Enums.Tool.Select && eventArgs.Tool != Enums.Tool.Erase);
 	}
 	
 	private void _OnMapSelected(object sender, Tools.MapSelectedEventArgs eventArgs)

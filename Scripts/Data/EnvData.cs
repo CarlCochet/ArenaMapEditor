@@ -11,8 +11,6 @@ public class EnvData
     public List<Partition> Partitions { get; set; } = [];
     public Dictionary<long, Partition> PartitionsMap { get; set; } = new();
 
-    private sbyte _version;
-
     public EnvData(string id)
     {
         if (!int.TryParse(id, out var worldId))

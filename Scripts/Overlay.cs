@@ -17,7 +17,6 @@ public partial class Overlay : Control
 	public event EventHandler<HighlightHeightToggledEventArgs> HighlightHeightToggled;
 	public event EventHandler GenerateTopologyPressed;
 
-
 	public override void _Ready()
 	{
 		_previousButton.Pressed += _OnPreviousPressed;

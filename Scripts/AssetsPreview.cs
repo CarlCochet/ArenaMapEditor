@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 public partial class AssetsPreview : Control
 {
@@ -19,6 +20,8 @@ public partial class AssetsPreview : Control
 	private const int HeaderHeight = 180;
 	private const int AssetSize = 50;
 	private const int ColumnCount = 6;
+	
+	public event EventHandler<AssetSelectedEventArgs> AssetSelected; 
 
 	public override void _Ready()
 	{
@@ -94,8 +97,15 @@ public partial class AssetsPreview : Control
 	{
 		foreach (var component in _components)
 		{
-			component.Select(component.Index == eventArgs.Index);
+			component.Select(component.GfxId == eventArgs.GfxId);
 		}
+
+		var element = GlobalData.Instance.Elements.Values.FirstOrDefault(e => e.GfxId == eventArgs.GfxId && !e.Flip) ??
+		              GlobalData.Instance.Elements.Values.FirstOrDefault(e => e.GfxId == eventArgs.GfxId);
+		if (element == null) 
+			return;
+
+		AssetSelected?.Invoke(this, new AssetSelectedEventArgs(element));
 	}
 
 	private void _OnPreviousPressed()
@@ -114,5 +124,10 @@ public partial class AssetsPreview : Control
 	{
 		_currentPage = (int)newPage;
 		DisplayAssets(_biome, _category, _mode);
+	}
+
+	public class AssetSelectedEventArgs(ElementData element) : EventArgs
+	{
+		public ElementData Element => element;
 	}
 }

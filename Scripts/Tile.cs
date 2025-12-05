@@ -15,29 +15,23 @@ public partial class Tile : Sprite2D
     public bool Highlighted = true;
     public Enums.Mode Mode;
 	
-    private const int CellWidth = 86;
-    private const int CellHeight = 43;
-    private const int ElevationStep = 10;
-	
     private bool _isSelected;
     private Color _highlightColor = Colors.Green;
     private Color _baseColor = Colors.White;
     
     private Color _topColor = new(0.9f, 0.9f, 0.9f);
-    private Color _leftColor = new(0.7f, 0.7f, 0.7f);
-    private Color _rightColor = new(0.5f, 0.5f, 0.5f);
+    private Color _leftColor = new(0.8f, 0.8f, 0.8f);
+    private Color _rightColor = new(0.6f, 0.6f, 0.6f);
     
-    private Color _topObstacleColor = new(0.4f, 0.4f, 0.4f, 0.75f);
-    private Color _leftObstacleColor = new(0.3f, 0.3f, 0.3f, 0.75f);
-    private Color _rightObstacleColor = new(0.2f, 0.2f, 0.2f, 0.75f);
+    private Color _topObstacleColor = new(0.7f, 0.4f, 0.4f, 0.75f);
+    private Color _leftObstacleColor = new(0.6f, 0.3f, 0.3f, 0.75f);
+    private Color _rightObstacleColor = new(0.5f, 0.2f, 0.2f, 0.75f);
     
     private Color _topHighlightColor = new(0.3f, 1.0f, 0.3f);
     private Color _leftHighlightColor = new(0.2f, 0.8f, 0.2f);
     private Color _rightHighlightColor = new(0.1f, 0.6f, 0.1f);
 
-    public override void _Ready()
-    {
-    }
+    public override void _Ready() { }
 	
     public override void _Draw()
     {
@@ -57,9 +51,9 @@ public partial class Tile : Sprite2D
         if (VisibilityData.CanViewThrough)
             return;
         
-        var cubeHeight = VisibilityData.Height * ElevationStep;
-        const float halfWidth = CellWidth * 0.5f;
-        const float halfHeight = CellHeight * 0.5f;
+        var cubeHeight = VisibilityData.Height * GlobalData.ElevationStep;
+        const float halfWidth = GlobalData.CellWidth * 0.5f;
+        const float halfHeight = GlobalData.CellHeight * 0.5f;
 
         Vector2[] topFace = [new(0, -halfHeight), new(halfWidth, 0), new(0, halfHeight), new(-halfWidth, 0), new(0, -halfHeight)];
         Vector2[] leftFace = [new(-halfWidth, 0), new(-halfWidth, cubeHeight), new(0, halfHeight + cubeHeight), new(0, halfHeight), new(-halfWidth, 0)];
@@ -123,8 +117,12 @@ public partial class Tile : Sprite2D
 	
     public void PositionToIso(int x, int y, int z, int height, int originX, int originY)
     {
-        var newX = (x - y) * CellWidth * 0.5f;
-        var newY = (x + y) * CellHeight * 0.5f - (z - height) * ElevationStep;
+        if (x == 14 && y == 16)
+        {
+            GD.Print("ZEBI PUTAIN");
+        }
+        var newX = (x - y) * GlobalData.CellWidth * 0.5f;
+        var newY = (x + y) * GlobalData.CellHeight * 0.5f - (z - height) * GlobalData.ElevationStep;
         Offset = Offset with { X = -originX, Y = -originY };
         Position = new Vector2(newX, newY);
     }
@@ -142,6 +140,7 @@ public partial class Tile : Sprite2D
     {
         if (_isSelected)
             return;
+        GD.Print(GlobalPosition);
         SelfModulate = _highlightColor;
         _isSelected = true;
         QueueRedraw();

@@ -79,3 +79,4 @@ modulate = Color(1, 1, 1, 0.5019608)
 modulate = Color(1, 1, 1, 0.5019608)
 
 [node name="PlacementPreview" parent="." instance=ExtResource("7_5t7yc")]
+visible = false

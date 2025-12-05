@@ -20,11 +20,6 @@ public partial class PreviewComponent : Control
         GfxId = data.Id;
     }
 
-    public void Unselect()
-    {
-        _button.SetPressed(false);
-    }
-
     public void Select(bool selected)
     {
         _button.SetPressed(selected);
@@ -32,11 +27,11 @@ public partial class PreviewComponent : Control
 
     private void _OnPressed()
     {
-        Pressed?.Invoke(this, new PressedEventArgs(Index));
+        Pressed?.Invoke(this, new PressedEventArgs(GfxId));
     }
     
-    public class PressedEventArgs(int index): EventArgs
+    public class PressedEventArgs(int gfxId): EventArgs
     {
-        public int Index => index;
+        public int GfxId => gfxId;
     }
 }

@@ -29,6 +29,7 @@ public partial class Tools : Control
 	public event EventHandler LocateArenaPressed;
 	public event EventHandler<MapSelectedEventArgs> MapSelected;
 	public event EventHandler ExportMapPressed;
+	public event EventHandler<ToolSelectedEventArgs> ToolSelected;
 
 	public override void _Ready()
 	{
@@ -71,6 +72,7 @@ public partial class Tools : Control
 		GlobalData.Instance.SelectedTool = Enums.Tool.Select;
 		ResetTools();
 		_selectButton.SetPressed(true);
+		ToolSelected?.Invoke(this, new ToolSelectedEventArgs(Enums.Tool.Select));
 	}
 	
 	private void _OnBrushPressed()
@@ -78,6 +80,7 @@ public partial class Tools : Control
 		GlobalData.Instance.SelectedTool = Enums.Tool.Brush;
 		ResetTools();
 		_brushButton.SetPressed(true);
+		ToolSelected?.Invoke(this, new ToolSelectedEventArgs(Enums.Tool.Brush));
 	}
 	
 	private void _OnLinePressed()
@@ -85,6 +88,7 @@ public partial class Tools : Control
 		GlobalData.Instance.SelectedTool = Enums.Tool.Line;
 		ResetTools();
 		_lineButton.SetPressed(true);
+		ToolSelected?.Invoke(this, new ToolSelectedEventArgs(Enums.Tool.Line));
 	}
 	
 	private void _OnAreaPressed()
@@ -92,6 +96,7 @@ public partial class Tools : Control
 		GlobalData.Instance.SelectedTool = Enums.Tool.Area;
 		ResetTools();
 		_areaButton.SetPressed(true);
+		ToolSelected?.Invoke(this, new ToolSelectedEventArgs(Enums.Tool.Area));
 	}
 
 	private void _OnEraserPressed()
@@ -99,6 +104,7 @@ public partial class Tools : Control
 		GlobalData.Instance.SelectedTool = Enums.Tool.Erase;
 		ResetTools();
 		_eraserButton.SetPressed(true);
+		ToolSelected?.Invoke(this, new ToolSelectedEventArgs(Enums.Tool.Erase));
 	}
 
 	private void ResetTools()
@@ -164,5 +170,10 @@ public partial class Tools : Control
 	public class MapSelectedEventArgs(string mapName) : EventArgs
 	{
 		public string MapName => mapName;
+	}
+
+	public class ToolSelectedEventArgs(Enums.Tool tool) : EventArgs
+	{
+		public Enums.Tool Tool => tool;
 	}
 }

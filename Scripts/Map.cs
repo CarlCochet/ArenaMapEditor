@@ -18,10 +18,6 @@ public partial class Map : Node2D
     [Export] private Sprite2D _grid;
     [Export] private Sprite2D _grid2;
     [Export] private PlacementPreview _placementPreview;
-    
-    private const int CellWidth = 86;
-    private const int CellHeight = 43;
-    private const int ElevationStep = 10;
 
     private List<Tile> _gfxTiles = [];
     private List<Tile> _topologyTiles = [];
@@ -35,6 +31,7 @@ public partial class Map : Node2D
     private MapData _mapData;
     private Enums.Mode _mode;
     private bool _isHighlightActivated;
+    private int _z;
     
     public event EventHandler<TileSelectedEventArgs> TileSelected;
 
@@ -49,8 +46,12 @@ public partial class Map : Node2D
     {
         if (@event is InputEventMouseMotion)
         {
-            _gridMaterial.SetShaderParameter("mouse_position", GetGlobalMousePosition());
-            _grid2Material.SetShaderParameter("mouse_position", GetGlobalMousePosition());
+            var mousePosition = GetGlobalMousePosition();
+            _gridMaterial.SetShaderParameter("mouse_position", mousePosition);
+            _grid2Material.SetShaderParameter("mouse_position", mousePosition);
+            
+            var coords = PositionToCoord(mousePosition, _z);
+            _placementPreview.PositionToIso(coords.x, coords.y, _z);
         }
         if (@event is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } eventMouseButton)
         {
@@ -59,19 +60,18 @@ public partial class Map : Node2D
         }
     }
 
-    public void UpdateFocus(bool hasFocus)
-    {
-        CustomCamera.HasFocus = hasFocus;
-    }
+    public void UpdateFocus(bool hasFocus) => CustomCamera.HasFocus = hasFocus;
 
-    public void UpdateHeightHighlight(int z)
+    public void UpdateHeight(int z)
     {
+        _z = z;
+        
         if (!_isHighlightActivated)
             return;
         
         foreach (var tile in _gfxTiles)
         {
-            if (tile.Z == z)
+            if (tile.Z == _z)
             {
                 tile.Highlight();
                 continue;
@@ -80,13 +80,13 @@ public partial class Map : Node2D
         }
     }
 
-    public void UpdateElement(GfxData.Element elementData)
+    public void UpdateElement(GfxData.Element oldElement, GfxData.Element newElement)
     {
-        _mapData.UpdateElement(elementData);
-        SelectedTiles.FirstOrDefault(t => t.Mode == Enums.Mode.Gfx)?.SetElementData(elementData);
+        _mapData.UpdateElement(oldElement, newElement);
+        SelectedTiles.FirstOrDefault(t => t.Mode == Enums.Mode.Gfx)?.SetElementData(newElement);
     }
 
-    public void UpdateTopology(TopologyData.CellPathData path, TopologyData.CellVisibilityData visibility)
+    public void UpdateTopologyCell(TopologyData.CellPathData path, TopologyData.CellVisibilityData visibility)
     {
         _mapData.UpdateTopology(path, visibility);
         SelectedTiles.FirstOrDefault(t => t.Mode == Enums.Mode.Topology)?.SetTopology(path, visibility);
@@ -118,50 +118,20 @@ public partial class Map : Node2D
     public void Load(MapData mapData)
     {
         _mapData = mapData;
-        Clear();
-        
-        var sortedElements = _mapData.Gfx.Partitions
-            .SelectMany(p => p.Elements)
-            .OrderBy(t => t.HashCode)
-            .ToList();
-
-        foreach (var element in sortedElements)
-        {
-            var tile = _tileScene.Instantiate<Tile>();
-            tile.SetElementData(element);
-            _gfx.AddChild(tile);
-            _gfxTiles.Add(tile);
-        }
-        
-        var topology = _mapData.Topology;
-        for (var x = topology.InstanceSet.MinX; x <= topology.InstanceSet.MinX + topology.InstanceSet.Width; x++)
-        {
-            for (var y = topology.InstanceSet.MinY; y <= topology.InstanceSet.MinY + topology.InstanceSet.Height; y++)
-            {
-                var cellVisibilityData = topology.GetVisibilityData(x, y);
-                var cellPathData = topology.GetPathData(x, y);
-                if (cellVisibilityData == null || cellPathData == null)
-                    continue;
-                if (cellVisibilityData.CanViewThrough && cellPathData.CanMoveThrough) 
-                    continue;
-                
-                var tile = _tileScene.Instantiate<Tile>();
-                tile.SetTopology(cellPathData, cellVisibilityData);
-                _topology.AddChild(tile);
-                _topologyTiles.Add(tile);
-            }
-        }
-        
+        LoadGfx();
+        LoadTopology();
+        LoadFight();
+        LoadLight();
         UpdateDisplay(Enums.Mode.Gfx);
     }
 
-    public (int x, int y) PositionToCoord(Vector2 position, int height)
+    public (int x, int y) PositionToCoord(Vector2 position, int z)
     {
-        var posX = position.X + CellWidth * 0.5f;
-        var posY = position.Y + CellHeight * 0.5f - height * ElevationStep;
+        var posX = position.X;
+        var posY = position.Y + GlobalData.CellHeight * 0.5f - z * GlobalData.ElevationStep;
         
-        var x = posX / CellWidth + posY / CellHeight;
-        var y = posY / CellHeight - posX / CellWidth;
+        var x = posX / GlobalData.CellWidth + posY / GlobalData.CellHeight;
+        var y = posY / GlobalData.CellHeight - posX / GlobalData.CellWidth;
         return ((int)x, (int)y);
     }
 
@@ -187,7 +157,79 @@ public partial class Map : Node2D
 
     public void GenerateTopology()
     {
+        _mapData.Topology.GenerateFromGfx(_mapData.Gfx);
+        LoadTopology();
+    }
+
+    public void UpdatePreview(ElementData elementData) => _placementPreview.SetAsset(elementData);
+    
+    public void ShowPlacementPreview(bool show) => _placementPreview.Visible = show;
+ 
+    private void LoadGfx()
+    {
+        foreach (var child in _gfx.GetChildren())
+        {
+            child.QueueFree();
+        }
+        _gfxTiles.Clear();
         
+        var sortedElements = _mapData.Gfx.Partitions
+            .SelectMany(p => p.Elements)
+            .OrderBy(t => t.HashCode)
+            .ToList();
+
+        foreach (var element in sortedElements)
+        {
+            var tile = _tileScene.Instantiate<Tile>();
+            tile.SetElementData(element);
+            _gfx.AddChild(tile);
+            _gfxTiles.Add(tile);
+        }
+    }
+
+    private void LoadTopology()
+    {
+        foreach (var child in _topology.GetChildren())
+        {
+            child.QueueFree();
+        }
+        _topologyTiles.Clear();
+        
+        var topology = _mapData.Topology;
+        for (var x = topology.InstanceSet.MinX; x <= topology.InstanceSet.MinX + topology.InstanceSet.Width; x++)
+        {
+            for (var y = topology.InstanceSet.MinY; y <= topology.InstanceSet.MinY + topology.InstanceSet.Height; y++)
+            {
+                var cellVisibilityData = topology.GetVisibilityData(x, y);
+                var cellPathData = topology.GetPathData(x, y);
+                if (cellVisibilityData == null || cellPathData == null)
+                    continue;
+                if (cellVisibilityData.CanViewThrough && cellPathData.CanMoveThrough) 
+                    continue;
+                
+                var tile = _tileScene.Instantiate<Tile>();
+                tile.SetTopology(cellPathData, cellVisibilityData);
+                _topology.AddChild(tile);
+                _topologyTiles.Add(tile);
+            }
+        }
+    }
+
+    private void LoadFight()
+    {
+        foreach (var child in _fight.GetChildren())
+        {
+            child.QueueFree();
+        }
+        _fightTiles.Clear();
+    }
+
+    private void LoadLight()
+    {
+        foreach (var child in _light.GetChildren())
+        {
+            child.QueueFree();
+        }
     }
 
     private void SelectTile(Vector2 position)
@@ -213,107 +255,18 @@ public partial class Map : Node2D
         SelectedTiles.Add(topologyTile);
         SelectedTiles.ForEach(t => t.Select());
         
-        _gridMaterial.SetShaderParameter("elevation", (float)(selectedTile.Z * ElevationStep));
-        _grid2Material.SetShaderParameter("elevation", (float)(selectedTile.Z * ElevationStep));
+        _gridMaterial.SetShaderParameter("elevation", (float)(selectedTile.Z * GlobalData.ElevationStep));
+        _grid2Material.SetShaderParameter("elevation", (float)(selectedTile.Z * GlobalData.ElevationStep));
+        _z = selectedTile.Z;
         var cellPathData = _mapData.Topology.GetPathData(selectedTile.X, selectedTile.Y);
         var visibilityData = _mapData.Topology.GetVisibilityData(selectedTile.X, selectedTile.Y);
         TileSelected?.Invoke(this, new TileSelectedEventArgs(selectedTile.Element, cellPathData, visibilityData));
-    }
-
-    public void Clear()
-    {
-        foreach (var child in _gfx.GetChildren())
-        {
-            child.QueueFree();
-        }
-        foreach (var child in _fight.GetChildren())
-        {
-            child.QueueFree();
-        }
-        foreach (var child in _light.GetChildren())
-        {
-            child.QueueFree();
-        }
-        foreach (var child in _topology.GetChildren())
-        {
-            child.QueueFree();
-        }
-        
-        _gfxTiles.Clear();
-        _topologyTiles.Clear();
-        _fightTiles.Clear();
     }
     
     private void _OnZoomUpdated(object sender, Camera.ZoomUpdatedEventArgs e)
     {
         _gridMaterial.SetShaderParameter("zoom", e.Zoom);
         _grid2Material.SetShaderParameter("zoom", e.Zoom);
-    }
-
-    private void DisplayGfx()
-    {
-        ResetDisplay();
-    }
-
-    // private void DisplayPath()
-    // {
-    //     ResetDisplay();
-    //     _path.Visible = true;
-    //     
-    //     var topology = _mapData.Topology;
-    //     for (var x = topology.InstanceSet.MinX; x <= topology.InstanceSet.MinX + topology.InstanceSet.Width; x++)
-    //     {
-    //         for (var y = topology.InstanceSet.MinY; y <= topology.InstanceSet.MinY + topology.InstanceSet.Height; y++)
-    //         {
-    //             var cellPathData = topology.GetPathData(x, y);
-    //             if (cellPathData == null)
-    //                 continue;
-    //
-    //             var tile = _tileScene.Instantiate<Tile>();
-    //             tile.SetPathData(cellPathData);
-    //             tile.PositionToIso(cellPathData.X - 1, cellPathData.Y, cellPathData.Z, 0, 0, 0);
-    //             _path.AddChild(tile);
-    //             // _tiles.Add(tile);
-    //         }
-    //     }
-    // }
-    
-    private void DisplayTopology()
-    {
-        ResetDisplay();
-        _topology.Visible = true;
-
-        // var topology = _mapData.Topology;
-        // for (var x = topology.InstanceSet.MinX; x <= topology.InstanceSet.MinX + topology.InstanceSet.Width; x++)
-        // {
-        //     for (var y = topology.InstanceSet.MinY; y <= topology.InstanceSet.MinY + topology.InstanceSet.Height; y++)
-        //     {
-        //         var cellVisibilityData = topology.GetVisibilityData(x, y);
-        //         if (cellVisibilityData == null)
-        //             continue;
-        //
-        //         if (cellVisibilityData.CanViewThrough) 
-        //             continue;
-        //         
-        //         var tile = _tileScene.Instantiate<Tile>();
-        //         tile.SetVisibilityData(cellVisibilityData);
-        //         tile.PositionToIso(cellVisibilityData.X, cellVisibilityData.Y, cellVisibilityData.Z - cellVisibilityData.Height, -cellVisibilityData.Height, 0, 0);
-        //         _topology.AddChild(tile);
-        //         // _tiles.Add(tile);
-        //     }
-        // }
-    }
-
-    private void DisplayLight()
-    {
-        ResetDisplay();
-        _light.Visible = true;
-    }
-
-    private void DisplayFight()
-    {
-        ResetDisplay();
-        _fight.Visible = true;
     }
 
     private void ResetDisplay()

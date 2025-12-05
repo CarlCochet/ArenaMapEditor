@@ -45,77 +45,39 @@ public class GfxData
 
     public void Save(string path)
     {
-        var tempDir = Path.Combine(Path.GetTempPath(), $"gfx_{Id}_{Guid.NewGuid()}");
-        Directory.CreateDirectory(tempDir);
+        foreach (var partition in Partitions)
+        {
+            var mapX = partition.X / MapConstants.MapWidth;
+            var mapY = partition.Y / MapConstants.MapLength;
+            var filePath = Path.Combine(path, $"{mapX}_{mapY}");
         
-        try
-        {
-            foreach (var partition in Partitions)
-            {
-                var mapX = partition.X / MapConstants.MapWidth;
-                var mapY = partition.Y / MapConstants.MapLength;
-                var fileName = $"{mapX}_{mapY}";
-                var filePath = Path.Combine(tempDir, fileName);
-            
-                using var fileStream = File.Create(filePath);
-                using var writer = new OutputBitStream(fileStream);
-                partition.Save(writer);
-            }
-            
-            var jarPath = Path.Combine(path, $"{Id}.jar");
-            if (File.Exists(jarPath))
-            {
-                File.Delete(jarPath);
-            }
-            ZipFile.CreateFromDirectory(tempDir, jarPath);
-        }
-        finally
-        {
-            if (Directory.Exists(tempDir))
-            {
-                Directory.Delete(tempDir, true);
-            }
+            using var fileStream = File.Create(filePath);
+            using var writer = new OutputBitStream(fileStream);
+            partition.Save(writer);
         }
     }
 
-    public void SaveTopology(string path)
+    public void Update(Element oldElement, Element newElement)
     {
-        var tempDir = Path.Combine(Path.GetTempPath(), $"gfx_{Id}_{Guid.NewGuid()}");
-        Directory.CreateDirectory(tempDir);
+        var partition = Partitions.FirstOrDefault(p => p.Elements.Contains(oldElement));
+        if (partition == null)
+            return;
         
-        try
-        {
-            foreach (var partition in Partitions)
-            {
-                var mapX = partition.X / MapConstants.MapWidth;
-                var mapY = partition.Y / MapConstants.MapLength;
-                var fileName = $"{mapX}_{mapY}";
-                var filePath = Path.Combine(tempDir, fileName);
-                
-                using var fileStream = File.Create(filePath);
-                using var writer = new OutputBitStream(fileStream);
-                partition.SaveTopology(writer);
-            }
-            
-            var jarPath = Path.Combine(path, $"{Id}.jar");
-            if (File.Exists(jarPath))
-            {
-                File.Delete(jarPath);
-            }
-            ZipFile.CreateFromDirectory(tempDir, jarPath);
-        }
-        finally
-        {
-            if (Directory.Exists(tempDir))
-            {
-                Directory.Delete(tempDir, true);
-            }
-        }
+        var index = partition.Elements.IndexOf(oldElement);
+        newElement.ComputeHashCode();
+        partition.Elements[index] = newElement;
+        partition.SortElements();
     }
 
-    public void Update(GfxData.Element elementData)
+    public void AddElement(Element element)
     {
         
+    }
+
+    public void RemoveElement(Element element)
+    {
+        var partition = Partitions.FirstOrDefault(p => p.Elements.Contains(element));
+        partition?.Elements.Remove(element);
     }
 
     public class Partition
@@ -225,12 +187,7 @@ public class GfxData
                 }
             }
             
-            Elements = Elements
-                .Select((e, i) => (Element: e, Index: i))
-                .OrderBy(x => x.Element.HashCode)
-                .ThenBy(x => x.Index)
-                .Select(x => x.Element)
-                .ToList();
+            SortElements();
         }
 
         public void Save(OutputBitStream writer)
@@ -250,9 +207,7 @@ public class GfxData
             {
                 var key = (element.GroupKey, element.LayerIndex, element.GroupId);
                 if (groupMap.ContainsKey(key))
-                {
                     continue;
-                }
                 
                 groupMap[key] = groupList.Count;
                 groupList.Add(key);
@@ -273,9 +228,7 @@ public class GfxData
             {
                 var colorKey = string.Join(",", element.Colors);
                 if (colorMap.ContainsKey(colorKey))
-                {
                     continue;
-                }
                 
                 colorMap[colorKey] = colorList.Count;
                 colorList.Add(element.Colors);
@@ -350,21 +303,16 @@ public class GfxData
             }
         }
 
-        public void SaveTopology(OutputBitStream writer)
+        public void SortElements()
         {
-            if (Elements.Count == 0)
-            {
-                var topologyA = new TopologyData.TopologyMapA();
-                topologyA.LoadFromGfx(this);
-                topologyA.Save(writer);
-                return;
-            }
-
-            var topologyCi = new TopologyData.TopologyMapCi();
-            topologyCi.LoadFromGfx(this);
-            topologyCi.Save(writer);
+            Elements = Elements
+                .Select((e, i) => (Element: e, Index: i))
+                .OrderBy(x => x.Element.HashCode)
+                .ThenBy(x => x.Index)
+                .Select(x => x.Element)
+                .ToList();
         }
-        
+
         private void RecomputeBounds()
         {
             _coordMinX = int.MaxValue;
@@ -393,9 +341,7 @@ public class GfxData
             foreach (var cellKey in cellMap.Keys.OrderBy(k => k.Item1).ThenBy(k => k.Item2))
             {
                 if (processed.Contains(cellKey))
-                {
                     continue;
-                }
                     
                 var minX = cellKey.Item1;
                 var minY = cellKey.Item2;
@@ -482,7 +428,7 @@ public class GfxData
             return (x, y);
         }
 
-        private void ComputeHashCode()
+        public void ComputeHashCode()
         {
             HashCode = (CellY + 8192L & 0x3FFFL) << 34 | 
                        (CellX + 8192L & 0x3FFFL) << 19 | 
@@ -505,17 +451,11 @@ public class GfxData
             var baseSize = hasGradient ? colors.Length / 2 : colors.Length;
 
             if (baseSize >= 3)
-            {
                 type |= TeintMask;
-            }
             if (baseSize is 4 or 1)
-            {
                 type |= AlphaMask;
-            }
             if (hasGradient)
-            {
                 type |= GradientMask;
-            }
             
             return type;
         }
@@ -531,9 +471,7 @@ public class GfxData
             }
 
             if ((type & AlphaMask) == AlphaMask)
-            {
                 colors[i++] = reader.ReadByte() / 255.0f + DefaultTeint;
-            }
 
             if ((type & GradientMask) == GradientMask)
             {
@@ -545,9 +483,7 @@ public class GfxData
                 }
 
                 if ((type & AlphaMask) == AlphaMask)
-                {
                     colors[i++] = reader.ReadByte() / 255.0f + DefaultTeint;
-                }
             }
         }
         
@@ -562,9 +498,7 @@ public class GfxData
             }
 
             if ((type & AlphaMask) == AlphaMask)
-            {
                 writer.WriteByte((sbyte)((colors[i++] - DefaultTeint) * 255));
-            }
 
             if ((type & GradientMask) == GradientMask)
             {
@@ -576,10 +510,28 @@ public class GfxData
                 }
 
                 if ((type & AlphaMask) == AlphaMask)
-                {
                     writer.WriteByte((sbyte)((colors[i++] - DefaultTeint) * 255));
-                }
             }
+        }
+
+        public Element Copy()
+        {
+            return new Element(CellX, CellY)
+            {
+                CellZ = CellZ,
+                Top = Top,
+                Left = Left,
+                AltitudeOrder = AltitudeOrder,
+                Height = Height,
+                GroupId = GroupId,
+                LayerIndex = LayerIndex,
+                GroupKey = GroupKey,
+                Occluder = Occluder,
+                TypeMask = TypeMask,
+                Colors = Colors.ToArray(),
+                Color = Color,
+                CommonData = CommonData
+            };
         }
     }
     

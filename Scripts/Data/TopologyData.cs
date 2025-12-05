@@ -78,10 +78,25 @@ public class TopologyData
             
             topologyMap.Load(reader);
             var instance = new TopologyMapInstance(topologyMap);
-            InstanceSet.AddMap(instance, x, y);
+            InstanceSet.AddMap(instance);
         }
 
         InstanceSet.Sort();
+    }
+
+    public void GenerateFromGfx(GfxData gfxData)
+    {
+        InstanceSet.Reset();
+
+        var elements = gfxData.Partitions.SelectMany(p => p.Elements);
+        foreach (var element in elements)
+        {
+            if (GlobalData.Instance.IgnoreGfxIds.Contains(element.CommonData.GfxId))
+                continue;
+            
+            var topologyMap = InstanceSet.GetTopologyMap(element.CellX, element.CellY) ?? InstanceSet.CreateTopologyMap(element.CellX, element.CellY);
+            topologyMap.AddElement(element);
+        }
     }
 
     public void Save(string path)
@@ -170,13 +185,25 @@ public class TopologyData
             Reset();
         }
         
-        public TopologyMap GetTopologyMap(int x, int y)
+        public TopologyMapC GetTopologyMap(int x, int y)
         {
+            if (Maps.Count == 0)
+                return null;
             if (x < MinX || x >= MinX + Width || y < MinY || y >= MinY + Height)
                 return null;
             
             var index = GetMapIndex(x, y);
             return index < 0 || index >= Maps.Count ? null : Maps[index]?.TopoC;
+        }
+
+        public TopologyMapC CreateTopologyMap(int x, int y)
+        {
+            var topologyMap = new TopologyMapC(
+                (int)Math.Floor((float)x / MapConstants.MapWidth) * MapConstants.MapWidth,
+                (int)Math.Floor((float)y / MapConstants.MapLength) * MapConstants.MapLength);
+            var instance = new TopologyMapInstance(topologyMap);
+            AddMap(instance);
+            return topologyMap;
         }
 
         public bool IsInMap(int x, int y)
@@ -207,15 +234,13 @@ public class TopologyData
             Height = 0;
         }
 
-        public void AddMap(TopologyMapInstance mapInstance, int mapX, int mapY)
+        public void AddMap(TopologyMapInstance mapInstance)
         {
             Maps.Add(mapInstance);
-            mapX *= MapConstants.MapWidth;
-            mapY *= MapConstants.MapLength;
-            MinX = Math.Min(MinX, mapX);
-            MinY = Math.Min(MinY, mapY);
-            MaxX = Math.Max(MaxX, mapX);
-            MaxY = Math.Max(MaxY, mapY);
+            MinX = Math.Min(MinX, mapInstance.TopoC.X);
+            MinY = Math.Min(MinY, mapInstance.TopoC.Y);
+            MaxX = Math.Max(MaxX, mapInstance.TopoC.X);
+            MaxY = Math.Max(MaxY, mapInstance.TopoC.Y);
             Width = MapConstants.MapWidth + MaxX - MinX;
             Height = MapConstants.MapLength + MaxY - MinY;
         }
@@ -689,8 +714,6 @@ public class TopologyData
         [JsonPropertyName("properties")] public sbyte[] Properties { get; set; }
         [JsonPropertyName("cells")] public int[] Cells { get; set; }
         [JsonPropertyName("type")] public string Type => "topologyMapBi";
-
-        private sbyte _cellSize;
         
         public TopologyMapBi()
         {
@@ -844,10 +867,23 @@ public class TopologyData
         [JsonPropertyName("zs")] public short[] Zs { get; set; } = new short[MapConstants.NumCells];
         [JsonPropertyName("heights")] public sbyte[] Heights { get; set; } = new sbyte[MapConstants.NumCells];
         [JsonPropertyName("type")] public string Type => "topologyMapC";
+        private int[] _orders = new int[MapConstants.NumCells];
         
         public TopologyMapC()
         {
             Header = (2 << 4) | MethodC;
+        }
+
+        public TopologyMapC(int x, int y)
+        {
+            X = x;
+            Y = y;
+            
+            for (var i = 0; i < MapConstants.NumCells; ++i)
+            {
+                Zs[i] = short.MinValue;
+                Costs[i] = -1;
+            }
         }
         
         public override void Load(ExtendedDataInputStream reader)
@@ -865,14 +901,68 @@ public class TopologyData
             }
         }
 
-        public void LoadFromGfx(GfxData.Partition partition)
+        public void AddElement(GfxData.Element element)
         {
+            if (GlobalData.Instance.IgnoreGfxIds.Contains(element.CommonData.GfxId))
+                return;
+                
+            var index = GetIndex(element.CellX, element.CellY);
+            var z = Zs[index];
+            var baseZ = z - Heights[index];
+
+            if (z == short.MinValue)
+            {
+                Zs[index] = element.CellZ;
+                Heights[index] = element.Height;
+                Costs[index] = (sbyte)(element.CommonData.Walkable ? 0 : -1);
+                _orders[index] = element.AltitudeOrder;
+                return;
+            }
+
+            if (baseZ - element.CellZ >= 6 && element.CommonData.Walkable && Costs[index] < 0)
+            {
+                Zs[index] = element.CellZ;
+                Heights[index] = element.Height;
+                Costs[index] = 0;
+                _orders[index] = element.AltitudeOrder;
+                return;
+            }
+
+            if (element.CellZ > z && element.CommonData.Walkable)
+            {
+                Zs[index] = element.CellZ;
+                Heights[index] = element.Height;
+                Costs[index] = 0;
+                _orders[index] = element.AltitudeOrder;
+                return;
+            }
+
+            if (element.CellZ > z && Costs[index] < 0)
+            {
+                Zs[index] = element.CellZ;
+                Heights[index] = element.Height;
+                _orders[index] = element.AltitudeOrder;
+                return;
+            }
+
+            if (element.CellZ > z && baseZ - element.CellZ < 6)
+            {
+                Zs[index] = element.CellZ;
+                Heights[index] = element.Height;
+                Costs[index] = (sbyte)(element.CommonData.Walkable ? 0 : -1);
+                _orders[index] = element.AltitudeOrder;
+            }
             
+            if (element.CellZ == z && element.AltitudeOrder > _orders[index])
+            {
+                Heights[index] = element.Height;
+                Costs[index] = (sbyte)(element.CommonData.Walkable ? 0 : -1);
+                _orders[index] = element.AltitudeOrder;
+            }
         }
         
         public override void Save(OutputBitStream writer)
         {
-            // writer.WriteByte(Header);
             base.Save(writer);
 
             for (var i = 0; i < MapConstants.NumCells; ++i)

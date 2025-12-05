@@ -118,71 +118,81 @@ public partial class Inspector : Control
     private void _OnXChanged(double value)
     {
         if (_suppressSignals) return;
-        _elementData.CellX = (int) value;
-        ElementUpdated?.Invoke(this, new ElementUpdatedEventArgs(_elementData));
+        var newElement = _elementData.Copy();
+        newElement.CellX = (int) value;
+        ElementUpdated?.Invoke(this, new ElementUpdatedEventArgs(_elementData, newElement));
     }
     
     private void _OnYChanged(double value)
     {
         if (_suppressSignals) return;
-        _elementData.CellY = (int) value;
-        ElementUpdated?.Invoke(this, new ElementUpdatedEventArgs(_elementData));
+        var newElement = _elementData.Copy();
+        newElement.CellY = (int) value;
+        ElementUpdated?.Invoke(this, new ElementUpdatedEventArgs(_elementData, newElement));
     }
     
     private void _OnZChanged(double value)
     {
         if (_suppressSignals) return;
-        _elementData.CellZ = (short) value;
-        ElementUpdated?.Invoke(this, new ElementUpdatedEventArgs(_elementData));
+        var newElement = _elementData.Copy();
+        newElement.CellZ = (short) value;
+        ElementUpdated?.Invoke(this, new ElementUpdatedEventArgs(_elementData, newElement));
     }
 
     private void _OnHeightChanged(double value)
     {
         if (_suppressSignals) return;
-        _elementData.Height = (sbyte) value;
-        ElementUpdated?.Invoke(this, new ElementUpdatedEventArgs(_elementData));
+        var newElement = _elementData.Copy();
+        newElement.Height = (sbyte) value;
+        ElementUpdated?.Invoke(this, new ElementUpdatedEventArgs(_elementData, newElement));
     }
 
     private void _OnOrderChanged(double value)
     {
         if (_suppressSignals) return;
-        _elementData.AltitudeOrder = (sbyte) value;
-        ElementUpdated?.Invoke(this, new ElementUpdatedEventArgs(_elementData));
+        var newElement = _elementData.Copy();
+        newElement.AltitudeOrder = (sbyte) value;
+        ElementUpdated?.Invoke(this, new ElementUpdatedEventArgs(_elementData, newElement));
     }
     
     private void _OnGroupIdChanged(double value)
     {
         if (_suppressSignals) return;
-        _elementData.GroupId = (int) value;
-        ElementUpdated?.Invoke(this, new ElementUpdatedEventArgs(_elementData));
+        var newElement = _elementData.Copy();
+        newElement.GroupId = (int) value;
+        ElementUpdated?.Invoke(this, new ElementUpdatedEventArgs(_elementData, newElement));
     }
     
     private void _OnLayerIndexChanged(double value)
     {
         if (_suppressSignals) return;
-        _elementData.LayerIndex = (sbyte) value;
-        ElementUpdated?.Invoke(this, new ElementUpdatedEventArgs(_elementData));
+        var newElement = _elementData.Copy();
+        newElement.LayerIndex = (sbyte) value;
+        ElementUpdated?.Invoke(this, new ElementUpdatedEventArgs(_elementData, newElement));
     }
     
     private void _OnGroupLayerChanged(double value)
     {
         if (_suppressSignals) return;
-        _elementData.GroupKey = (int) value;
-        ElementUpdated?.Invoke(this, new ElementUpdatedEventArgs(_elementData));
+        var newElement = _elementData.Copy();
+        newElement.GroupKey = (int) value;
+        ElementUpdated?.Invoke(this, new ElementUpdatedEventArgs(_elementData, newElement));
     }
     
     private void _OnColorChanged(Color newColor)
     {
         if (_suppressSignals) return;
-        _elementData.Color = newColor;
-        ElementUpdated?.Invoke(this, new ElementUpdatedEventArgs(_elementData));
+        var newElement = _elementData.Copy();
+        newElement.Color = newColor;
+        ElementUpdated?.Invoke(this, new ElementUpdatedEventArgs(_elementData, newElement));
     }
     
     private void _OnOccluderToggled(bool toggledOn)
     {
         if (_suppressSignals) return;
-        _elementData.Occluder = toggledOn;
-        ElementUpdated?.Invoke(this, new ElementUpdatedEventArgs(_elementData));
+        var newElement = _elementData.Copy();
+        newElement.Occluder = toggledOn;
+        ElementUpdated?.Invoke(this, new ElementUpdatedEventArgs(_elementData, newElement));
     }
     
     private void _OnTopoXChanged(double value)
@@ -252,9 +262,10 @@ public partial class Inspector : Control
         TopologyUpdated?.Invoke(this, new TopologyUpdatedEventArgs(_pathData, _visibilityData));
     }
 
-    public class ElementUpdatedEventArgs(GfxData.Element element) : EventArgs
+    public class ElementUpdatedEventArgs(GfxData.Element oldElement, GfxData.Element newElement) : EventArgs
     {
-        public GfxData.Element Element => element;
+        public GfxData.Element OldElement => oldElement;
+        public GfxData.Element NewElement => newElement;
     }
 
     public class TopologyUpdatedEventArgs(TopologyData.CellPathData path, TopologyData.CellVisibilityData visibility)

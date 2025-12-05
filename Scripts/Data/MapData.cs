@@ -108,9 +108,9 @@ public class MapData
         Topology.SaveJson($"{path}/json");
     }
 
-    public void UpdateElement(GfxData.Element elementData)
+    public void UpdateElement(GfxData.Element oldElement, GfxData.Element newElement)
     {
-        Gfx.Update(elementData);
+        Gfx.Update(oldElement, newElement);
     }
 
     public void UpdateTopology(TopologyData.CellPathData path, TopologyData.CellVisibilityData visibility)
