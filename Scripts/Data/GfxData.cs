@@ -38,10 +38,7 @@ public class GfxData
             Partitions.Add(partition);
         }
         Partitions = Partitions.OrderBy(p => p.X).ThenBy(p => p.Y).ToList();
-        GD.Print($"--------------------- Map {Id} ---------------------");
-        GD.Print(Partitions.SelectMany(p => p.Elements).Count(e => e.CommonData?.GfxId != -1));
         CleanupDuplicates();
-        GD.Print(Partitions.SelectMany(p => p.Elements).Count(e => e.CommonData?.GfxId != -1));
     }
 
     public void Save(string path)
@@ -76,13 +73,27 @@ public class GfxData
         var partition = Partitions
             .OrderBy(p => p.DistanceToCenter(element.CellX, element.CellY))
             .FirstOrDefault();
-        var maxOrder = Partitions
+        var cellElements = Partitions
             .SelectMany(p => p.Elements)
             .Where(e => e.CellX == element.CellX && e.CellY == element.CellY)
-            .Select(e => (int?)e.AltitudeOrder)
-            .DefaultIfEmpty(-1)
-            .Max() ?? -1;
-        element.AltitudeOrder = (sbyte)(maxOrder + 1);
+            .OrderBy(e => e.AltitudeOrder)
+            .ToList();
+
+        var elementAdded = false;
+        foreach (var cellElement in cellElements)
+        {
+            if (cellElement.CellZ > element.CellZ && !elementAdded)
+            {
+                element.AltitudeOrder = cellElement.AltitudeOrder;
+                elementAdded = true;
+            }
+            if (elementAdded)
+                cellElement.AltitudeOrder++;
+        }
+
+        if (!elementAdded && cellElements.Count > 0)
+            element.AltitudeOrder = (sbyte)(cellElements.MaxBy(e => e.AltitudeOrder).AltitudeOrder + 1);
+
         element.ComputeHashCode();
         partition?.AddElement(element);
     }
@@ -106,6 +117,8 @@ public class GfxData
         }
         Partitions.ForEach(p => p.SortElements());
     }
+    
+    public bool ElementExists(Element element) => Partitions.Any(p => p.Elements.Contains(element));
 
     private void CleanupDuplicates()
     {

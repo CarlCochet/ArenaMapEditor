@@ -128,12 +128,14 @@ public partial class Map : Node2D
     {
         _mapData.Gfx.UpdateElement(oldElement, newElement);
         SelectedTiles.FirstOrDefault(t => t.Mode == Enums.Mode.Gfx)?.SetElementData(newElement);
+        
     }
 
     public void UpdateTopologyCell(TopologyData.CellPathData path, TopologyData.CellVisibilityData visibility)
     {
         _mapData.Topology.Update(path, visibility);
         SelectedTiles.FirstOrDefault(t => t.Mode == Enums.Mode.Topology)?.SetTopology(path, visibility);
+        CleanupGfxState();
     }
 
     public void AddElement(GfxData.Element element)
@@ -155,18 +157,21 @@ public partial class Map : Node2D
         {
             _gfxTiles.Add(tile);
         }
+        CleanupGfxState();
     }
 
     public void RemoveElement(GfxData.Element element)
     {
-        _mapData.Gfx.RemoveElement(element);
         _gfxTiles.RemoveAll(t => t.Element.HashCode == element.HashCode);
         _gfx.GetNodeOrNull<Tile>(element.HashCode.ToString())?.QueueFree();
+        _mapData.Gfx.RemoveElement(element);
+        CleanupGfxState();
     }
 
     public void UpdateDisplay(Enums.Mode mode)
     {
         _mode = mode;
+        _pressed = false;
         ResetDisplay();
         switch (_mode)
         {
@@ -239,11 +244,11 @@ public partial class Map : Node2D
  
     private void LoadGfx()
     {
+        _gfxTiles.Clear();
         foreach (var child in _gfx.GetChildren())
         {
             child.QueueFree();
         }
-        _gfxTiles.Clear();
         
         var sortedElements = _mapData.Gfx.Partitions
             .SelectMany(p => p.Elements)
@@ -261,11 +266,11 @@ public partial class Map : Node2D
 
     private void LoadTopology()
     {
+        _topologyTiles.Clear();
         foreach (var child in _topology.GetChildren())
         {
             child.QueueFree();
         }
-        _topologyTiles.Clear();
         
         var topology = _mapData.Topology;
         for (var x = topology.InstanceSet.MinX; x <= topology.InstanceSet.MinX + topology.InstanceSet.Width; x++)
@@ -289,11 +294,11 @@ public partial class Map : Node2D
 
     private void LoadFight()
     {
+        _fightTiles.Clear();
         foreach (var child in _fight.GetChildren())
         {
             child.QueueFree();
         }
-        _fightTiles.Clear();
     }
 
     private void LoadLight()
@@ -313,7 +318,7 @@ public partial class Map : Node2D
         SelectedTiles.Clear();
         
         var selectedTile = _gfxTiles
-            .FindAll(t => t.IsValidPixel(position))
+            .FindAll(t => t.IsValidPixel(position) && !GlobalData.Instance.IgnoreGfxIds.Contains(t.Element.CommonData.GfxId))
             .OrderBy(t => t.Element.HashCode)
             .LastOrDefault();
         if (selectedTile == null)
@@ -354,14 +359,9 @@ public partial class Map : Node2D
     {
         if (!CustomCamera.HasFocus)
             return;
-        
-        var topTile = _gfxTiles
-            .FindAll(t => t.IsValidPixel(position))
-            .OrderBy(t => t.Element.HashCode)
-            .LastOrDefault();
-        if (topTile == null)
+        if (_placementPreview.ElementData == null)
             return;
-        
+
         var element = new GfxData.Element(_placementPreview.X, _placementPreview.Y)
         {
             CellZ = _placementPreview.Z,
@@ -374,6 +374,24 @@ public partial class Map : Node2D
             Colors = [1f, 1f, 1f]
         };
         AddElement(element);
+    }
+
+    private void CleanupGfxState()
+    {
+        foreach (var child in _gfx.GetChildren())
+        {
+            if (child is not Tile tile)
+                continue;
+            if (!_mapData.Gfx.ElementExists(tile.Element))
+            {
+                tile.QueueFree();
+                continue;
+            }
+            
+            if (tile.Element.HashCode.ToString().Equals(tile.Name))
+                continue;
+            tile.Name = tile.Element.HashCode.ToString();
+        }
     }
     
     private void _OnZoomUpdated(object sender, Camera.ZoomUpdatedEventArgs e)
