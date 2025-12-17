@@ -5,6 +5,8 @@ using System.Linq;
 
 public partial class Map : Node2D
 {
+    public record ReversibleAction(Action Do, Action Undo);
+    
     public int CurrentHeight { get; set; }
     public List<Tile> SelectedTiles = [];
     
@@ -19,9 +21,8 @@ public partial class Map : Node2D
     [Export] private Sprite2D _grid2;
     [Export] private PlacementPreview _placementPreview;
 
-    private List<Tile> _gfxTiles = [];
-    private List<Tile> _topologyTiles = [];
-    private List<Tile> _fightTiles = [];
+    private Stack<ReversibleAction> _undos = [];
+    private Stack<ReversibleAction> _redos = [];
     
     private Color _selectColor = new(0, 255, 0);
     private Color _noHighlightColor = new(0, 255, 0, 64);
@@ -46,7 +47,16 @@ public partial class Map : Node2D
 
     public override void _Process(double delta)
     {
-        
+        if (Input.IsActionJustPressed("delete"))
+        {
+            if (SelectedTiles.Count == 0)
+                return;
+            RemoveElement(SelectedTiles[0].Element);
+        }
+        if (Input.IsActionJustPressed("undo"))
+            Undo(null, EventArgs.Empty);
+        if (Input.IsActionJustPressed("redo"))
+            Redo(null, EventArgs.Empty);
     }
 
     public override void _Input(InputEvent @event)
@@ -113,8 +123,11 @@ public partial class Map : Node2D
         if (!_isHighlightActivated)
             return;
         
-        foreach (var tile in _gfxTiles)
+        foreach (var child in _gfx.GetChildren())
         {
+            if (child is not Tile tile)
+                continue;
+            
             if (tile.Z == _z)
             {
                 tile.Highlight();
@@ -124,11 +137,64 @@ public partial class Map : Node2D
         }
     }
 
+    public void Undo(object sender, EventArgs e)
+    {
+        if (_undos.Count == 0)
+            return;
+        
+        var action = _undos.Pop();
+        action.Undo();
+        _redos.Push(action);
+    }
+
+    public void Redo(object sender, EventArgs e)
+    {
+        if (_redos.Count == 0)
+            return;
+        
+        var action = _redos.Pop();
+        action.Do();
+        _undos.Push(action);
+    }
+
+    public void RegisterUpdateElement(GfxData.Element oldElement, GfxData.Element newElement)
+    {
+        _undos.Push(new ReversibleAction(Do: () => UpdateElement(oldElement, newElement),
+            Undo: () => UpdateElement(newElement, oldElement)));
+        _redos.Clear();
+        UpdateElement(oldElement, newElement);
+    }
+
+    public void RegisterUpdateTopologyCell(TopologyData.CellPathData path, TopologyData.CellVisibilityData visibility)
+    {
+        var oldPath = _mapData.Topology.GetPathData(path.X, path.Y);
+        var oldVisibility = _mapData.Topology.GetVisibilityData(path.X, path.Y);
+        _undos.Push(new ReversibleAction(Do: () => UpdateTopologyCell(path, visibility),
+            Undo: () => UpdateTopologyCell(oldPath, oldVisibility)));
+        _redos.Clear();
+        UpdateTopologyCell(path, visibility);
+    }
+
+    public void RegisterAddElement(GfxData.Element element)
+    {
+        _undos.Push(new ReversibleAction(Do: () => AddElement(element),
+            Undo: () => RemoveElement(element)));
+        _redos.Clear();
+        AddElement(element);
+    }
+
+    public void RegisterRemoveElement(GfxData.Element element)
+    {
+        _undos.Push(new ReversibleAction(Do: () => RemoveElement(element),
+            Undo: () => AddElement(element)));
+        _redos.Clear();
+        RemoveElement(element);
+    }
+
     public void UpdateElement(GfxData.Element oldElement, GfxData.Element newElement)
     {
         _mapData.Gfx.UpdateElement(oldElement, newElement);
         SelectedTiles.FirstOrDefault(t => t.Mode == Enums.Mode.Gfx)?.SetElementData(newElement);
-        
     }
 
     public void UpdateTopologyCell(TopologyData.CellPathData path, TopologyData.CellVisibilityData visibility)
@@ -140,29 +206,34 @@ public partial class Map : Node2D
 
     public void AddElement(GfxData.Element element)
     {
+        UnselectTiles();
         _mapData.Gfx.AddElement(element);
         
         var tile = _tileScene.Instantiate<Tile>();
         tile.SetElementData(element);
         tile.Name = element.HashCode.ToString();
-
-        var insertIndex = _gfxTiles.FindIndex(t => t.Element.HashCode > element.HashCode);
         _gfx.AddChild(tile);
-        if (insertIndex >= 0)
+        
+        var children = _gfx.GetChildren();
+        for (var i = 0; i < children.Count; i++)
         {
-            _gfx.MoveChild(tile, insertIndex);
-            _gfxTiles.Insert(insertIndex, tile);
+            var child = children[i];
+            if (child is not Tile t)
+                continue;
+
+            if (t.Element.HashCode <= element.HashCode)
+                continue;
+            
+            _gfx.MoveChild(tile, i);
+            break;
         }
-        else
-        {
-            _gfxTiles.Add(tile);
-        }
+        
         CleanupGfxState();
     }
 
     public void RemoveElement(GfxData.Element element)
     {
-        _gfxTiles.RemoveAll(t => t.Element.HashCode == element.HashCode);
+        UnselectTiles();
         _gfx.GetNodeOrNull<Tile>(element.HashCode.ToString())?.QueueFree();
         _mapData.Gfx.RemoveElement(element);
         CleanupGfxState();
@@ -217,12 +288,19 @@ public partial class Map : Node2D
         _isHighlightActivated = toggledOn;
         if (!_isHighlightActivated)
         {
-            _gfxTiles.ForEach(t => t.Highlight());
+            foreach (var child in _gfx.GetChildren())
+            {
+                if (child is not Tile tile)
+                    continue;
+                tile.Highlight();
+            }
             return;
         }
-        
-        foreach (var tile in _gfxTiles)
+
+        foreach (var child in _gfx.GetChildren())
         {
+            if (child is not Tile tile)
+                continue;
             if (tile.Z == z)
             {
                 tile.Highlight();
@@ -239,12 +317,14 @@ public partial class Map : Node2D
     }
 
     public void UpdatePreview(ElementData elementData) => _placementPreview.SetAsset(elementData);
-    
-    public void ShowPlacementPreview(bool show) => _placementPreview.Visible = show;
+
+    public void ShowPlacementPreview(Tools.ToolSelectedEventArgs e)
+    {
+        _placementPreview.Visible = e.Tool != Enums.Tool.Select && e.Tool != Enums.Tool.Erase;
+    }
  
     private void LoadGfx()
     {
-        _gfxTiles.Clear();
         foreach (var child in _gfx.GetChildren())
         {
             child.QueueFree();
@@ -260,13 +340,11 @@ public partial class Map : Node2D
             var tile = _tileScene.Instantiate<Tile>();
             tile.SetElementData(element);
             _gfx.AddChild(tile);
-            _gfxTiles.Add(tile);
         }
     }
 
     private void LoadTopology()
     {
-        _topologyTiles.Clear();
         foreach (var child in _topology.GetChildren())
         {
             child.QueueFree();
@@ -287,14 +365,12 @@ public partial class Map : Node2D
                 var tile = _tileScene.Instantiate<Tile>();
                 tile.SetTopology(cellPathData, cellVisibilityData);
                 _topology.AddChild(tile);
-                _topologyTiles.Add(tile);
             }
         }
     }
 
     private void LoadFight()
     {
-        _fightTiles.Clear();
         foreach (var child in _fight.GetChildren())
         {
             child.QueueFree();
@@ -314,17 +390,22 @@ public partial class Map : Node2D
         if (!CustomCamera.HasFocus)
             return;
         
-        SelectedTiles.ForEach(t => t.Unselect());
-        SelectedTiles.Clear();
-        
-        var selectedTile = _gfxTiles
-            .FindAll(t => t.IsValidPixel(position) && !GlobalData.Instance.IgnoreGfxIds.Contains(t.Element.CommonData.GfxId))
-            .OrderBy(t => t.Element.HashCode)
-            .LastOrDefault();
+        UnselectTiles();
+
+        var selectedTile = GetTopTile(position, GlobalData.Instance.IgnoreGfxIds);
         if (selectedTile == null)
             return;
 
-        var topologyTile = _topologyTiles.FirstOrDefault(t => t.X == selectedTile.X && t.Y == selectedTile.Y);
+        Tile topologyTile = null;
+        foreach (var child in _topology.GetChildren())
+        {
+            if (child is not Tile tile)
+                continue;
+            if (tile.X != selectedTile.X || tile.Y != selectedTile.Y)
+                continue;
+            topologyTile = tile;
+            break;
+        }
         if (topologyTile == null)
             return;
         
@@ -344,15 +425,35 @@ public partial class Map : Node2D
     {
         if (!CustomCamera.HasFocus)
             return;
-        
-        var topTile = _gfxTiles
-            .FindAll(t => t.IsValidPixel(position))
-            .OrderBy(t => t.Element.HashCode)
-            .LastOrDefault();
+
+        var topTile = GetTopTile(position, []);
         if (topTile == null)
             return;
         
         RemoveElement(topTile.Element);
+    }
+
+    private Tile GetTopTile(Vector2 position, int[] ignoreIds)
+    {
+        Tile selectedTile = null;
+        
+        foreach (var child in _gfx.GetChildren())
+        {
+            if (child is not Tile tile)
+                continue;
+            if (!tile.IsValidPixel(position) || ignoreIds.Contains(tile.Element.CommonData.GfxId))
+                continue;
+            if (selectedTile == null)
+            {
+                selectedTile = tile;
+                continue;
+            }
+            if (selectedTile.Element.HashCode > tile.Element.HashCode)
+                continue;
+            selectedTile = tile;
+        }
+
+        return selectedTile;
     }
 
     private void PaintTile(Vector2 position)
@@ -402,11 +503,16 @@ public partial class Map : Node2D
 
     private void ResetDisplay()
     {
-        SelectedTiles?.ForEach(t => t.Unselect());
-        SelectedTiles = [];
+        UnselectTiles();
         _fight.Visible = false;
         _light.Visible = false;
         _topology.Visible = false;
+    }
+
+    private void UnselectTiles()
+    {
+        SelectedTiles.ForEach(t => t.Unselect());
+        SelectedTiles.Clear();
     }
     
     public class TileSelectedEventArgs(GfxData.Element element, TopologyData.CellPathData pathData, TopologyData.CellVisibilityData visibilityData) : EventArgs

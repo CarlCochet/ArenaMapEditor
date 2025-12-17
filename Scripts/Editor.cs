@@ -29,27 +29,33 @@ public partial class Editor : Node2D
 		
 		_assetsPreview.DisplayAssets(_filter.Biome, _filter.Category, _filter.Mode);
 
-		_filter.FilterUpdated += _OnFilterUpdated;
-		_filter.ModeUpdated += _OnModeUpdated;
+		_filter.FilterUpdated += (_, _) => _assetsPreview.DisplayAssets(_filter.Biome, _filter.Category, _filter.Mode);
+		_filter.ModeUpdated += (_, _) => _map.UpdateDisplay(_filter.Mode);
 		
+		_tools.MouseEntered += () => _map.UpdateFocus(false);
+		_tools.MouseExited += () => _map.UpdateFocus(true);
 		_tools.MapSelected += _OnMapSelected;
-		_tools.LocateArenaPressed += _OnLocateArenaPressed;
-		_tools.ExportMapPressed += _OnMapExportedPressed;
-		_tools.ToolSelected += _OnToolSelected;
+		_tools.LocateArenaPressed += (_, _) => _openDialog.Visible = true;
+		_tools.ExportMapPressed += (_, _) => _saveDialog.Visible = true;
+		_tools.ToolSelected += (_, e) => _map.ShowPlacementPreview(e);
+		_tools.UndoPressed += _map.Undo;
+		_tools.RedoPressed += _map.Redo;
 
+		_overlay.InterfaceEntered += (_, _) => _map.UpdateFocus(false);
+		_overlay.InterfaceExited += (_, _) => _map.UpdateFocus(true);
 		_overlay.PreviewChanged += _OnPreviewChanged;
 		_overlay.HeightChanged += _OnHeightChanged;
 		_overlay.HighlightHeightToggled += OnHighlightHeightToggled;
 		_overlay.GenerateTopologyPressed += _OnGenerateTopologyPressed;
 		
-		_assetsPreview.MouseEntered += _OnAssetPreviewEntered;
-		_assetsPreview.MouseExited += _OnAssetPreviewExited;
-		_assetsPreview.AssetSelected += _OnAssetSelected;
+		_assetsPreview.MouseEntered += () => _map.UpdateFocus(false);
+		_assetsPreview.MouseExited += () => _map.UpdateFocus(true);
+		_assetsPreview.AssetSelected += (_, e) => _map.UpdatePreview(e.Element);
 
-		_inspector.ElementUpdated += _OnElementUpdated;
-		_inspector.TopologyUpdated += _OnTopologyUpdated;
-		_inspector.MouseEntered += _OnAssetPreviewEntered;
-		_inspector.MouseExited += _OnAssetPreviewExited;
+		_inspector.ElementUpdated += (_, e) => _map.UpdateElement(e.OldElement, e.NewElement);
+		_inspector.TopologyUpdated += (_, e) => _map.UpdateTopologyCell(e.Path, e.Visibility);
+		_inspector.MouseEntered += () => _map.UpdateFocus(false);
+		_inspector.MouseExited += () => _map.UpdateFocus(true);
 		
 		_map.TileSelected += _OnTileSelected;
 		if (GlobalData.Instance.Settings != null)
@@ -78,16 +84,6 @@ public partial class Editor : Node2D
 			(_x, _y) = _map.PositionToCoord(GetGlobalMousePosition(), _z);
 			_overlay.UpdatePosition(_x, _y, _z);
 		}
-	}
-
-	private void _OnFilterUpdated(object sender, EventArgs e)
-	{
-		_assetsPreview.DisplayAssets(_filter.Biome, _filter.Category, _filter.Mode);
-	}
-	
-	private void _OnModeUpdated(object sender, EventArgs e)
-	{
-		_map.UpdateDisplay(_filter.Mode);
 	}
 	
 	private void _OnTileSelected(object sender, Map.TileSelectedEventArgs e)
@@ -130,47 +126,7 @@ public partial class Editor : Node2D
 	{
 		
 	}
-	
-	private void _OnElementUpdated(object sender, Inspector.ElementUpdatedEventArgs e)
-	{
-		_map.UpdateElement(e.OldElement, e.NewElement);
-	}
 
-	private void _OnTopologyUpdated(object sender, Inspector.TopologyUpdatedEventArgs e)
-	{
-		_map.UpdateTopologyCell(e.Path, e.Visibility);
-	}
-	
-	private void _OnAssetPreviewEntered()
-	{
-		_map.UpdateFocus(false);
-	}
-
-	private void _OnAssetPreviewExited()
-	{
-		_map.UpdateFocus(true);
-	}
-
-	private void _OnAssetSelected(object sender, AssetsPreview.AssetSelectedEventArgs e)
-	{
-		_map.UpdatePreview(e.Element);
-	}
-	
-	private void _OnLocateArenaPressed(object sender, EventArgs eventArgs)
-	{
-		_openDialog.Visible = true;
-	}
-	
-	private void _OnMapExportedPressed(object sender, EventArgs e)
-	{
-		_saveDialog.Visible = true;
-	}
-
-	private void _OnToolSelected(object sender, Tools.ToolSelectedEventArgs eventArgs)
-	{
-		_map.ShowPlacementPreview(eventArgs.Tool != Enums.Tool.Select && eventArgs.Tool != Enums.Tool.Erase);
-	}
-	
 	private void _OnMapSelected(object sender, Tools.MapSelectedEventArgs eventArgs)
 	{
 		var mapData = GlobalData.Instance.Maps[eventArgs.MapName];

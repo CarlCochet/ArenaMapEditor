@@ -22,7 +22,7 @@ font_size = 24
 outline_size = 3
 outline_color = Color(0, 0, 0, 1)
 
-[node name="Overlay" type="Control" node_paths=PackedStringArray("_preview", "_position", "_previousButton", "_nextButton", "_generateButton", "_upButton", "_downButton", "_highlightButton")]
+[node name="Overlay" type="Control" node_paths=PackedStringArray("_preview", "_position", "_previousButton", "_nextButton", "_generateButton", "_upButton", "_downButton", "_highlightButton", "_previewContainer", "_generateContainer", "_heightContainer")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -40,6 +40,9 @@ _generateButton = NodePath("MarginContainer/Button")
 _upButton = NodePath("HeightModifier/VBoxContainer/Up")
 _downButton = NodePath("HeightModifier/VBoxContainer/Down")
 _highlightButton = NodePath("HeightModifier/VBoxContainer/Highlight")
+_previewContainer = NodePath("SelectorPreview")
+_generateContainer = NodePath("MarginContainer")
+_heightContainer = NodePath("HeightModifier")
 
 [node name="SelectorPreview" type="MarginContainer" parent="."]
 layout_mode = 1

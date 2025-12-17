@@ -11,7 +11,12 @@ public partial class Overlay : Control
 	[Export] private TextureButton _upButton;
 	[Export] private TextureButton _downButton;
 	[Export] private TextureButton _highlightButton;
+	[Export] private MarginContainer _previewContainer;
+	[Export] private MarginContainer _generateContainer;
+	[Export] private MarginContainer _heightContainer;
 
+	public event EventHandler InterfaceEntered;
+	public event EventHandler InterfaceExited;
 	public event EventHandler<PreviewChangedEventArgs> PreviewChanged;
 	public event EventHandler<HeightChangedEventArgs> HeightChanged;
 	public event EventHandler<HighlightHeightToggledEventArgs> HighlightHeightToggled;
@@ -19,6 +24,12 @@ public partial class Overlay : Control
 
 	public override void _Ready()
 	{
+		_previewContainer.MouseEntered += _OnInterfaceEntered;
+		_previewContainer.MouseExited += _OnInterfaceExited;
+		_generateContainer.MouseEntered += _OnInterfaceEntered;
+		_generateContainer.MouseExited += _OnInterfaceExited;
+		_heightContainer.MouseEntered += _OnInterfaceEntered;
+		_heightContainer.MouseExited += _OnInterfaceExited;
 		_previousButton.Pressed += _OnPreviousPressed;
 		_nextButton.Pressed += _OnNextPressed;
 		_generateButton.Pressed += _OnGeneratePressed;
@@ -42,6 +53,16 @@ public partial class Overlay : Control
 		if (GlobalData.Instance.ValidAssets.TryGetValue(element.CommonData.GfxId, out var asset))
 			_preview.Texture = asset.Texture;
 		_position.Text = $"({element.CellX}, {element.CellY}, {element.CellZ})";
+	}
+
+	private void _OnInterfaceEntered()
+	{
+		InterfaceEntered?.Invoke(this, EventArgs.Empty);
+	}
+
+	private void _OnInterfaceExited()
+	{
+		InterfaceExited?.Invoke(this, EventArgs.Empty);
 	}
 
 	private void _OnPreviousPressed()
