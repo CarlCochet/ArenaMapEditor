@@ -1,7 +1,17 @@
 [gd_scene load_steps=2 format=3 uid="uid://bnepr33hnfesr"]
 
-[ext_resource type="Script" path="res://Scripts/Tile.cs" id="1_bn515"]
+[ext_resource type="Script" uid="uid://dxph80sl10ip0" path="res://Scripts/Tile.cs" id="1_bn515"]
 
-[node name="Tile" type="Sprite2D"]
+[node name="Tile" type="Sprite2D" node_paths=PackedStringArray("_placement", "_bonus")]
 centered = false
 script = ExtResource("1_bn515")
+_placement = NodePath("Placement")
+_bonus = NodePath("Bonus")
+
+[node name="Placement" type="Sprite2D" parent="."]
+centered = false
+offset = Vector2(-43, -21)
+
+[node name="Bonus" type="Sprite2D" parent="."]
+centered = false
+offset = Vector2(-43, -21)

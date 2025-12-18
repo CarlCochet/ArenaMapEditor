@@ -3,6 +3,9 @@ using System;
 
 public partial class Tile : Sprite2D
 {
+    [Export] private Sprite2D _placement;
+    [Export] private Sprite2D _bonus;
+    
     public TileData Data;
     public GfxData.Element Element;
     public TopologyData.CellPathData PathData;
@@ -111,6 +114,26 @@ public partial class Tile : Sprite2D
         Y = VisibilityData.Y;
         Z = VisibilityData.Z;
         QueueRedraw();
+    }
+
+    public void SetFightData(FightData fightData)
+    {
+        if (PathData == null) 
+            return;
+
+        var coord = fightData.GetCoord(PathData.X, PathData.Y, PathData.Z);
+        if (coord == 0) 
+            return;
+        
+        var blueIndex = fightData.StartPoints[0].IndexOf(coord);
+        var redIndex = fightData.StartPoints[1].IndexOf(coord);
+
+        if (blueIndex != -1)
+            _placement.Texture = new Texture2D();
+        if (redIndex != -1)
+            _placement.Texture = new Texture2D();
+        if (fightData.Bonus.TryGetValue(coord, out var bonusData))
+            _bonus.Texture = new Texture2D();
     }
 	
     public void PositionToIso(int x, int y, int z, int height, int originX, int originY)

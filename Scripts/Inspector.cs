@@ -34,6 +34,8 @@ public partial class Inspector : Control
     [Export] private CheckBox _canViewThrough;
     [Export] private SpinBox _murFinInfo;
     [Export] private SpinBox _miscProperties;
+    [Export] private VBoxContainer _gfxContainer;
+    [Export] private VBoxContainer _topologyContainer;
     
     private GfxData.Element _elementData;
     private TopologyData.CellPathData _pathData;
@@ -113,6 +115,21 @@ public partial class Inspector : Control
         _miscProperties.Value = pathData.MiscProperties;
         
         _suppressSignals = false;
+    }
+
+    public void SwitchToMode(Enums.Mode mode)
+    {
+        switch (mode)
+        {
+            case Enums.Mode.Gfx:
+                _gfxContainer.Visible = true;
+                _topologyContainer.Visible = false;
+                break;
+            case Enums.Mode.Topology:
+                _gfxContainer.Visible = false;
+                _topologyContainer.Visible = true;
+                break;
+        }
     }
 
     private void _OnXChanged(double value)

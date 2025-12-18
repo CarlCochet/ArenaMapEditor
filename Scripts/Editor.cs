@@ -30,7 +30,7 @@ public partial class Editor : Node2D
 		_assetsPreview.DisplayAssets(_filter.Biome, _filter.Category, _filter.Mode);
 
 		_filter.FilterUpdated += (_, _) => _assetsPreview.DisplayAssets(_filter.Biome, _filter.Category, _filter.Mode);
-		_filter.ModeUpdated += (_, _) => _map.UpdateDisplay(_filter.Mode);
+		_filter.ModeUpdated += _OnModeUpdated;
 		
 		_tools.MouseEntered += () => _map.UpdateFocus(false);
 		_tools.MouseExited += () => _map.UpdateFocus(true);
@@ -125,6 +125,12 @@ public partial class Editor : Node2D
 	private void _OnPreviewChanged(object sender, Overlay.PreviewChangedEventArgs e)
 	{
 		
+	}
+
+	private void _OnModeUpdated(object sender, EventArgs e)
+	{
+		_map.UpdateDisplay(_filter.Mode);
+		_inspector.SwitchToMode(_filter.Mode);
 	}
 
 	private void _OnMapSelected(object sender, Tools.MapSelectedEventArgs eventArgs)

@@ -15,14 +15,13 @@ public partial class Map : Node2D
     [Export] private Node2D _gfx;
     [Export] private Node2D _topology;
     [Export] private Node2D _light;
-    [Export] private Node2D _fight;
     [Export] private PackedScene _tileScene;
     [Export] private Sprite2D _grid;
     [Export] private Sprite2D _grid2;
     [Export] private PlacementPreview _placementPreview;
 
-    private Stack<ReversibleAction> _undos = [];
-    private Stack<ReversibleAction> _redos = [];
+    private readonly Stack<ReversibleAction> _undos = [];
+    private readonly Stack<ReversibleAction> _redos = [];
     
     private Color _selectColor = new(0, 255, 0);
     private Color _noHighlightColor = new(0, 255, 0, 64);
@@ -82,7 +81,7 @@ public partial class Map : Node2D
                     EraseTile(globalPosition);
                     break;
                 case Enums.Tool.Brush:
-                    PaintTile(globalPosition);
+                    PaintTile();
                     break;
             }
         }
@@ -102,7 +101,7 @@ public partial class Map : Node2D
                     break;
                 case Enums.Tool.Brush:
                     _lastCoords = PositionToCoord(globalPosition, _z);
-                    PaintTile(globalPosition);
+                    PaintTile();
                     break;
             }
         }
@@ -256,7 +255,7 @@ public partial class Map : Node2D
                 _light.Visible = true;
                 break;
             case Enums.Mode.Fight:
-                _fight.Visible = true;
+                _topology.Visible = true;
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(mode), mode, null);
@@ -268,7 +267,6 @@ public partial class Map : Node2D
         _mapData = mapData;
         LoadGfx();
         LoadTopology();
-        LoadFight();
         LoadLight();
         UpdateDisplay(Enums.Mode.Gfx);
     }
@@ -364,16 +362,9 @@ public partial class Map : Node2D
                 
                 var tile = _tileScene.Instantiate<Tile>();
                 tile.SetTopology(cellPathData, cellVisibilityData);
+                tile.SetFightData(_mapData.Fight);
                 _topology.AddChild(tile);
             }
-        }
-    }
-
-    private void LoadFight()
-    {
-        foreach (var child in _fight.GetChildren())
-        {
-            child.QueueFree();
         }
     }
 
@@ -456,7 +447,7 @@ public partial class Map : Node2D
         return selectedTile;
     }
 
-    private void PaintTile(Vector2 position)
+    private void PaintTile()
     {
         if (!CustomCamera.HasFocus)
             return;
@@ -504,7 +495,6 @@ public partial class Map : Node2D
     private void ResetDisplay()
     {
         UnselectTiles();
-        _fight.Visible = false;
         _light.Visible = false;
         _topology.Visible = false;
     }

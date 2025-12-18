@@ -37,7 +37,7 @@ CustomCamera = NodePath("Camera")
 _gfx = NodePath("GFX")
 _topology = NodePath("Topology")
 _light = NodePath("Light")
-_fight = NodePath("Fight")
+_fight = NodePath("")
 _tileScene = ExtResource("2_d05hl")
 _grid = NodePath("Grid")
 _grid2 = NodePath("Grid2")
@@ -73,9 +73,6 @@ texture = SubResource("CompressedTexture2D_g5138")
 [node name="Topology" type="Node2D" parent="."]
 
 [node name="Light" type="Node2D" parent="."]
-modulate = Color(1, 1, 1, 0.5019608)
-
-[node name="Fight" type="Node2D" parent="."]
 modulate = Color(1, 1, 1, 0.5019608)
 
 [node name="PlacementPreview" parent="." instance=ExtResource("7_5t7yc")]

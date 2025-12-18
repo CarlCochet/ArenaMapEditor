@@ -54,9 +54,10 @@ public partial class AssetsPreview : Control
 		
 		_totalElements = GlobalData.Instance.AssetIds.Length;
 
-		_pageSpin.Value = _currentPage;
-		_pageSpin.Suffix = $"/{_totalElements / _pageSize}";
-		_pageSpin.MaxValue = (double)_totalElements / _pageSize;
+		_pageSpin.Value = _currentPage + 1;
+		var pageCount = _totalElements / _pageSize + 1;
+		_pageSpin.Suffix = $"/{pageCount}";
+		_pageSpin.MaxValue = pageCount;
 		
 		_biome = biome;
 		_category = category;
@@ -122,7 +123,7 @@ public partial class AssetsPreview : Control
 
 	private void _OnCurrentSubmitted(double newPage)
 	{
-		_currentPage = (int)newPage;
+		_currentPage = (int)newPage - 1;
 		DisplayAssets(_biome, _category, _mode);
 	}
 

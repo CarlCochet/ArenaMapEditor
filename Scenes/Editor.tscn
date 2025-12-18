@@ -126,7 +126,7 @@ filters = PackedStringArray("*.jar", "*.json")
 use_native_dialog = true
 
 [node name="SaveDialog" type="FileDialog" parent="CanvasLayer"]
-title = "Save maps"
+title = "Open a Directory"
 file_mode = 2
 display_mode = 1
 access = 2
