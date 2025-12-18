@@ -34,12 +34,15 @@ public partial class Inspector : Control
     [Export] private CheckBox _canViewThrough;
     [Export] private SpinBox _murFinInfo;
     [Export] private SpinBox _miscProperties;
+    [Export] private OptionButton _placement;
+    [Export] private OptionButton _bonus;
     [Export] private VBoxContainer _gfxContainer;
     [Export] private VBoxContainer _topologyContainer;
     
     private GfxData.Element _elementData;
     private TopologyData.CellPathData _pathData;
     private TopologyData.CellVisibilityData _visibilityData;
+    private FightData _fightData;
     
     private bool _suppressSignals;
 
@@ -68,11 +71,12 @@ public partial class Inspector : Control
         _murFinInfo.ValueChanged += _OnMurFinInfoChanged;
     }
 
-    public void Update(GfxData.Element element, TopologyData.CellPathData pathData, TopologyData.CellVisibilityData visibilityData)
+    public void Update(GfxData.Element element, TopologyData.CellPathData pathData, TopologyData.CellVisibilityData visibilityData, FightData fightData)
     {
         _elementData = element;
         _pathData = pathData;
         _visibilityData = visibilityData;
+        _fightData = fightData;
         
         _suppressSignals = true;
         
@@ -113,6 +117,9 @@ public partial class Inspector : Control
         _canViewThrough.ButtonPressed = visibilityData.CanViewThrough;
         _murFinInfo.Value = pathData.MurFinInfo;
         _miscProperties.Value = pathData.MiscProperties;
+
+        _placement.Selected = GetPlacementData();
+        _bonus.Selected = GetBonusData();
         
         _suppressSignals = false;
     }
@@ -130,6 +137,40 @@ public partial class Inspector : Control
                 _topologyContainer.Visible = true;
                 break;
         }
+    }
+
+    private int GetPlacementData()
+    {
+        if (_pathData == null) 
+            return 0;
+
+        var coord = _fightData.GetCoord(_pathData.X, _pathData.Y, _pathData.Z);
+        if (coord == 0) 
+            return 0;
+        
+        var blueIndex = _fightData.StartPoints[0].IndexOf(coord);
+        var redIndex = _fightData.StartPoints[1].IndexOf(coord);
+
+        if (blueIndex != -1)
+            return 1;
+        if (redIndex != -1)
+            return 2;
+        
+        return 0;
+    }
+
+    private int GetBonusData()
+    {
+        if (_pathData == null) 
+            return 0;
+
+        var coord = _fightData.GetCoord(_pathData.X, _pathData.Y, _pathData.Z);
+        if (coord == 0) 
+            return 0;
+        
+        if (_fightData.Bonus.TryGetValue(coord, out var bonusData))
+            return bonusData - 1001;
+        return 0;
     }
 
     private void _OnXChanged(double value)

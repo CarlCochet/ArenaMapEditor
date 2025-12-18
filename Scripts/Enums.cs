@@ -59,7 +59,6 @@ public static class Enums
         Gfx = 0,
         Topology = 1,
         Light = 2,
-        Fight = 3,
     }
 
     public enum Direction

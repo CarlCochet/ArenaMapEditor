@@ -26,7 +26,7 @@ font_size = 12
 [sub_resource type="LabelSettings" id="LabelSettings_mnv65"]
 font_size = 12
 
-[node name="Inspector" type="Control" node_paths=PackedStringArray("_cellX", "_cellY", "_cellZ", "_offsetX", "_offsetY", "_height", "_gfxId", "_order", "_hashcode", "_groupId", "_layerIndex", "_groupLayer", "_properties", "_sound", "_slope", "_shader", "_mask", "_walkable", "_occluder", "_flip", "_animated", "_color", "_topoX", "_topoY", "_topoZ", "_topoHeight", "_cost", "_canMoveThrough", "_canViewThrough", "_murFinInfo", "_miscProperties", "_gfxContainer", "_topologyContainer")]
+[node name="Inspector" type="Control" node_paths=PackedStringArray("_cellX", "_cellY", "_cellZ", "_offsetX", "_offsetY", "_height", "_gfxId", "_order", "_hashcode", "_groupId", "_layerIndex", "_groupLayer", "_properties", "_sound", "_slope", "_shader", "_mask", "_walkable", "_occluder", "_flip", "_animated", "_color", "_topoX", "_topoY", "_topoZ", "_topoHeight", "_cost", "_canMoveThrough", "_canViewThrough", "_murFinInfo", "_miscProperties", "_placement", "_bonus", "_gfxContainer", "_topologyContainer")]
 custom_minimum_size = Vector2(250, 550)
 layout_mode = 3
 anchors_preset = 15
@@ -66,6 +66,8 @@ _canMoveThrough = NodePath("ScrollContainer/MarginContainer/TopologyContainer/To
 _canViewThrough = NodePath("ScrollContainer/MarginContainer/TopologyContainer/TopologyContainer/CanViewThrough/CheckBox")
 _murFinInfo = NodePath("ScrollContainer/MarginContainer/TopologyContainer/TopologyContainer/MurFinInfo/SpinBox")
 _miscProperties = NodePath("ScrollContainer/MarginContainer/TopologyContainer/TopologyContainer/MiscProperties/SpinBox")
+_placement = NodePath("ScrollContainer/MarginContainer/TopologyContainer/FightContainer/Placement/OptionButton")
+_bonus = NodePath("ScrollContainer/MarginContainer/TopologyContainer/FightContainer/Bonus/OptionButton")
 _gfxContainer = NodePath("ScrollContainer/MarginContainer/GfxContainer")
 _topologyContainer = NodePath("ScrollContainer/MarginContainer/TopologyContainer")
 
@@ -674,13 +676,13 @@ selected = 0
 item_count = 6
 popup/item_0/text = "Vide"
 popup/item_0/id = 0
-popup/item_1/text = "Bleu"
+popup/item_1/text = "Rouge"
 popup/item_1/id = 1
-popup/item_2/text = "Rouge"
+popup/item_2/text = "Bleu"
 popup/item_2/id = 2
-popup/item_3/text = "Coach Bleu"
+popup/item_3/text = "Coach Rouge"
 popup/item_3/id = 3
-popup/item_4/text = "Coach Rouge"
+popup/item_4/text = "Coach Bleu"
 popup/item_4/id = 4
 popup/item_5/text = "Centre"
 popup/item_5/id = 5

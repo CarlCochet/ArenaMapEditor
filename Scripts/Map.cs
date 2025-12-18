@@ -158,6 +158,9 @@ public partial class Map : Node2D
 
     public void RegisterUpdateElement(GfxData.Element oldElement, GfxData.Element newElement)
     {
+        if (_mapData == null)
+            return;
+        
         _undos.Push(new ReversibleAction(Do: () => UpdateElement(oldElement, newElement),
             Undo: () => UpdateElement(newElement, oldElement)));
         _redos.Clear();
@@ -166,6 +169,9 @@ public partial class Map : Node2D
 
     public void RegisterUpdateTopologyCell(TopologyData.CellPathData path, TopologyData.CellVisibilityData visibility)
     {
+        if (_mapData == null)
+            return;
+        
         var oldPath = _mapData.Topology.GetPathData(path.X, path.Y);
         var oldVisibility = _mapData.Topology.GetVisibilityData(path.X, path.Y);
         _undos.Push(new ReversibleAction(Do: () => UpdateTopologyCell(path, visibility),
@@ -175,7 +181,9 @@ public partial class Map : Node2D
     }
 
     public void RegisterAddElement(GfxData.Element element)
-    {
+    {if (_mapData == null)
+            return;
+        
         _undos.Push(new ReversibleAction(Do: () => AddElement(element),
             Undo: () => RemoveElement(element)));
         _redos.Clear();
@@ -184,6 +192,9 @@ public partial class Map : Node2D
 
     public void RegisterRemoveElement(GfxData.Element element)
     {
+        if (_mapData == null)
+            return;
+        
         _undos.Push(new ReversibleAction(Do: () => RemoveElement(element),
             Undo: () => AddElement(element)));
         _redos.Clear();
@@ -254,9 +265,6 @@ public partial class Map : Node2D
             case Enums.Mode.Light:
                 _light.Visible = true;
                 break;
-            case Enums.Mode.Fight:
-                _topology.Visible = true;
-                break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(mode), mode, null);
         }
@@ -264,6 +272,9 @@ public partial class Map : Node2D
 
     public void Load(MapData mapData)
     {
+        _redos.Clear();
+        _undos.Clear();
+        
         _mapData = mapData;
         LoadGfx();
         LoadTopology();
@@ -409,7 +420,7 @@ public partial class Map : Node2D
         _z = selectedTile.Z;
         var cellPathData = _mapData.Topology.GetPathData(selectedTile.X, selectedTile.Y);
         var visibilityData = _mapData.Topology.GetVisibilityData(selectedTile.X, selectedTile.Y);
-        TileSelected?.Invoke(this, new TileSelectedEventArgs(selectedTile.Element, cellPathData, visibilityData));
+        TileSelected?.Invoke(this, new TileSelectedEventArgs(selectedTile.Element, cellPathData, visibilityData, _mapData.Fight));
     }
 
     private void EraseTile(Vector2 position)
@@ -505,10 +516,11 @@ public partial class Map : Node2D
         SelectedTiles.Clear();
     }
     
-    public class TileSelectedEventArgs(GfxData.Element element, TopologyData.CellPathData pathData, TopologyData.CellVisibilityData visibilityData) : EventArgs
+    public class TileSelectedEventArgs(GfxData.Element element, TopologyData.CellPathData pathData, TopologyData.CellVisibilityData visibilityData, FightData fightData) : EventArgs
     {
         public GfxData.Element Element => element;
         public TopologyData.CellPathData PathData => pathData;
         public TopologyData.CellVisibilityData VisibilityData => visibilityData;
+        public FightData FightData => fightData;
     }
 }

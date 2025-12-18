@@ -88,7 +88,7 @@ public partial class Editor : Node2D
 	
 	private void _OnTileSelected(object sender, Map.TileSelectedEventArgs e)
 	{
-		_inspector.Update(e.Element, e.PathData, e.VisibilityData);
+		_inspector.Update(e.Element, e.PathData, e.VisibilityData, e.FightData);
 		_assetsPreview.Update(e.Element);
 		_tools.Update(e.Element);
 		_overlay.Update(e.Element);

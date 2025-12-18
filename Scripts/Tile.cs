@@ -129,11 +129,11 @@ public partial class Tile : Sprite2D
         var redIndex = fightData.StartPoints[1].IndexOf(coord);
 
         if (blueIndex != -1)
-            _placement.Texture = new Texture2D();
+            _placement.Texture = GlobalData.Instance.SpecialTextures[0];
         if (redIndex != -1)
-            _placement.Texture = new Texture2D();
+            _placement.Texture = GlobalData.Instance.SpecialTextures[1];
         if (fightData.Bonus.TryGetValue(coord, out var bonusData))
-            _bonus.Texture = new Texture2D();
+            _bonus.Texture = GlobalData.Instance.SpecialTextures[bonusData - 1000];
     }
 	
     public void PositionToIso(int x, int y, int z, int height, int originX, int originY)
