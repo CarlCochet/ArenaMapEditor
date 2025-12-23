@@ -78,6 +78,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+horizontal_scroll_mode = 0
 
 [node name="MarginContainer" type="MarginContainer" parent="ScrollContainer"]
 custom_minimum_size = Vector2(250, 550)
@@ -88,7 +89,6 @@ theme_override_constants/margin_right = 20
 theme_override_constants/margin_bottom = 10
 
 [node name="GfxContainer" type="VBoxContainer" parent="ScrollContainer/MarginContainer"]
-visible = false
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 theme_override_constants/separation = 10
@@ -484,6 +484,7 @@ mouse_filter = 1
 disabled = true
 
 [node name="TopologyContainer" type="VBoxContainer" parent="ScrollContainer/MarginContainer"]
+visible = false
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 theme_override_constants/separation = 10
@@ -673,19 +674,15 @@ label_settings = SubResource("LabelSettings_mnv65")
 custom_minimum_size = Vector2(135, 0)
 layout_mode = 2
 selected = 0
-item_count = 6
+item_count = 4
 popup/item_0/text = "Vide"
 popup/item_0/id = 0
 popup/item_1/text = "Rouge"
 popup/item_1/id = 1
 popup/item_2/text = "Bleu"
 popup/item_2/id = 2
-popup/item_3/text = "Coach Rouge"
+popup/item_3/text = "Coach"
 popup/item_3/id = 3
-popup/item_4/text = "Coach Bleu"
-popup/item_4/id = 4
-popup/item_5/text = "Centre"
-popup/item_5/id = 5
 
 [node name="Bonus" type="HBoxContainer" parent="ScrollContainer/MarginContainer/TopologyContainer/FightContainer"]
 layout_mode = 2

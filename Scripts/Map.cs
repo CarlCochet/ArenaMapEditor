@@ -50,7 +50,7 @@ public partial class Map : Node2D
         {
             if (SelectedTiles.Count == 0)
                 return;
-            RemoveElement(SelectedTiles[0].Element);
+            RegisterRemoveElement(SelectedTiles[0].Element);
         }
         if (Input.IsActionJustPressed("undo"))
             Undo(null, EventArgs.Empty);
@@ -113,7 +113,11 @@ public partial class Map : Node2D
         }
     }
 
-    public void UpdateFocus(bool hasFocus) => CustomCamera.HasFocus = hasFocus;
+    public void UpdateFocus(bool hasFocus)
+    {
+        CustomCamera.HasFocus = hasFocus;
+        GD.Print(hasFocus);
+    }
 
     public void UpdateHeight(int z)
     {
@@ -180,6 +184,16 @@ public partial class Map : Node2D
         UpdateTopologyCell(path, visibility);
     }
 
+    public void RegisterUpdateFight(FightData oldFightData, FightData newFightData)
+    {
+        if (_mapData == null)
+            return;
+        _undos.Push(new ReversibleAction(Do: () => UpdateFight(newFightData),
+            Undo: () => UpdateFight(oldFightData)));
+        _redos.Clear();
+        UpdateFight(newFightData);
+    }
+
     public void RegisterAddElement(GfxData.Element element)
     {if (_mapData == null)
             return;
@@ -214,9 +228,22 @@ public partial class Map : Node2D
         CleanupGfxState();
     }
 
+    public void UpdateFight(FightData fight)
+    {
+        _mapData.Fight = fight;
+        foreach (var child in _topology.GetChildren())
+        {
+            if (child is not Tile tile)
+                continue;
+            tile.SetFightData(fight);
+        }
+    }
+
     public void AddElement(GfxData.Element element)
     {
         UnselectTiles();
+        if (!_mapData.Gfx.HasElementAt(element.CellX, element.CellY))
+            _mapData.Topology.AddFromElement(element);
         _mapData.Gfx.AddElement(element);
         
         var tile = _tileScene.Instantiate<Tile>();
@@ -246,6 +273,8 @@ public partial class Map : Node2D
         UnselectTiles();
         _gfx.GetNodeOrNull<Tile>(element.HashCode.ToString())?.QueueFree();
         _mapData.Gfx.RemoveElement(element);
+        if (!_mapData.Gfx.HasElementAt(element.CellX, element.CellY))
+            _mapData.Topology.ResetTile(element.CellX, element.CellY);
         CleanupGfxState();
     }
 
@@ -399,7 +428,7 @@ public partial class Map : Node2D
             return;
 
         Tile topologyTile = null;
-        foreach (var child in _topology.GetChildren())
+        foreach (var child in _gfx.GetChildren())
         {
             if (child is not Tile tile)
                 continue;
@@ -432,7 +461,7 @@ public partial class Map : Node2D
         if (topTile == null)
             return;
         
-        RemoveElement(topTile.Element);
+        RegisterRemoveElement(topTile.Element);
     }
 
     private Tile GetTopTile(Vector2 position, int[] ignoreIds)
@@ -476,7 +505,7 @@ public partial class Map : Node2D
             Color = Colors.White,
             Colors = [1f, 1f, 1f]
         };
-        AddElement(element);
+        RegisterAddElement(element);
     }
 
     private void CleanupGfxState()

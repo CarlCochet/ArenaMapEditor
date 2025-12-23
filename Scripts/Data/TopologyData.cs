@@ -159,6 +159,51 @@ public class TopologyData
         var topoC = InstanceSet.GetTopologyMap(pathData.X, pathData.Y);
         topoC?.UpdateData(pathData, visibilityData);
     }
+
+    public void ResetTile(int x, int y)
+    {
+        var pathData = GetPathData(x, y);
+        var visibilityData = GetVisibilityData(x, y);
+        pathData.Z = short.MinValue;
+        pathData.Height = 0;
+        pathData.CanMoveThrough = false;
+        pathData.Cost = -1;
+        pathData.MiscProperties = 0;
+        pathData.MurFinInfo = 0;
+        visibilityData.Z = short.MinValue;
+        visibilityData.Height = 0;
+        visibilityData.CanViewThrough = false;
+        Update(pathData, visibilityData);
+    }
+
+    public void AddFromElement(GfxData.Element element)
+    {
+        if (GlobalData.Instance.IgnoreGfxIds.Contains(element.CommonData.GfxId))
+            return;
+        
+        var pathData = new CellPathData
+        {
+            X = element.CellX,
+            Y = element.CellY,
+            Z = element.CellZ,
+            Height = element.CommonData.VisualHeight,
+            CanMoveThrough = false,
+            Cost = (sbyte)(element.CommonData.Walkable ? 0 : -1),
+            MiscProperties = 0,
+            MurFinInfo = 0
+        };
+
+        var visibilityData = new CellVisibilityData
+        {
+            X = element.CellX,
+            Y = element.CellY,
+            Z = element.CellZ,
+            Height = element.CommonData.VisualHeight,
+            CanViewThrough = false
+        };
+        
+        
+    }
     
     private long GetHashCode(int worldId, long x, long y, int instanceId)
     {

@@ -48,6 +48,7 @@ public partial class Inspector : Control
 
     public event EventHandler<ElementUpdatedEventArgs> ElementUpdated;
     public event EventHandler<TopologyUpdatedEventArgs> TopologyUpdated;
+    public event EventHandler<FightUpdatedEventArgs> FightUpdated;
 
     public override void _Ready()
     {
@@ -69,6 +70,8 @@ public partial class Inspector : Control
         _canMoveThrough.Toggled += _OnCanMoveThroughToggled;
         _canViewThrough.Toggled += _OnCanViewThroughToggled;
         _murFinInfo.ValueChanged += _OnMurFinInfoChanged;
+        _placement.ItemSelected += _OnPlacementChanged;
+        _bonus.ItemSelected += _OnBonusChanged;
     }
 
     public void Update(GfxData.Element element, TopologyData.CellPathData pathData, TopologyData.CellVisibilityData visibilityData, FightData fightData)
@@ -118,8 +121,9 @@ public partial class Inspector : Control
         _murFinInfo.Value = pathData.MurFinInfo;
         _miscProperties.Value = pathData.MiscProperties;
 
-        _placement.Selected = GetPlacementData();
-        _bonus.Selected = GetBonusData();
+        var (placement, bonus) = fightData.GetData(pathData.X, pathData.Y, pathData.Z);
+        _placement.Selected = placement + 1;
+        _bonus.Selected = bonus + 1;
         
         _suppressSignals = false;
     }
@@ -137,40 +141,6 @@ public partial class Inspector : Control
                 _topologyContainer.Visible = true;
                 break;
         }
-    }
-
-    private int GetPlacementData()
-    {
-        if (_pathData == null) 
-            return 0;
-
-        var coord = _fightData.GetCoord(_pathData.X, _pathData.Y, _pathData.Z);
-        if (coord == 0) 
-            return 0;
-        
-        var blueIndex = _fightData.StartPoints[0].IndexOf(coord);
-        var redIndex = _fightData.StartPoints[1].IndexOf(coord);
-
-        if (blueIndex != -1)
-            return 1;
-        if (redIndex != -1)
-            return 2;
-        
-        return 0;
-    }
-
-    private int GetBonusData()
-    {
-        if (_pathData == null) 
-            return 0;
-
-        var coord = _fightData.GetCoord(_pathData.X, _pathData.Y, _pathData.Z);
-        if (coord == 0) 
-            return 0;
-        
-        if (_fightData.Bonus.TryGetValue(coord, out var bonusData))
-            return bonusData - 1001;
-        return 0;
     }
 
     private void _OnXChanged(double value)
@@ -320,6 +290,34 @@ public partial class Inspector : Control
         TopologyUpdated?.Invoke(this, new TopologyUpdatedEventArgs(_pathData, _visibilityData));
     }
 
+    private void _OnPlacementChanged(long id)
+    {
+        var oldFightData = _fightData.Copy();
+        switch (id)
+        {
+            case 0:
+                _fightData.RemovePlacement(_pathData.X, _pathData.Y, _pathData.Z);
+                break;
+            case 3:
+                _fightData.AddCoach(_pathData.X, _pathData.Y, _pathData.Z);
+                break;
+            default:
+                _fightData.AddStart(_pathData.X, _pathData.Y, _pathData.Z, (int) id - 1);
+                break;
+        }
+        FightUpdated?.Invoke(this, new FightUpdatedEventArgs(oldFightData, _fightData));
+    }
+
+    private void _OnBonusChanged(long id)
+    {
+        var oldFightData = _fightData.Copy();
+        if (id == 0)
+            _fightData.RemoveBonus(_pathData.X, _pathData.Y, _pathData.Z);
+        else
+            _fightData.AddBonus(_pathData.X, _pathData.Y, _pathData.Z, (int) id + 1001);
+        FightUpdated?.Invoke(this, new FightUpdatedEventArgs(oldFightData, _fightData));
+    }
+
     public class ElementUpdatedEventArgs(GfxData.Element oldElement, GfxData.Element newElement) : EventArgs
     {
         public GfxData.Element OldElement => oldElement;
@@ -331,5 +329,11 @@ public partial class Inspector : Control
     {
         public TopologyData.CellPathData Path => path;
         public TopologyData.CellVisibilityData Visibility => visibility;
+    }
+
+    public class FightUpdatedEventArgs(FightData oldFightData, FightData newFightData) : EventArgs
+    {
+        public FightData OldFightData => oldFightData;
+        public FightData NewFightData => newFightData;
     }
 }

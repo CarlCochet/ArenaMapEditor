@@ -120,10 +120,11 @@ public class GfxData
     
     public bool ElementExists(Element element) => Partitions.Any(p => p.Elements.Contains(element));
 
+    public bool HasElementAt(int x, int y) => Partitions.Any(p => p.Elements.Exists(e => e.CellX == x && e.CellY == y));
+    
     private void CleanupDuplicates()
     {
         var seen = new HashSet<(int cellX, int cellY, short cellZ, int gfxId)>();
-        
         
         foreach (var partition in Partitions)
         {

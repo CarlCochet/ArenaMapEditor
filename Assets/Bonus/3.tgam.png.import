@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b72m3tp3g7enu"
-path="res://.godot/imported/3.tgam.png-53284a53d93fa7166210dcc0faeec752.ctex"
+uid="uid://cdw86rwpkrda3"
+path="res://.godot/imported/3.tgam.png-9478c2e1aa92a45c9fc81749146f9c80.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/Fight/3.tgam.png"
-dest_files=["res://.godot/imported/3.tgam.png-53284a53d93fa7166210dcc0faeec752.ctex"]
+source_file="res://Assets/Bonus/3.tgam.png"
+dest_files=["res://.godot/imported/3.tgam.png-9478c2e1aa92a45c9fc81749146f9c80.ctex"]
 
 [params]
 

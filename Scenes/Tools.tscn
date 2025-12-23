@@ -78,6 +78,7 @@ theme_override_constants/separation = 10
 [node name="Selector" type="TextureButton" parent="MarginContainer/HBoxContainer"]
 layout_mode = 2
 tooltip_text = "Selection (S)"
+mouse_filter = 1
 toggle_mode = true
 button_pressed = true
 texture_normal = ExtResource("2_78btu")
@@ -87,6 +88,7 @@ texture_hover = ExtResource("4_0mtuu")
 [node name="Brush" type="TextureButton" parent="MarginContainer/HBoxContainer"]
 layout_mode = 2
 tooltip_text = "Dessin (D)"
+mouse_filter = 1
 toggle_mode = true
 texture_normal = ExtResource("4_48r52")
 texture_pressed = ExtResource("9_seshs")
@@ -95,6 +97,7 @@ texture_hover = ExtResource("10_m4mf0")
 [node name="Line" type="TextureButton" parent="MarginContainer/HBoxContainer"]
 layout_mode = 2
 tooltip_text = "Ligne (T)"
+mouse_filter = 1
 toggle_mode = true
 texture_normal = ExtResource("5_6pqdi")
 texture_pressed = ExtResource("10_htrqw")
@@ -103,6 +106,7 @@ texture_hover = ExtResource("11_6x28h")
 [node name="Area" type="TextureButton" parent="MarginContainer/HBoxContainer"]
 layout_mode = 2
 tooltip_text = "Rectangle (R)"
+mouse_filter = 1
 toggle_mode = true
 texture_normal = ExtResource("6_ejfkd")
 texture_pressed = ExtResource("15_ryfbt")
@@ -111,6 +115,7 @@ texture_hover = ExtResource("16_mwthy")
 [node name="Eraser" type="TextureButton" parent="MarginContainer/HBoxContainer"]
 layout_mode = 2
 tooltip_text = "Efface (E)"
+mouse_filter = 1
 toggle_mode = true
 texture_normal = ExtResource("17_nax05")
 texture_pressed = ExtResource("18_q8l62")
@@ -119,6 +124,7 @@ texture_hover = ExtResource("19_hm6ee")
 [node name="Flip" type="TextureButton" parent="MarginContainer/HBoxContainer"]
 layout_mode = 2
 tooltip_text = "Flip horizontal (F)"
+mouse_filter = 1
 texture_normal = ExtResource("17_wjtxm")
 texture_pressed = ExtResource("18_bsk82")
 texture_hover = ExtResource("19_74djj")
@@ -126,6 +132,7 @@ texture_hover = ExtResource("19_74djj")
 [node name="BrushSize" type="Control" parent="MarginContainer/HBoxContainer"]
 custom_minimum_size = Vector2(170, 0)
 layout_mode = 2
+mouse_filter = 1
 
 [node name="SizeLabel" type="Label" parent="MarginContainer/HBoxContainer/BrushSize"]
 layout_mode = 0
@@ -133,6 +140,7 @@ offset_left = 26.0
 offset_top = -2.0
 offset_right = 78.0
 offset_bottom = 32.0
+mouse_filter = 1
 text = "Taille:"
 label_settings = SubResource("LabelSettings_kgn1q")
 vertical_alignment = 1
@@ -142,6 +150,7 @@ layout_mode = 0
 offset_left = 79.0
 offset_right = 165.5625
 offset_bottom = 31.0
+mouse_filter = 1
 min_value = 1.0
 value = 1.0
 alignment = 1
@@ -149,11 +158,13 @@ alignment = 1
 [node name="ColorPicker" type="ColorPickerButton" parent="MarginContainer/HBoxContainer"]
 custom_minimum_size = Vector2(30, 0)
 layout_mode = 2
+mouse_filter = 1
 color = Color(1, 1, 1, 1)
 
 [node name="Undo" type="TextureButton" parent="MarginContainer/HBoxContainer"]
 layout_mode = 2
 tooltip_text = "Annuler (Ctrl + Z)"
+mouse_filter = 1
 texture_normal = ExtResource("20_yyeh5")
 texture_pressed = ExtResource("21_nyhfs")
 texture_hover = ExtResource("22_m5x4e")
@@ -161,6 +172,7 @@ texture_hover = ExtResource("22_m5x4e")
 [node name="Redo" type="TextureButton" parent="MarginContainer/HBoxContainer"]
 layout_mode = 2
 tooltip_text = "Réappliquer (Ctrl + Y)"
+mouse_filter = 1
 texture_normal = ExtResource("23_hwnd8")
 texture_pressed = ExtResource("24_yuo05")
 texture_hover = ExtResource("25_v1ccl")
@@ -184,6 +196,7 @@ layout_mode = 2
 [node name="NewMap" type="TextureButton" parent="MarginContainer2/HBoxContainer"]
 layout_mode = 2
 tooltip_text = "Nouvelle carte"
+mouse_filter = 1
 texture_normal = ExtResource("26_t8hl2")
 texture_pressed = ExtResource("27_qpnmp")
 texture_hover = ExtResource("28_otwkm")
@@ -191,6 +204,7 @@ texture_hover = ExtResource("28_otwkm")
 [node name="ExportMap" type="TextureButton" parent="MarginContainer2/HBoxContainer"]
 layout_mode = 2
 tooltip_text = "Exporter carte"
+mouse_filter = 1
 texture_normal = ExtResource("29_qco4g")
 texture_pressed = ExtResource("30_sh4qp")
 texture_hover = ExtResource("31_el88t")
@@ -198,6 +212,7 @@ texture_hover = ExtResource("31_el88t")
 [node name="LocateArena" type="TextureButton" parent="MarginContainer2/HBoxContainer"]
 layout_mode = 2
 tooltip_text = "Localiser dossier Arena"
+mouse_filter = 1
 texture_normal = ExtResource("32_ad17n")
 texture_pressed = ExtResource("33_hqjf2")
 texture_hover = ExtResource("34_or3wh")
@@ -206,3 +221,4 @@ texture_hover = ExtResource("34_or3wh")
 custom_minimum_size = Vector2(130, 30)
 layout_mode = 2
 tooltip_text = "Sélectionner carte du client Arena (localiser Arena avant utilisation)"
+mouse_filter = 1

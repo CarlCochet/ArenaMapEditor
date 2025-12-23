@@ -27,7 +27,8 @@ public class GlobalData
     public Dictionary<int, ElementData> Elements { get; set; } = new();
     public Dictionary<short, PlaylistData> Playlists { get; set; } = new();
     public Dictionary<string, MapData> Maps { get; set; } = new();
-    public List<Texture2D> SpecialTextures { get; set; } = new();
+    public List<Texture2D> BonusTextures { get; set; } = [];
+    public List<Texture2D> PlacementTextures { get; set; } = [];
     
     public int[] IgnoreGfxIds { get; set; } = [76, 113, 114, 141, 252, 253, 331, 332, 333, 461, 462, 463, 504, 610, 613,
         730, 731, 907, 908, 909, 910, 927, 933, 991, 993, 1048, 1194, 1209, 1210, 1211, 1230, 1236, 1237, 1238, 1246, 
@@ -80,9 +81,14 @@ public class GlobalData
         }
         AssetIds = ValidAssets.Keys.ToArray();
 
-        for (var i = 0; i < 13; i++)
+        for (var i = 0; i < 8; i++)
         {
-            SpecialTextures.Add(GD.Load<CompressedTexture2D>($"res://Assets/Fight/{i}.tgam.png"));
+            BonusTextures.Add(GD.Load<CompressedTexture2D>($"res://Assets/Bonus/{i}.tgam.png"));
+        }
+
+        for (var i = 0; i < 3; i++)
+        {
+            PlacementTextures.Add(GD.Load<CompressedTexture2D>($"res://Assets/Placement/{i}.tgam.png"));
         }
     }
     

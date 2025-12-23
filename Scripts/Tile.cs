@@ -120,20 +120,10 @@ public partial class Tile : Sprite2D
     {
         if (PathData == null) 
             return;
-
-        var coord = fightData.GetCoord(PathData.X, PathData.Y, PathData.Z);
-        if (coord == 0) 
-            return;
         
-        var blueIndex = fightData.StartPoints[0].IndexOf(coord);
-        var redIndex = fightData.StartPoints[1].IndexOf(coord);
-
-        if (blueIndex != -1)
-            _placement.Texture = GlobalData.Instance.SpecialTextures[0];
-        if (redIndex != -1)
-            _placement.Texture = GlobalData.Instance.SpecialTextures[1];
-        if (fightData.Bonus.TryGetValue(coord, out var bonusData))
-            _bonus.Texture = GlobalData.Instance.SpecialTextures[bonusData - 1000];
+        var (placement, bonus) = fightData.GetData(PathData.X, PathData.Y, PathData.Z);
+        _placement.Texture = placement != -1 ? GlobalData.Instance.PlacementTextures[placement] : null;
+        _bonus.Texture = bonus != -1 ? GlobalData.Instance.BonusTextures[bonus] : null;
     }
 	
     public void PositionToIso(int x, int y, int z, int height, int originX, int originY)

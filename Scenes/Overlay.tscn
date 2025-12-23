@@ -58,6 +58,7 @@ layout_mode = 2
 
 [node name="Previous" type="TextureButton" parent="SelectorPreview/HBoxContainer"]
 layout_mode = 2
+mouse_filter = 1
 texture_normal = ExtResource("2_20wea")
 texture_pressed = ExtResource("3_37y85")
 texture_hover = ExtResource("4_mhq33")
@@ -65,6 +66,7 @@ texture_hover = ExtResource("4_mhq33")
 [node name="Background" type="ColorRect" parent="SelectorPreview/HBoxContainer"]
 custom_minimum_size = Vector2(60, 60)
 layout_mode = 2
+mouse_filter = 1
 color = Color(0.712129, 0.712129, 0.712129, 1)
 
 [node name="Background2" type="ColorRect" parent="SelectorPreview/HBoxContainer/Background"]
@@ -81,6 +83,7 @@ offset_right = 28.0
 offset_bottom = 28.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 1
 color = Color(0, 0, 0, 1)
 
 [node name="Preview" type="TextureRect" parent="SelectorPreview/HBoxContainer/Background/Background2"]
@@ -102,6 +105,7 @@ stretch_mode = 5
 
 [node name="Next" type="TextureButton" parent="SelectorPreview/HBoxContainer"]
 layout_mode = 2
+mouse_filter = 1
 texture_normal = ExtResource("5_evixr")
 texture_pressed = ExtResource("6_5nyjn")
 texture_hover = ExtResource("7_apyyq")
@@ -122,6 +126,7 @@ theme_override_constants/margin_bottom = 5
 [node name="Button" type="Button" parent="MarginContainer"]
 custom_minimum_size = Vector2(170, 40)
 layout_mode = 2
+mouse_filter = 1
 text = "Generate Topology"
 
 [node name="Position" type="MarginContainer" parent="."]
@@ -166,12 +171,14 @@ theme_override_constants/separation = 0
 
 [node name="Up" type="TextureButton" parent="HeightModifier/VBoxContainer"]
 layout_mode = 2
+mouse_filter = 1
 texture_normal = ExtResource("23_gjujf")
 texture_pressed = ExtResource("24_uuvrw")
 texture_hover = ExtResource("25_dosm3")
 
 [node name="Highlight" type="TextureButton" parent="HeightModifier/VBoxContainer"]
 layout_mode = 2
+mouse_filter = 1
 toggle_mode = true
 texture_normal = ExtResource("26_2hu0k")
 texture_pressed = ExtResource("27_dputo")
@@ -179,6 +186,7 @@ texture_hover = ExtResource("28_sv3im")
 
 [node name="Down" type="TextureButton" parent="HeightModifier/VBoxContainer"]
 layout_mode = 2
+mouse_filter = 1
 texture_normal = ExtResource("26_cf6e0")
 texture_pressed = ExtResource("27_qa7qn")
 texture_hover = ExtResource("28_xtvus")
