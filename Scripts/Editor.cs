@@ -40,6 +40,7 @@ public partial class Editor : Node2D
 		_tools.ToolSelected += (_, e) => _map.ShowPlacementPreview(e);
 		_tools.UndoPressed += _map.Undo;
 		_tools.RedoPressed += _map.Redo;
+		_tools.NewMapPressed += _OnNewMapPressed;
 
 		_overlay.InterfaceEntered += (_, _) => _map.UpdateFocus(false);
 		_overlay.InterfaceExited += (_, _) => _map.UpdateFocus(true);
@@ -143,6 +144,11 @@ public partial class Editor : Node2D
 		_filter.UpdateBiome(Enums.Biome.Global);
 		_filter.UpdateCategory(Enums.Category.Global);
 		_filter.UpdateMode(Enums.Mode.Gfx);
+	}
+
+	private void _OnNewMapPressed(object sender, Tools.NewMapPressedEventArgs e)
+	{
+		_map.CreateNewMap(e.Id);
 	}
 
 	private void _OnDirectorySelected(string dir)

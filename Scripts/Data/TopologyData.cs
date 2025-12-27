@@ -87,16 +87,20 @@ public class TopologyData
     public void GenerateFromGfx(GfxData gfxData)
     {
         InstanceSet.Reset();
-
         var elements = gfxData.Partitions.SelectMany(p => p.Elements);
         foreach (var element in elements)
         {
-            if (GlobalData.Instance.IgnoreGfxIds.Contains(element.CommonData.GfxId))
-                continue;
-            
-            var topologyMap = InstanceSet.GetTopologyMap(element.CellX, element.CellY) ?? InstanceSet.CreateTopologyMap(element.CellX, element.CellY);
-            topologyMap.AddElement(element);
+            AddFromElement(element);
         }
+    }
+    
+    public void AddFromElement(GfxData.Element element)
+    {
+        if (GlobalData.Instance.IgnoreGfxIds.Contains(element.CommonData.GfxId))
+            return;
+        
+        var topoC = InstanceSet.GetTopologyMap(element.CellX, element.CellY) ?? InstanceSet.CreateTopologyMap(element.CellX, element.CellY);
+        topoC.AddElement(element);
     }
 
     public void Save(string path)
@@ -158,6 +162,7 @@ public class TopologyData
     {
         var topoC = InstanceSet.GetTopologyMap(pathData.X, pathData.Y);
         topoC?.UpdateData(pathData, visibilityData);
+        InstanceSet.PruneEmptyMaps();
     }
 
     public void ResetTile(int x, int y)
@@ -176,35 +181,6 @@ public class TopologyData
         Update(pathData, visibilityData);
     }
 
-    public void AddFromElement(GfxData.Element element)
-    {
-        if (GlobalData.Instance.IgnoreGfxIds.Contains(element.CommonData.GfxId))
-            return;
-        
-        var pathData = new CellPathData
-        {
-            X = element.CellX,
-            Y = element.CellY,
-            Z = element.CellZ,
-            Height = element.CommonData.VisualHeight,
-            CanMoveThrough = false,
-            Cost = (sbyte)(element.CommonData.Walkable ? 0 : -1),
-            MiscProperties = 0,
-            MurFinInfo = 0
-        };
-
-        var visibilityData = new CellVisibilityData
-        {
-            X = element.CellX,
-            Y = element.CellY,
-            Z = element.CellZ,
-            Height = element.CommonData.VisualHeight,
-            CanViewThrough = false
-        };
-        
-        
-    }
-    
     private long GetHashCode(int worldId, long x, long y, int instanceId)
     {
         x += 32767L;
@@ -295,6 +271,11 @@ public class TopologyData
             Maps = Maps.OrderBy(instance => instance.TopoC.Y)
                 .ThenBy(instance => instance.TopoC.X)
                 .ToList();
+        }
+
+        public void PruneEmptyMaps()
+        {
+            Maps = Maps.Where(m => !m.IsEmpty()).ToList();
         }
 
         private int GetMapIndex(int x, int y)
@@ -409,6 +390,11 @@ public class TopologyData
             x -= TopoC.X;
             y -= TopoC.Y;
             UsedInFight.Set(y * MapConstants.MapWidth + x, false);
+        }
+
+        public bool IsEmpty()
+        {
+            return TopoC.IsEmpty();
         }
 
         private void SetTopologyMap(TopologyMap topologyMap)
@@ -1073,6 +1059,11 @@ public class TopologyData
         public override TopologyMapC ConvertToC()
         {
             return this;
+        }
+
+        public bool IsEmpty()
+        {
+            return Zs.All(z => z == short.MinValue);
         }
 
         private int GetIndex(int x, int y)

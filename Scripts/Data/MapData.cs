@@ -21,6 +21,16 @@ public class MapData
         Id = id;
     }
 
+    public void CreateEmpty()
+    {
+        Topology = new TopologyData(Id);
+        Light = new LightData(Id);
+        Gfx = new GfxData(Id);
+        Fight = new FightData(Id);
+        Env = new EnvData(Id);
+        Ambiances = new AmbianceData(Id);
+    }
+
     public void Load(string path)
     {
         try

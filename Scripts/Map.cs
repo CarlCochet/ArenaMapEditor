@@ -113,10 +113,18 @@ public partial class Map : Node2D
         }
     }
 
+    public void CreateNewMap(int id)
+    {
+        var mapId = $"{id}";
+        var newMap = new MapData(mapId);
+        newMap.CreateEmpty();
+        GlobalData.Instance.Maps[mapId] = newMap;
+        _mapData = newMap;
+    }
+
     public void UpdateFocus(bool hasFocus)
     {
         CustomCamera.HasFocus = hasFocus;
-        GD.Print(hasFocus);
     }
 
     public void UpdateHeight(int z)

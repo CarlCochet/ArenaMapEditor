@@ -20,16 +20,20 @@ public partial class Tools : Control
 	[Export] private TextureButton _locateButton;
 	[Export] private TextureButton _exportButton;
 	[Export] private OptionButton _loadMapButton;
+	[Export] private PopupPanel _createMapContainer;
+	[Export] private SpinBox _mapIdInput;
+	[Export] private Button _validateButton;
+	[Export] private Button _cancelButton;
 
 	public event EventHandler FlipPressed;
 	public event EventHandler<ColorChangedEventArgs> ColorChanged;
 	public event EventHandler UndoPressed;
 	public event EventHandler RedoPressed;
-	public event EventHandler NewMapPressed; 
 	public event EventHandler LocateArenaPressed;
 	public event EventHandler<MapSelectedEventArgs> MapSelected;
 	public event EventHandler ExportMapPressed;
 	public event EventHandler<ToolSelectedEventArgs> ToolSelected;
+	public event EventHandler<NewMapPressedEventArgs> NewMapPressed;
 
 	public override void _Ready()
 	{
@@ -47,6 +51,8 @@ public partial class Tools : Control
 		_locateButton.Pressed += _OnLocatePressed;
 		_exportButton.Pressed += _OnExportPressed;
 		_loadMapButton.ItemSelected += _OnMapSelected;
+		_validateButton.Pressed += _OnValidatePressed;
+		_cancelButton.Pressed += _OnCancelPressed;
 	}
 
 	public void SetMapOptions(List<string> mapNames)
@@ -143,7 +149,7 @@ public partial class Tools : Control
 
 	private void _OnNewPressed()
 	{
-		NewMapPressed?.Invoke(this, EventArgs.Empty);
+		_createMapContainer.Visible = true;
 	}
 
 	private void _OnLocatePressed()
@@ -162,6 +168,17 @@ public partial class Tools : Control
 		ExportMapPressed?.Invoke(this, EventArgs.Empty);
 	}
 
+	private void _OnValidatePressed()
+	{
+		_createMapContainer.Visible = false;
+		NewMapPressed?.Invoke(this, new NewMapPressedEventArgs((int)_mapIdInput.Value));
+	}
+
+	private void _OnCancelPressed()
+	{
+		_createMapContainer.Visible = false;
+	}
+
 	public class ColorChangedEventArgs(Color color) : EventArgs
 	{
 		public Color Color => color;
@@ -175,5 +192,10 @@ public partial class Tools : Control
 	public class ToolSelectedEventArgs(Enums.Tool tool) : EventArgs
 	{
 		public Enums.Tool Tool => tool;
+	}
+
+	public class NewMapPressedEventArgs(int id) : EventArgs
+	{
+		public int Id => id;
 	}
 }
