@@ -38,7 +38,7 @@
 [sub_resource type="LabelSettings" id="LabelSettings_kgn1q"]
 font_size = 14
 
-[node name="Tools" type="Control" node_paths=PackedStringArray("_selectButton", "_brushButton", "_lineButton", "_areaButton", "_eraserButton", "_flipButton", "_sizeField", "_loadButton", "_colorPickerButton", "_undoButton", "_redoButton", "_newMapButton", "_locateButton", "_exportButton", "_loadMapButton")]
+[node name="Tools" type="Control" node_paths=PackedStringArray("_selectButton", "_brushButton", "_lineButton", "_areaButton", "_eraserButton", "_flipButton", "_sizeField", "_loadButton", "_colorPickerButton", "_undoButton", "_redoButton", "_newMapButton", "_locateButton", "_exportButton", "_loadMapButton", "_createMapContainer", "_mapIdInput", "_validateButton", "_cancelButton")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -61,6 +61,10 @@ _newMapButton = NodePath("MarginContainer2/HBoxContainer/NewMap")
 _locateButton = NodePath("MarginContainer2/HBoxContainer/LocateArena")
 _exportButton = NodePath("MarginContainer2/HBoxContainer/ExportMap")
 _loadMapButton = NodePath("MarginContainer2/HBoxContainer/LoadMap")
+_createMapContainer = NodePath("PopupPanel")
+_mapIdInput = NodePath("PopupPanel/MarginContainer/VBoxContainer/MapId")
+_validateButton = NodePath("PopupPanel/MarginContainer/VBoxContainer/HBoxContainer/Validate")
+_cancelButton = NodePath("PopupPanel/MarginContainer/VBoxContainer/HBoxContainer/Cancel")
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
 layout_mode = 0
@@ -234,10 +238,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -125.0
-offset_top = -67.5
-offset_right = 125.0
-offset_bottom = 67.5
+offset_left = 4.0
+offset_top = 4.0
+offset_right = 254.0
+offset_bottom = 139.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/margin_left = 5
