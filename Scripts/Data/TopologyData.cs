@@ -1587,6 +1587,12 @@ public class TopologyData
             }
             return -1;
         }
+        
+        public long GetHash()
+        {
+            return (Y + 8192L & 0x3FFFL) << 34 |
+                   (X + 8192L & 0x3FFFL) << 19;
+        }
 
         public int GetMurFinType()
         {

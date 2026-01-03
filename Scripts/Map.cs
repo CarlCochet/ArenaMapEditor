@@ -250,10 +250,9 @@ public partial class Map : Node2D
     public void AddElement(GfxData.Element element)
     {
         UnselectTiles();
-        if (!_mapData.Gfx.HasElementAt(element.CellX, element.CellY))
-            _mapData.Topology.AddFromElement(element);
-        _mapData.Gfx.AddElement(element);
+        UpdateTopologyFromElement(element);
         
+        _mapData.Gfx.AddElement(element);
         var tile = _tileScene.Instantiate<Tile>();
         tile.SetElementData(element);
         tile.Name = element.HashCode.ToString();
@@ -274,6 +273,33 @@ public partial class Map : Node2D
         }
         
         CleanupGfxState();
+    }
+
+    public void UpdateTopologyFromElement(GfxData.Element element)
+    {
+        var pathData = _mapData.Topology.GetPathData(element.CellX, element.CellY);
+        if (pathData is { Z: > short.MinValue })
+            return;
+
+        _mapData.Topology.AddFromElement(element);
+        var topologyTile = _tileScene.Instantiate<Tile>();
+        pathData = _mapData.Topology.GetPathData(element.CellX, element.CellY);
+        var visibilityData = _mapData.Topology.GetVisibilityData(element.CellX, element.CellY);
+        topologyTile.SetTopology(pathData, visibilityData);
+        topologyTile.SetFightData(_mapData.Fight);
+        _topology.AddChild(topologyTile);
+        
+        var children = _topology.GetChildren();
+        for (var i = 0; i < children.Count; i++)
+        {
+            var child = children[i];
+            if (child is not Tile t)
+                continue;
+            if (t.PathData.GetHash() <= pathData.GetHash())
+                continue;
+            _topology.MoveChild(topologyTile, i);
+            break;
+        }
     }
 
     public void RemoveElement(GfxData.Element element)
@@ -436,7 +462,7 @@ public partial class Map : Node2D
             return;
 
         Tile topologyTile = null;
-        foreach (var child in _gfx.GetChildren())
+        foreach (var child in _topology.GetChildren())
         {
             if (child is not Tile tile)
                 continue;
