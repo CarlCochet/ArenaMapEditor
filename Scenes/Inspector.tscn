@@ -717,5 +717,3 @@ popup/item_7/text = "Action"
 popup/item_7/id = 7
 popup/item_8/text = "Soin"
 popup/item_8/id = 8
-
-[connection signal="color_changed" from="ScrollContainer/MarginContainer/GfxContainer/VisualsContainer/Color/ColorPickerButton" to="." method="_OnColorChanged"]

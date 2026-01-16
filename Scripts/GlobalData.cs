@@ -94,17 +94,13 @@ public class GlobalData
     
     public void LoadElements(string path)
     {
-        using var archive = ZipFile.OpenRead(path);
-        var entry = archive.GetEntry("elements.lib");
+        var reader = GetReader(path, "elements.lib");
 
-        if (entry == null)
+        if (reader == null)
         {
-            GD.PrintErr("Can't find elements.lib");
-            return;
+            GD.PrintErr("elements.lib not found.");
+            return; 
         }
-        
-        using var stream = entry.Open();
-        var reader = new ExtendedDataInputStream(stream);
         
         var elementCount = reader.ReadInt();
         Elements.EnsureCapacity(elementCount);
@@ -119,19 +115,15 @@ public class GlobalData
 
     public void LoadPlaylists(string path)
     {
-        using var archive = ZipFile.OpenRead(path);
-        var entry = archive.GetEntry("maps_sounds/env/playlists.dat");
-        
-        if (entry == null)
-        {
-            GD.PrintErr("Can't find playlists.dat");
-            return;
-        }
-        
-        using var stream = entry.Open();
-        using var reader = new BinaryReader(stream);
+        var reader = GetReader(path, "env/playlists.dat");
 
-        var playlistCount = reader.ReadInt16();
+        if (reader == null)
+        {
+            GD.PrintErr("playlists.dat not found.");
+            return; 
+        }
+
+        var playlistCount = reader.ReadShort();
         Playlists.EnsureCapacity(playlistCount);
 
         for (var i = 0; i < playlistCount; i++)
@@ -142,13 +134,33 @@ public class GlobalData
         }
     }
 
+    public void SaveElements(string path)
+    {
+        var writer = GetWriter(path, "", "elements.lib");
+        writer.WriteShort((short)Elements.Count);
+        foreach (var element in Elements.Values)
+        {
+            element.Save(writer);
+        }
+    }
+
+    public void SavePlaylists(string path)
+    {
+        var writer = GetWriter(path, "maps_sounds/env", "playlists.dat");
+        writer.WriteShort((short)Playlists.Count);
+        foreach (var playlist in Playlists.Values)
+        {
+            playlist.Save(writer);
+        }
+    }
+
     public void SaveSettings()
     {
 		using var settingsFile = FileAccess.Open("user://settings.json", FileAccess.ModeFlags.Write);
         
         settingsFile.StoreString(JsonSerializer.Serialize(Settings));
     }
-	
+    
     public void LoadSettings()
     {
         using var settingsFile = FileAccess.Open("user://settings.json", FileAccess.ModeFlags.Read);
@@ -156,5 +168,42 @@ public class GlobalData
             return;
 		
 		Settings = JsonSerializer.Deserialize<Settings>(settingsFile.GetAsText());
+    }
+
+    public ExtendedDataInputStream GetReader(string path, string internalPath)
+    {
+        var jarName = $"{path}.jar";
+        ExtendedDataInputStream reader = null;
+
+        if (FileAccess.FileExists(jarName))
+        {
+            using var archive = ZipFile.OpenRead(path);
+            var entry = archive.GetEntry($"{internalPath}");
+        
+            if (entry == null)
+                return null;
+        
+            using var stream = entry.Open();
+            reader = new ExtendedDataInputStream(stream);
+        }
+        
+        if (FileAccess.FileExists($"{path}/{internalPath}"))
+        {
+            using var stream = File.OpenRead($"{path}/{internalPath}");
+            reader = new ExtendedDataInputStream(stream);
+        }
+
+        return reader;
+    }
+
+    public OutputBitStream GetWriter(string path, string internalPath, string filename)
+    {
+        var fullPath = Path.Combine(path, internalPath);
+        if (!DirAccess.DirExistsAbsolute(fullPath))
+            DirAccess.MakeDirRecursiveAbsolute(fullPath);
+        
+        var filePath = Path.Combine(fullPath, filename);
+        using var stream = File.OpenWrite(filePath);
+        return new OutputBitStream(stream);
     }
 }

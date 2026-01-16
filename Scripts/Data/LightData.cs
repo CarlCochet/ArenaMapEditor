@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using FileAccess = Godot.FileAccess;
 
 public class LightData
 {
@@ -17,8 +18,16 @@ public class LightData
             return;
         Id = worldId;
     }
-
+    
     public void Load(string path)
+    {
+        if (!FileAccess.FileExists($"{path}/{Id}.jar"))
+            LoadFromJar(path);
+        else
+            LoadFromFolder(path);
+    }
+
+    private void LoadFromJar(string path)
     {
         using var archive = ZipFile.OpenRead($"{path}/{Id}.jar");
         
@@ -26,20 +35,52 @@ public class LightData
         {
             if (!entry.FullName.Contains('_'))
                 continue;
-            
-            var splitName = entry.FullName.Split('_');
-            if (!int.TryParse(splitName[0], out var x))
-                x = 0;
-            if (!int.TryParse(splitName[1], out var y))
-                y = 0;
-            
-            using var stream = entry.Open();
+
+            using var stream = entry.Open(); 
             var reader = new ExtendedDataInputStream(stream);
-            
+
             var partition = new Partition(Id);
             partition.Load(reader);
             Partitions.Add(partition);
         }
+        Partitions = Partitions.OrderBy(p => p.X).ThenBy(p => p.Y).ToList();
+    }
+
+    private void LoadFromFolder(string path)
+    {
+        var folderPath = $"{path}/{Id}";
+        var dirAccess = DirAccess.Open(folderPath);
+        if (dirAccess == null)
+            return;
+        
+        dirAccess.ListDirBegin();
+        var fileName = dirAccess.GetNext();
+
+        while (fileName != "")
+        {
+            if (dirAccess.CurrentIsDir() || !fileName.Contains('_'))
+            {
+                fileName = dirAccess.GetNext();
+                continue;
+            }
+
+            var filePath = $"{folderPath}/{fileName}";
+            if (!FileAccess.FileExists(filePath))
+            {
+                fileName = dirAccess.GetNext();
+                continue;
+            }
+            using var stream = File.OpenRead(filePath);
+            var reader = new ExtendedDataInputStream(stream);
+
+            var partition = new Partition(Id);
+            partition.Load(reader);
+            Partitions.Add(partition);
+
+            fileName = dirAccess.GetNext();
+        }
+        dirAccess.ListDirEnd();
+
         Partitions = Partitions.OrderBy(p => p.X).ThenBy(p => p.Y).ToList();
     }
 

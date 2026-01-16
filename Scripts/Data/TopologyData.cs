@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
+using FileAccess = Godot.FileAccess;
 
 public class TopologyData
 {
@@ -37,8 +38,16 @@ public class TopologyData
         Id = worldId;
         InstanceSet = new TopologyMapInstanceSet();
     }
-
+    
     public void Load(string path)
+    {
+        if (FileAccess.FileExists($"{path}/{Id}.jar"))
+            LoadFromJar(path);
+        else
+            LoadFromFolder(path);
+    }
+    
+    private void LoadFromJar(string path)
     {
         using var archive = ZipFile.OpenRead($"{path}/{Id}.jar");
         
@@ -48,11 +57,11 @@ public class TopologyData
                 continue;
             
             var splitName = entry.FullName.Split('_');
-            if (!int.TryParse(splitName[0], out var x))
+            if (!short.TryParse(splitName[0], out var x))
                 x = 0;
-            if (!int.TryParse(splitName[1], out var y))
+            if (!short.TryParse(splitName[1], out var y))
                 y = 0;
-            
+
             var hash = GetHashCode(Id, x, y, 0);
             
             using var stream = entry.Open();
@@ -80,8 +89,79 @@ public class TopologyData
             var instance = new TopologyMapInstance(topologyMap);
             InstanceSet.AddMap(instance);
         }
-
         InstanceSet.Sort();
+    }
+
+    private void LoadFromFolder(string path)
+    {
+        var folderPath = $"{path}/{Id}";
+        var dirAccess = DirAccess.Open(folderPath);
+        if (dirAccess == null)
+            return;
+        
+        dirAccess.ListDirBegin();
+        var fileName = dirAccess.GetNext();
+
+        while (fileName != "")
+        {
+            if (dirAccess.CurrentIsDir() || !fileName.Contains('_'))
+            {
+                fileName = dirAccess.GetNext();
+                continue;
+            }
+
+            var filePath = $"{folderPath}/{fileName}";
+            if (!FileAccess.FileExists(filePath))
+            {
+                fileName = dirAccess.GetNext();
+                continue;
+            }
+            using var stream = File.OpenRead(filePath);
+            var reader = new ExtendedDataInputStream(stream);
+            
+            var splitName = fileName.Split('_');
+            if (!short.TryParse(splitName[0], out var x))
+                x = 0;
+            if (!short.TryParse(splitName[1], out var y))
+                y = 0;
+
+            var hash = GetHashCode(Id, x, y, 0);
+
+            var header = reader.ReadByte();
+            var version = (sbyte)((header & VersionMask) >> VersionNumberPosition);
+            var topologyMethod = (sbyte)((header & MethodMask) >> MethodNumberPosition);
+
+            if (topologyMethod == MethodA)
+            {
+                fileName = dirAccess.GetNext();
+                continue;
+            }
+                
+
+            TopologyMap topologyMap = topologyMethod switch
+            {
+                MethodB => new TopologyMapB(),
+                MethodBi => new TopologyMapBi(),
+                MethodC => new TopologyMapC(),
+                MethodCi => new TopologyMapCi(),
+                MethodDi => new TopologyMapDi(),
+                _ => null
+            };
+            if (topologyMap == null)
+            {
+                fileName = dirAccess.GetNext();
+                continue;
+            }
+            
+            topologyMap.Load(reader);
+            var instance = new TopologyMapInstance(topologyMap);
+            InstanceSet.AddMap(instance);
+
+            fileName = dirAccess.GetNext();
+        }
+        dirAccess.ListDirEnd();
+
+        InstanceSet.Sort();  
     }
 
     public void GenerateFromGfx(GfxData gfxData)

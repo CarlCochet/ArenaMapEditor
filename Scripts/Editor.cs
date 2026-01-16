@@ -177,28 +177,36 @@ public partial class Editor : Node2D
 		{
 			map.Save(dir);
 		}
+		GlobalData.Instance.SaveElements(dir);
+		GlobalData.Instance.SavePlaylists(dir);
 		_lastDir = dir;
 	}
 
 	private void LoadMapList(string dir)
 	{
-		if (!IsFolderArena(dir))
+		GlobalData.Instance.Settings ??= new Settings();
+		using var dirAccess = DirAccess.Open(dir);
+		if (dirAccess.DirExists("ArenaReturnsClient/game/contents/maps/env"))
+			GlobalData.Instance.Settings.ArenaPath = $"{dir}/ArenaReturnsClient/game/contents";
+		else if (dirAccess.DirExists("game/contents/maps/env"))
+			GlobalData.Instance.Settings.ArenaPath = $"{dir}/game/contents";
+		else if (dirAccess.DirExists("contents/maps/env"))
+			GlobalData.Instance.Settings.ArenaPath = $"{dir}contents";
+		else if (dirAccess.DirExists("maps/env"))
+			GlobalData.Instance.Settings.ArenaPath = dir;
+		else
 		{
 			GD.PrintErr("Selected directory is not a valid Arena Client folder.");
 			return;
 		}
 
-		GlobalData.Instance.Settings ??= new Settings();
-		GlobalData.Instance.Settings.ArenaPath = dir;
-		
-		_contentPath = $"{GlobalData.Instance.Settings.ArenaPath}/game/contents";
-		GlobalData.Instance.LoadElements($"{_contentPath}/maps/data.jar");
-		GlobalData.Instance.LoadPlaylists($"{_contentPath}/maps_sounds.jar");
-		
-		using var dirAccess = DirAccess.Open($"{_contentPath}/maps/fight");
-		if (dirAccess == null)
+		GlobalData.Instance.LoadElements($"{GlobalData.Instance.Settings.ArenaPath}/maps/data");
+		GlobalData.Instance.LoadPlaylists($"{GlobalData.Instance.Settings.ArenaPath}/maps_sounds");
+
+		if (!dirAccess.DirExists($"{GlobalData.Instance.Settings.ArenaPath}/maps/fight"))
 			return;
-		
+
+		using var fightDir = DirAccess.Open($"{GlobalData.Instance.Settings.ArenaPath}/maps/fight");
 		dirAccess.ListDirBegin();
 		var name = dirAccess.GetNext();
 		List<string> mapNames = [];
@@ -217,16 +225,5 @@ public partial class Editor : Node2D
 		
 		_tools.SetMapOptions(mapNames);
 		GlobalData.Instance.SaveSettings();
-	}
-
-	private bool IsFolderArena(string path)
-	{
-		using var dirAccess = DirAccess.Open(path);
-		return dirAccess.DirExists("game/contents/maps/env") &&
-		       dirAccess.DirExists("game/contents/maps/fight") &&
-		       dirAccess.DirExists("game/contents/maps/gfx") &&
-		       dirAccess.DirExists("game/contents/maps/light") &&
-		       dirAccess.DirExists("game/contents/maps/tplg") &&
-		       dirAccess.FileExists("game/contents/maps/data.jar");
 	}
 }

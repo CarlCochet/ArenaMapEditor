@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using FileAccess = Godot.FileAccess;
 
 public class GfxData
 {
@@ -21,8 +22,16 @@ public class GfxData
     
     public void Load(string path)
     {
+        if (FileAccess.FileExists($"{path}/{Id}.jar"))
+            LoadFromJar(path);
+        else
+            LoadFromFolder(path);
+    }
+    
+    private void LoadFromJar(string path)
+    {
         using var archive = ZipFile.OpenRead($"{path}/{Id}.jar");
-
+        
         foreach (var entry in archive.Entries)
         {
             if (!entry.FullName.Contains('_'))
@@ -33,12 +42,61 @@ public class GfxData
                 x = 0;
             if (!short.TryParse(splitName[1], out var y))
                 y = 0;
+
+            using var stream = entry.Open(); 
+            var reader = new ExtendedDataInputStream(stream);
             
-            var partition = new Partition(entry, x, y);
+            var partition = new Partition(x, y);
+            partition.Load(reader);
             Partitions.Add(partition);
         }
         Partitions = Partitions.OrderBy(p => p.X).ThenBy(p => p.Y).ToList();
-        CleanupDuplicates();
+        CleanupDuplicates();    
+    }
+
+    private void LoadFromFolder(string path)
+    {
+        var folderPath = $"{path}/{Id}";
+        var dirAccess = DirAccess.Open(folderPath);
+        if (dirAccess == null)
+            return;
+        
+        dirAccess.ListDirBegin();
+        var fileName = dirAccess.GetNext();
+
+        while (fileName != "")
+        {
+            if (dirAccess.CurrentIsDir() || !fileName.Contains('_'))
+            {
+                fileName = dirAccess.GetNext();
+                continue;
+            }
+
+            var filePath = $"{folderPath}/{fileName}";
+            if (!FileAccess.FileExists(filePath))
+            {
+                fileName = dirAccess.GetNext();
+                continue;
+            }
+            using var stream = File.OpenRead(filePath);
+            var reader = new ExtendedDataInputStream(stream);
+            
+            var splitName = fileName.Split('_');
+            if (!short.TryParse(splitName[0], out var x))
+                x = 0;
+            if (!short.TryParse(splitName[1], out var y))
+                y = 0;
+
+            var partition = new Partition(x, y);
+            partition.Load(reader);
+            Partitions.Add(partition);
+
+            fileName = dirAccess.GetNext();
+        }
+        dirAccess.ListDirEnd();
+
+        Partitions = Partitions.OrderBy(p => p.X).ThenBy(p => p.Y).ToList();
+        CleanupDuplicates();    
     }
 
     public void Save(string path)
@@ -53,19 +111,6 @@ public class GfxData
             using var writer = new OutputBitStream(fileStream);
             partition.Save(writer);
         }
-    }
-
-    public void UpdateElement(Element oldElement, Element newElement)
-    {
-        var partition = Partitions.FirstOrDefault(p => p.Elements.Contains(oldElement));
-        if (partition == null)
-            return;
-        
-        var index = partition.Elements.IndexOf(oldElement);
-        newElement.ComputeHashCode();
-        partition.Elements[index] = newElement;
-        partition.SortElements();
-        partition.RecomputeBounds();
     }
 
     public void AddElement(Element element)
@@ -160,7 +205,6 @@ public class GfxData
 
     public class Partition
     {
-        public string Id { get; set; }
         public List<Element> Elements = [];
 
         public short X;
@@ -182,21 +226,17 @@ public class GfxData
 
         private Color _color;
 
-        public Partition(ZipArchiveEntry entry, short x, short y)
+        public Partition(short x, short y)
         {
-            Id = entry.FullName;
             X = x;
             Y = y;
-            _color = new Color(GlobalData.Instance.Rng.Randf(), GlobalData.Instance.Rng.Randf(),
+            _color = new Color(GlobalData.Instance.Rng.Randf(), 
+                GlobalData.Instance.Rng.Randf(),
                 GlobalData.Instance.Rng.Randf());
-            Load(entry);
         }
 
-        public void Load(ZipArchiveEntry entry)
+        public void Load(ExtendedDataInputStream reader)
         {
-            using var stream = entry.Open();
-            var reader = new ExtendedDataInputStream(stream);
-            
             _coordMinX = reader.ReadInt();
             _coordMinY = reader.ReadInt();
             _coordMinZ = reader.ReadShort();

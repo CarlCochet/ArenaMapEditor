@@ -225,8 +225,9 @@ public partial class Map : Node2D
 
     public void UpdateElement(GfxData.Element oldElement, GfxData.Element newElement)
     {
-        _mapData.Gfx.UpdateElement(oldElement, newElement);
-        SelectedTiles.FirstOrDefault(t => t.Mode == Enums.Mode.Gfx)?.SetElementData(newElement);
+        RemoveElement(oldElement);
+        var tile = AddElement(newElement);
+        SelectTile(tile);
     }
 
     public void UpdateTopologyCell(TopologyData.CellPathData path, TopologyData.CellVisibilityData visibility)
@@ -247,7 +248,7 @@ public partial class Map : Node2D
         }
     }
 
-    public void AddElement(GfxData.Element element)
+    public Tile AddElement(GfxData.Element element)
     {
         UnselectTiles();
         UpdateTopologyFromElement(element);
@@ -273,6 +274,7 @@ public partial class Map : Node2D
         }
         
         CleanupGfxState();
+        return tile;
     }
 
     public void UpdateTopologyFromElement(GfxData.Element element)
@@ -450,14 +452,8 @@ public partial class Map : Node2D
         }
     }
 
-    private void SelectTile(Vector2 position)
+    private void SelectTile(Tile selectedTile)
     {
-        if (!CustomCamera.HasFocus)
-            return;
-        
-        UnselectTiles();
-
-        var selectedTile = GetTopTile(position, GlobalData.Instance.IgnoreGfxIds);
         if (selectedTile == null)
             return;
 
@@ -484,6 +480,16 @@ public partial class Map : Node2D
         var cellPathData = _mapData.Topology.GetPathData(selectedTile.X, selectedTile.Y);
         var visibilityData = _mapData.Topology.GetVisibilityData(selectedTile.X, selectedTile.Y);
         TileSelected?.Invoke(this, new TileSelectedEventArgs(selectedTile.Element, cellPathData, visibilityData, _mapData.Fight));
+    }
+
+    private void SelectTile(Vector2 position)
+    {
+        if (!CustomCamera.HasFocus)
+            return;
+        
+        UnselectTiles();
+        var selectedTile = GetTopTile(position, GlobalData.Instance.IgnoreGfxIds);
+        SelectTile(selectedTile);
     }
 
     private void EraseTile(Vector2 position)

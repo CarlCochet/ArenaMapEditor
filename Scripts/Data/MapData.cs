@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using FileAccess = Godot.FileAccess;
 
 public class MapData
 {
@@ -92,7 +93,7 @@ public class MapData
 
         try
         {
-            LoadAmbiance($"{path}/maps_sounds.jar");
+            LoadAmbiance($"{path}/maps_sounds");
         }
         catch (Exception e)
         {
@@ -116,30 +117,26 @@ public class MapData
         Env.Save($"{path}/env/{Id}");
         
         Topology.SaveJson($"{path}/json");
+        SaveAmbiance($"{path}/maps_sounds");
     }
 
     private void LoadAmbiance(string path)
     {
-        using var archive = ZipFile.OpenRead(path);
-        var entry = archive.GetEntry($"maps/env/{Id}/ambiences.lib");
+        var reader = GlobalData.Instance.GetReader(path, $"maps/env/{Id}/ambiences.lib");
         
-        if (entry == null)
-            return;
+        if (reader == null)
+        {
+            GD.PrintErr("ambiences.lib not found.");
+            return; 
+        }
         
-        using var stream = entry.Open();
-        var reader = new ExtendedDataInputStream(stream);
-        
-        Ambiances = new AmbianceData(entry.FullName);
+        Ambiances = new AmbianceData(Id);
         Ambiances.Load(reader);
-    }
-
-    private void SavePartitions(string path)
-    {
-        
     }
 
     private void SaveAmbiance(string path)
     {
-        
+        var writer = GlobalData.Instance.GetWriter(path, $"maps/env/{Id}", "ambiences.lib");
+        Ambiances.Save(writer);
     }
 }

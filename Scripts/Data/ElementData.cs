@@ -31,9 +31,7 @@ public class ElementData
         ImgWidth = reader.ReadShort();
         ImgHeight = reader.ReadShort();
         GfxId = reader.ReadInt();
-            
         PropertiesFlag = reader.ReadByte();
-            
         VisualHeight = reader.ReadByte();
         VisibilityMask = reader.ReadByte();
         ShaderId = reader.ReadByte();
@@ -49,6 +47,22 @@ public class ElementData
         Animated = AnimData != null;
 
         GroundSoundType = reader.ReadByte();
+    }
+
+    public void Save(OutputBitStream writer)
+    {
+        writer.WriteInt(Id);
+        writer.WriteShort(OriginX);
+        writer.WriteShort(OriginY);
+        writer.WriteShort(ImgWidth);
+        writer.WriteShort(ImgHeight);
+        writer.WriteInt(GfxId);
+        writer.WriteByte(PropertiesFlag);
+        writer.WriteByte(VisualHeight);
+        writer.WriteByte(VisibilityMask);
+        writer.WriteByte(ShaderId);
+        AnimData.Save(writer);
+        writer.WriteByte(GroundSoundType);
     }
     
     public class AnimationData(bool flip, bool export)
@@ -91,9 +105,24 @@ public class ElementData
             }
         }
 
-        public void Save(BinaryWriter writer)
+        public void Save(OutputBitStream writer)
         {
+            writer.WriteByte((sbyte)AnimationTimes.Length);
+            writer.WriteInt(Duration);
+            writer.WriteShort(ImageWidth);
+            writer.WriteShort(ImageHeight);
+            writer.WriteShort(ImageWidthTotal);
+            writer.WriteShort(ImageHeightTotal);
             
+            foreach (var time in AnimationTimes)
+            {
+                writer.WriteShort(time);
+            }
+
+            foreach (var offset in TextureOffsets)
+            {
+                writer.WriteShort(offset);
+            }
         }
     }
 }

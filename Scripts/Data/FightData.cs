@@ -32,13 +32,7 @@ public class FightData
 
     public void Load(string path)
     {
-        using var archive = ZipFile.OpenRead($"{path}/{Id}.jar");
-        var entry = archive.GetEntry($"{Id}.fmd");
-        if (entry == null)
-            return;
-        
-        using var stream = entry.Open();
-        var reader = new ExtendedDataInputStream(stream);
+        var reader = GlobalData.Instance.GetReader($"{path}/{Id}", $"{Id}.fmd");
 
         for (var i = 0; i < 6; i++)
         {

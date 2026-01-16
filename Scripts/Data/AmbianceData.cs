@@ -8,7 +8,6 @@ using System.Text;
 public class AmbianceData
 {
     public int Id { get; set; } = -1;
-    public int AmbianceCount { get; set; }
     public Dictionary<int, AmbianceProperties> Properties { get; set; } = new();
 
     public AmbianceData(string id)
@@ -20,10 +19,10 @@ public class AmbianceData
 
     public void Load(ExtendedDataInputStream reader)
     {
-        AmbianceCount = reader.ReadInt();
-        Properties.EnsureCapacity(AmbianceCount);
+        var ambianceCount = reader.ReadInt();
+        Properties.EnsureCapacity(ambianceCount);
         
-        for (var i = 0; i < AmbianceCount; i++)
+        for (var i = 0; i < ambianceCount; i++)
         {
             var properties = new AmbianceProperties();
             properties.Load(reader);
@@ -31,9 +30,13 @@ public class AmbianceData
         }
     }
 
-    public void Save(string path)
+    public void Save(OutputBitStream writer)
     {
-        
+        writer.WriteInt(Properties.Count);
+        foreach (var property in Properties.Values)
+        {
+            property.Save(writer);
+        }
     }
 
     public class AmbianceProperties
@@ -59,9 +62,17 @@ public class AmbianceData
             SoundPreset2 = reader.ReadInt();
         }
 
-        public void Save(BinaryWriter writer)
+        public void Save(OutputBitStream writer)
         {
-            
+            writer.WriteInt(ZoneId);
+            var nameBytes = Encoding.UTF8.GetBytes(Name);
+            writer.WriteShort((short)nameBytes.Length);
+            writer.WriteBytes((sbyte[])(Array)nameBytes);
+            writer.WriteInt(SoundId);
+            writer.WriteBooleanBit(UseReverb);
+            writer.WriteInt(SoundPreset1);
+            writer.WriteByte(LightGreen);
+            writer.WriteInt(SoundPreset2);
         }
     }
 }

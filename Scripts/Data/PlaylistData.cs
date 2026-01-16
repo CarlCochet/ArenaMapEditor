@@ -1,77 +1,98 @@
 using Godot;
 using System;
 using System.Collections.Generic;
-using System.IO;
 
 public class PlaylistData
 {
     public short Id { get; set; }
 
-    public List<MusicData> Musics1 { get; set; } = [];
-    public List<MusicData> Musics2 { get; set; } = [];
+    public List<MusicData> MusicsDay { get; set; } = [];
+    public List<MusicData> MusicsNight { get; set; } = [];
     
-    public MusicData Music1 { get; set; }
-    public MusicData Music2 { get; set; }
-    public MusicData Music3 { get; set; }
-    public MusicData Music4 { get; set; }
+    public MusicData AmbienceDay { get; set; }
+    public MusicData NightAmbience { get; set; }
+    public MusicData Fight { get; set; }
+    public MusicData BossFight { get; set; }
 
-    public void Load(BinaryReader reader)
+    public void Load(ExtendedDataInputStream reader)
     {
-        Id = reader.ReadInt16();
+        Id = reader.ReadShort();
         LoadMusic(reader, 1);
         LoadMusic(reader, 2);
         LoadMusic(reader, 3);
     }
 
-    public void Save(BinaryWriter writer)
+    public void Save(OutputBitStream writer)
     {
+        writer.WriteShort(Id);
         
+        SaveMusic(writer, MusicsDay, AmbienceDay);
+        SaveMusic(writer, MusicsNight, NightAmbience);
+        
+        var counter = (short)((Fight != null ? 1 : 0) + (BossFight != null ? 1 : 0));
+        writer.WriteShort(counter);
+        Fight?.Save(writer);
+        BossFight?.Save(writer);
     }
 
-    private void LoadMusic(BinaryReader reader, int iteration)
+    private void LoadMusic(ExtendedDataInputStream reader, int musicType)
     {
-        var musicCount = reader.ReadInt16();
+        var musicCount = reader.ReadShort();
         for (var i = 0; i < musicCount; i++)
         {
             var music = new MusicData();
             music.Load(reader);
-            OrderDispatch(iteration, music);
+            AddMusicData(musicType, music);
         }
     }
 
-    private void OrderDispatch(int iteration, MusicData music)
+    private void SaveMusic(OutputBitStream writer, List<MusicData> musics, MusicData ambience)
     {
-        switch ((int)music.Order)
+        short counter = 0;
+        if (musics != null) counter += (short)musics.Count;
+        if (ambience != null) counter++;
+        writer.WriteShort(counter);
+
+        if (musics == null) return;
+        foreach (var music in musics)
+        {
+            music.Save(writer);
+        }
+    }
+
+    private void AddMusicData(int musicType, MusicData music)
+    {
+        switch (music.Order)
         {
             case -2:
-                Music4 = music;
+                BossFight = music;
                 break;
             case -1:
-                Music3 = music;
+                Fight = music;
                 break;
             case 0:
-                if (iteration == 1) Music1 = music;
-                if (iteration == 2) Music2 = music;
+                if (musicType == 1) AmbienceDay = music;
+                if (musicType == 2) NightAmbience = music;
                 break;
             default:
-                AddMusicToList(iteration, music);
+                AddMusic(musicType, music);
                 break;
         }
     }
 
-    private void AddMusicToList(int iteration, MusicData music)
+    private void AddMusic(int musicType, MusicData music)
     {
-        if (iteration == 1)
+        if (musicType == 1)
         {
-            Musics1.Add(music);
-            Musics1.Sort((x, y) => (int)(x.Id - y.Id));
+            MusicsDay.Add(music);
+            MusicsDay.Sort((x, y) => (int)(x.Id - y.Id));
         }
             
-        if (iteration != 2)
+        if (musicType != 2)
             return;
         
-        Musics2.Add(music);
-        Musics2.Sort((x, y) => (int)(x.Id - y.Id));
+        MusicsNight.Add(music);
+        MusicsNight.Sort((x, y) => (int)(x.Id - y.Id));
     }
 
 
@@ -79,24 +100,29 @@ public class PlaylistData
     {
         public long Id { get; set; }
         public long AlternateId { get; set; }
-        public byte Volume { get; set; }
+        public sbyte Volume { get; set; }
         public short SilenceDuration { get; set; }
-        public byte Order { get; set; }
+        public sbyte Order { get; set; }
         public int NumLoops { get; set; }
         
-        public void Load(BinaryReader reader)
+        public void Load(ExtendedDataInputStream reader)
         {
-            Id = reader.ReadInt64();
-            AlternateId = reader.ReadInt64();
+            Id = reader.ReadLong();
+            AlternateId = reader.ReadLong();
             Volume = reader.ReadByte();
-            SilenceDuration = reader.ReadInt16();
+            SilenceDuration = reader.ReadShort();
             Order = reader.ReadByte();
-            NumLoops = reader.ReadInt32();
+            NumLoops = reader.ReadInt();
         }
 
-        public void Save(BinaryWriter writer)
+        public void Save(OutputBitStream writer)
         {
-            
+            writer.WriteLong(Id);
+            writer.WriteLong(AlternateId);
+            writer.WriteByte(Volume);
+            writer.WriteShort(SilenceDuration);
+            writer.WriteByte(Order);
+            writer.WriteInt(NumLoops);
         }
     }
 }
