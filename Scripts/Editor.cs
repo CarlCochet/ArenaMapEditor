@@ -207,21 +207,23 @@ public partial class Editor : Node2D
 			return;
 
 		using var fightDir = DirAccess.Open($"{GlobalData.Instance.Settings.ArenaPath}/maps/fight");
-		dirAccess.ListDirBegin();
-		var name = dirAccess.GetNext();
+		fightDir.ListDirBegin();
+		var name = fightDir.GetNext();
 		List<string> mapNames = [];
 		while (name != "")
 		{
-			if (dirAccess.CurrentIsDir())
+			if (fightDir.CurrentIsDir() || !name.EndsWith(".jar"))
+			{
+				name = fightDir.GetNext();
 				continue;
-			if (!name.EndsWith(".jar"))
-				continue;
+			}
+
 			var mapName = name.Split(".")[0];
 			mapNames.Add(mapName);
 			GlobalData.Instance.LoadMap(mapName);
-			name = dirAccess.GetNext();
+			name = fightDir.GetNext();
 		}
-		dirAccess.ListDirEnd();
+		fightDir.ListDirEnd();
 		
 		_tools.SetMapOptions(mapNames);
 		GlobalData.Instance.SaveSettings();

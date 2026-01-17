@@ -115,7 +115,7 @@ public class GlobalData
 
     public void LoadPlaylists(string path)
     {
-        var reader = GetReader(path, "env/playlists.dat");
+        var reader = GetReader(path, "maps_sounds/env/playlists.dat");
 
         if (reader == null)
         {
@@ -177,7 +177,7 @@ public class GlobalData
 
         if (FileAccess.FileExists(jarName))
         {
-            using var archive = ZipFile.OpenRead(path);
+            using var archive = ZipFile.OpenRead(jarName);
             var entry = archive.GetEntry($"{internalPath}");
         
             if (entry == null)
