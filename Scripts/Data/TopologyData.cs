@@ -193,9 +193,8 @@ public class TopologyData
             
             var mapX = topologyMap.X / MapConstants.MapWidth;
             var mapY = topologyMap.Y / MapConstants.MapLength;
-            var fileName = $"{mapX}_{mapY}";
-            var filePath = Path.Combine(path, fileName);
-        
+            var filePath = Path.Combine(path, $"{mapX}_{mapY}");
+            
             using var fileStream = File.Create(filePath);
             using var writer = new OutputBitStream(fileStream);
             writer.WriteByte(topologyMap.Header);
@@ -356,6 +355,7 @@ public class TopologyData
         public void PruneEmptyMaps()
         {
             Maps = Maps.Where(m => !m.IsEmpty()).ToList();
+            RecomputeBounds();
         }
 
         private int GetMapIndex(int x, int y)
@@ -372,6 +372,20 @@ public class TopologyData
             }
 
             return -1;
+        }
+
+        private void RecomputeBounds()
+        {
+            Reset();
+            foreach (var map in Maps)
+            {
+                MinX = Math.Min(MinX, map.TopoC.X);
+                MinY = Math.Min(MinY, map.TopoC.Y);
+                MaxX = Math.Max(MaxX, map.TopoC.X);
+                MaxY = Math.Max(MaxY, map.TopoC.Y);
+            }
+            Width = MapConstants.MapWidth + MaxX - MinX;
+            Height = MapConstants.MapLength + MaxY - MinY;
         }
     }
 

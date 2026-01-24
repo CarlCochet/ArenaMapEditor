@@ -399,6 +399,7 @@ public partial class Map : Node2D
  
     private void LoadGfx()
     {
+        UnselectTiles();
         foreach (var child in _gfx.GetChildren())
         {
             child.QueueFree();
@@ -419,6 +420,7 @@ public partial class Map : Node2D
 
     private void LoadTopology()
     {
+        UnselectTiles();
         foreach (var child in _topology.GetChildren())
         {
             child.QueueFree();
@@ -446,6 +448,7 @@ public partial class Map : Node2D
 
     private void LoadLight()
     {
+        UnselectTiles();
         foreach (var child in _light.GetChildren())
         {
             child.QueueFree();

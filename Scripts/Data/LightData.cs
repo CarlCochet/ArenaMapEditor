@@ -21,7 +21,7 @@ public class LightData
     
     public void Load(string path)
     {
-        if (!FileAccess.FileExists($"{path}/{Id}.jar"))
+        if (FileAccess.FileExists($"{path}/{Id}.jar"))
             LoadFromJar(path);
         else
             LoadFromFolder(path);
@@ -86,36 +86,15 @@ public class LightData
 
     public void Save(string path)
     {
-        var tempDir = Path.Combine(Path.GetTempPath(), $"light_{Id}_{Guid.NewGuid()}");
-        Directory.CreateDirectory(tempDir);
+        foreach (var partition in Partitions)
+        {
+            var mapX = partition.X / MapConstants.MapWidth;
+            var mapY = partition.Y / MapConstants.MapLength;
+            var filePath = Path.Combine(path, $"{mapX}_{mapY}");
         
-        try
-        {
-            foreach (var partition in Partitions)
-            {
-                var mapX = partition.X / MapConstants.MapWidth;
-                var mapY = partition.Y / MapConstants.MapLength;
-                var fileName = $"{mapX}_{mapY}";
-                var filePath = Path.Combine(tempDir, fileName);
-            
-                using var fileStream = File.Create(filePath);
-                using var writer = new OutputBitStream(fileStream);
-                partition.Save(writer);
-            }
-            
-            var jarPath = Path.Combine(path, $"{Id}.jar");
-            if (File.Exists(jarPath))
-            {
-                File.Delete(jarPath);
-            }
-            ZipFile.CreateFromDirectory(tempDir, jarPath);
-        }
-        finally
-        {
-            if (Directory.Exists(tempDir))
-            {
-                Directory.Delete(tempDir, true);
-            }
+            using var fileStream = File.Create(filePath);
+            using var writer = new OutputBitStream(fileStream);
+            partition.Save(writer);
         }
     }
 

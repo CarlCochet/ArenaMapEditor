@@ -21,7 +21,7 @@ public class EnvData
 
     public void Load(string path)
     {
-        if (!FileAccess.FileExists($"{path}/{Id}.jar"))
+        if (FileAccess.FileExists($"{path}/{Id}.jar"))
             LoadFromJar(path);
         else
             LoadFromFolder(path);
@@ -86,36 +86,11 @@ public class EnvData
     
     public void Save(string path)
     {
-        var tempDir = Path.Combine(Path.GetTempPath(), $"env_{Id}_{Guid.NewGuid()}");
-        Directory.CreateDirectory(tempDir);
-        
-        try
+        foreach (var partition in Partitions)
         {
-            foreach (var partition in Partitions)
-            {
-                var mapX = partition.X / MapConstants.MapWidth;
-                var mapY = partition.Y / MapConstants.MapLength;
-                var fileName = $"{mapX}_{mapY}";
-                var filePath = Path.Combine(tempDir, fileName);
-            
-                using var fileStream = File.Create(filePath);
-                using var writer = new OutputBitStream(fileStream);
-                partition.Save(writer);
-            }
-            
-            var jarPath = Path.Combine(path, $"{Id}.jar");
-            if (File.Exists(jarPath))
-            {
-                File.Delete(jarPath);
-            }
-            ZipFile.CreateFromDirectory(tempDir, jarPath);
-        }
-        finally
-        {
-            if (Directory.Exists(tempDir))
-            {
-                Directory.Delete(tempDir, true);
-            }
+            using var fileStream = File.Create(Path.Combine(path, $"{partition.X}_{partition.Y}"));
+            using var writer = new OutputBitStream(fileStream);
+            partition.Save(writer);
         }
     }
 
@@ -153,6 +128,12 @@ public class EnvData
             writer.WriteByte(Version);
             writer.WriteShort(X);
             writer.WriteShort(Y);
+            
+            SaveParticleData(writer);
+            SaveSoundData(writer);
+            SaveAmbianceData(writer);
+            SaveInteractiveElements(writer);
+            SaveDynamicElements(writer);
         }
 
         private void LoadParticleData(ExtendedDataInputStream reader)
@@ -240,6 +221,73 @@ public class EnvData
                 var element = new DynamicElement();
                 element.Load(reader);
                 DynamicElements[i] = element;
+            }
+        }
+
+        private void SaveParticleData(OutputBitStream writer)
+        {
+            writer.WriteByte((sbyte)(ParticleData?.Length ?? 0));
+            if (ParticleData == null)
+                return;
+            
+            foreach (var particle in ParticleData)
+            {
+                particle.Save(writer);
+            }
+        }
+
+        private void SaveSoundData(OutputBitStream writer)
+        {
+            writer.WriteByte((sbyte)(Sounds?.Length ?? 0));
+            if (Sounds == null)
+                return;
+            
+            foreach (var sound in Sounds)
+            {
+                sound.Save(writer);
+            }
+        }
+
+        private void SaveAmbianceData(OutputBitStream writer)
+        {
+            writer.WriteByte((sbyte)(AmbiancesId?.Length ?? 0));
+            if (AmbiancesId != null)
+            {
+                foreach (var id in AmbiancesId)
+                {
+                    writer.WriteInt(id);
+                }
+                writer.WriteByte((sbyte)(Ambiances?.Length ?? 0));
+                if (Ambiances != null) 
+                    writer.WriteBytes(Ambiances);
+            }
+            else
+            {
+                writer.WriteByte(0);
+            }
+        }
+
+        private void SaveInteractiveElements(OutputBitStream writer)
+        {
+            writer.WriteByte((sbyte)(InteractiveElements?.Length ?? 0));
+            if (InteractiveElements == null)
+                return;
+            
+            foreach (var interactiveElement in InteractiveElements)
+            {
+                interactiveElement.Save(writer);
+            }
+        }
+
+        private void SaveDynamicElements(OutputBitStream writer)
+        {
+            writer.WriteByte((sbyte)(DynamicElements?.Length ?? 0));
+            if (DynamicElements == null)
+                return;
+            
+            foreach (var dynamicElement in DynamicElements)
+            {
+                dynamicElement.Save(writer);
             }
         }
     }

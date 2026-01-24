@@ -103,11 +103,7 @@ public class GfxData
     {
         foreach (var partition in Partitions)
         {
-            var mapX = partition.X / MapConstants.MapWidth;
-            var mapY = partition.Y / MapConstants.MapLength;
-            var filePath = Path.Combine(path, $"{mapX}_{mapY}");
-        
-            using var fileStream = File.Create(filePath);
+            using var fileStream = File.Create(Path.Combine(path, $"{partition.X}_{partition.Y}"));
             using var writer = new OutputBitStream(fileStream);
             partition.Save(writer);
         }
@@ -132,8 +128,12 @@ public class GfxData
                 element.AltitudeOrder = cellElement.AltitudeOrder;
                 elementAdded = true;
             }
-            if (elementAdded)
-                cellElement.AltitudeOrder++;
+
+            if (!elementAdded) 
+                continue;
+            
+            cellElement.AltitudeOrder++;
+            cellElement.ComputeHashCode();
         }
 
         if (!elementAdded && cellElements.Count > 0)

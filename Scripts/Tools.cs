@@ -57,6 +57,7 @@ public partial class Tools : Control
 
 	public void SetMapOptions(List<string> mapNames)
 	{
+		_loadButton.Clear();
 		var orderedNames = mapNames
 			.OrderBy(n => int.TryParse(n, out _))
 			.ThenBy(n => int.TryParse(n, out var num) ? num : int.MaxValue)

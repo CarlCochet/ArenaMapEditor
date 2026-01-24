@@ -91,38 +91,38 @@ public class MapData
             GD.PrintErr($"Error loading ENV for map {Id}: {e.Message}");
         }
 
-        try
-        {
-            LoadAmbiance($"{path}/maps_sounds");
-        }
-        catch (Exception e)
-        {
-            GD.PrintErr($"Error loading AMBIANCE for map {Id}: {e.Message}");
-        }
+        // try
+        // {
+        //     LoadAmbiance($"{path}/maps_sounds");
+        // }
+        // catch (Exception e)
+        // {
+        //     GD.PrintErr($"Error loading AMBIANCE for map {Id}: {e.Message}");
+        // }
     }
 
     public void Save(string path)
     {
         var dirAccess = DirAccess.Open(path);
-        dirAccess.MakeDir($"tplg/{Id}");
-        dirAccess.MakeDir($"light/{Id}");
-        dirAccess.MakeDir($"gfx/{Id}");
-        dirAccess.MakeDir($"fight/{Id}");
-        dirAccess.MakeDir($"env/{Id}");
+        dirAccess.MakeDirRecursive($"maps/tplg/{Id}");
+        dirAccess.MakeDirRecursive($"maps/light/{Id}");
+        dirAccess.MakeDirRecursive($"maps/gfx/{Id}");
+        dirAccess.MakeDirRecursive($"maps/fight/{Id}");
+        dirAccess.MakeDirRecursive($"maps/env/{Id}");
         
-        Topology.Save($"{path}/tplg/{Id}");
-        Light.Save($"{path}/light/{Id}");
-        Gfx.Save($"{path}/gfx/{Id}");
-        Fight.Save($"{path}/fight/{Id}");
-        Env.Save($"{path}/env/{Id}");
+        Topology.Save($"{path}/maps/tplg/{Id}");
+        Light.Save($"{path}/maps/light/{Id}");
+        Gfx.Save($"{path}/maps/gfx/{Id}");
+        Fight.Save($"{path}/maps/fight/{Id}");
+        Env.Save($"{path}/maps/env/{Id}");
         
         Topology.SaveJson($"{path}/json");
-        SaveAmbiance($"{path}/maps_sounds");
+        // SaveAmbiance($"{path}/maps_sounds");
     }
 
     private void LoadAmbiance(string path)
     {
-        var reader = GlobalData.Instance.GetReader(path, $"maps/env/{Id}/ambiences.lib");
+        var reader = GlobalData.Instance.GetReader(path, $"maps_sounds/env/{Id}/ambiences.lib");
         
         if (reader == null)
         {
@@ -136,7 +136,9 @@ public class MapData
 
     private void SaveAmbiance(string path)
     {
-        var writer = GlobalData.Instance.GetWriter(path, $"maps/env/{Id}", "ambiences.lib");
+        if (Ambiances == null) 
+            return;
+        using var writer = GlobalData.Instance.GetWriter(path, $"maps/env/{Id}", "ambiences.lib");
         Ambiances.Save(writer);
     }
 }

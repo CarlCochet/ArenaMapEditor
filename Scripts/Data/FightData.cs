@@ -69,34 +69,10 @@ public class FightData
     
     public void Save(string path)
     {
-        var tempDir = Path.Combine(Path.GetTempPath(), $"gfx_{Id}_{Guid.NewGuid()}");
-        Directory.CreateDirectory(tempDir);
-        
-        try
-        {
-            var fileName = $"{Id}.fmd";
-            var filePath = Path.Combine(tempDir, fileName);
-
-            {
-                using var fileStream = File.Create(filePath);
-                using var writer = new OutputBitStream(fileStream);
-                SaveData(writer);
-            }
-
-            var jarPath = Path.Combine(path, $"{Id}.jar");
-            if (File.Exists(jarPath))
-            {
-                File.Delete(jarPath);
-            }
-            ZipFile.CreateFromDirectory(tempDir, jarPath);
-        }
-        finally
-        {
-            if (Directory.Exists(tempDir))
-            {
-                Directory.Delete(tempDir, true);
-            }
-        }
+        var filePath = Path.Combine(path, $"{Id}.fmd");
+        using var fileStream = File.Create(filePath);
+        using var writer = new OutputBitStream(fileStream);
+        SaveData(writer);
     }
 
     public (int placement, int bonus) GetData(int x, int y, int z)

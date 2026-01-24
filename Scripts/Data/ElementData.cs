@@ -61,7 +61,10 @@ public class ElementData
         writer.WriteByte(VisualHeight);
         writer.WriteByte(VisibilityMask);
         writer.WriteByte(ShaderId);
-        AnimData.Save(writer);
+        if (AnimData != null)
+            AnimData.Save(writer);
+        else
+            writer.WriteByte(0);
         writer.WriteByte(GroundSoundType);
     }
     
@@ -107,13 +110,19 @@ public class ElementData
 
         public void Save(OutputBitStream writer)
         {
-            writer.WriteByte((sbyte)AnimationTimes.Length);
+            if (AnimationTimes == null || AnimationTimes.Length == 0)
+            {
+                writer.WriteByte(0);
+                return;
+            }
+
+            writer.WriteByte((sbyte)AnimationTimes.Length); 
             writer.WriteInt(Duration);
             writer.WriteShort(ImageWidth);
             writer.WriteShort(ImageHeight);
             writer.WriteShort(ImageWidthTotal);
             writer.WriteShort(ImageHeightTotal);
-            
+
             foreach (var time in AnimationTimes)
             {
                 writer.WriteShort(time);

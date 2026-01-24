@@ -18,7 +18,7 @@ public partial class Editor : Node2D
 	private string _contentPath;
 	private int _x;
 	private int _y;
-	private int _z;
+	private int _z; 
 	private string _lastDir;
 	
 	public override void _Ready()
@@ -153,37 +153,6 @@ public partial class Editor : Node2D
 
 	private void _OnDirectorySelected(string dir)
 	{
-		LoadMapList(dir);
-	}
-
-	private void _OnSaveDirectorySelected(string dir)
-	{
-		SaveMap(dir);
-	}
-
-	private void SaveMap(string dir)
-	{
-		DirAccess.MakeDirRecursiveAbsolute(dir);
-		using var dirAccess = DirAccess.Open(dir);
-
-		dirAccess.MakeDir("env");
-		dirAccess.MakeDir("fight");
-		dirAccess.MakeDir("gfx");
-		dirAccess.MakeDir("light");
-		dirAccess.MakeDir("tplg");
-		dirAccess.MakeDir("json");
-
-		foreach (var map in GlobalData.Instance.Maps.Values)
-		{
-			map.Save(dir);
-		}
-		GlobalData.Instance.SaveElements(dir);
-		GlobalData.Instance.SavePlaylists(dir);
-		_lastDir = dir;
-	}
-
-	private void LoadMapList(string dir)
-	{
 		GlobalData.Instance.Settings ??= new Settings();
 		using var dirAccess = DirAccess.Open(dir);
 		if (dirAccess.DirExists("ArenaReturnsClient/game/contents/maps/env"))
@@ -201,24 +170,20 @@ public partial class Editor : Node2D
 		}
 
 		GlobalData.Instance.LoadElements($"{GlobalData.Instance.Settings.ArenaPath}/maps/data");
-		GlobalData.Instance.LoadPlaylists($"{GlobalData.Instance.Settings.ArenaPath}/maps_sounds");
+		// GlobalData.Instance.LoadPlaylists($"{GlobalData.Instance.Settings.ArenaPath}/maps_sounds");
 
 		if (!dirAccess.DirExists($"{GlobalData.Instance.Settings.ArenaPath}/maps/fight"))
 			return;
+		
+		List<string> mapNames = [];
+		GlobalData.Instance.Maps.Clear();
 
 		using var fightDir = DirAccess.Open($"{GlobalData.Instance.Settings.ArenaPath}/maps/fight");
 		fightDir.ListDirBegin();
 		var name = fightDir.GetNext();
-		List<string> mapNames = [];
 		while (name != "")
 		{
-			if (fightDir.CurrentIsDir() || !name.EndsWith(".jar"))
-			{
-				name = fightDir.GetNext();
-				continue;
-			}
-
-			var mapName = name.Split(".")[0];
+			var mapName = name.EndsWith(".jar") ? name.Split(".")[0] : name;
 			mapNames.Add(mapName);
 			GlobalData.Instance.LoadMap(mapName);
 			name = fightDir.GetNext();
@@ -227,5 +192,25 @@ public partial class Editor : Node2D
 		
 		_tools.SetMapOptions(mapNames);
 		GlobalData.Instance.SaveSettings();
+	}
+
+	private void _OnSaveDirectorySelected(string dir)
+	{
+		SaveMap(dir);
+	}
+
+	private void SaveMap(string dir)
+	{
+		DirAccess.MakeDirRecursiveAbsolute(dir);
+		using var dirAccess = DirAccess.Open(dir);
+		dirAccess.MakeDir("json");
+
+		foreach (var map in GlobalData.Instance.Maps.Values)
+		{
+			map.Save(dir);
+		}
+		GlobalData.Instance.SaveElements($"{dir}/maps/data");
+		// GlobalData.Instance.SavePlaylists($"{dir}/maps_sounds");
+		_lastDir = dir;
 	}
 }

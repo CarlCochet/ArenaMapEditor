@@ -66,7 +66,7 @@ public class GlobalData
     public void LoadMap(string mapName)
     {
         Maps[mapName] = new MapData(mapName);
-        Maps[mapName].Load($"{Settings.ArenaPath}/game/contents");
+        Maps[mapName].Load(Settings.ArenaPath);
     }
  
     public void LoadAssets()
@@ -124,11 +124,13 @@ public class GlobalData
         }
 
         var playlistCount = reader.ReadShort();
+        GD.Print(playlistCount);
         Playlists.EnsureCapacity(playlistCount);
 
         for (var i = 0; i < playlistCount; i++)
         {
             var playlistData = new PlaylistData();
+            GD.Print(i);
             playlistData.Load(reader);
             Playlists.TryAdd(playlistData.Id, playlistData);
         }
@@ -136,8 +138,8 @@ public class GlobalData
 
     public void SaveElements(string path)
     {
-        var writer = GetWriter(path, "", "elements.lib");
-        writer.WriteShort((short)Elements.Count);
+        using var writer = GetWriter(path, "", "elements.lib");
+        writer.WriteInt(Elements.Count);
         foreach (var element in Elements.Values)
         {
             element.Save(writer);
@@ -146,7 +148,7 @@ public class GlobalData
 
     public void SavePlaylists(string path)
     {
-        var writer = GetWriter(path, "maps_sounds/env", "playlists.dat");
+        using var writer = GetWriter(path, "maps_sounds/env", "playlists.dat");
         writer.WriteShort((short)Playlists.Count);
         foreach (var playlist in Playlists.Values)
         {
@@ -203,7 +205,7 @@ public class GlobalData
             DirAccess.MakeDirRecursiveAbsolute(fullPath);
         
         var filePath = Path.Combine(fullPath, filename);
-        using var stream = File.OpenWrite(filePath);
+        var stream = File.OpenWrite(filePath);
         return new OutputBitStream(stream);
     }
 }

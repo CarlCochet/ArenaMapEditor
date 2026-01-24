@@ -29,10 +29,10 @@ public class PlaylistData
         SaveMusic(writer, MusicsDay, AmbienceDay);
         SaveMusic(writer, MusicsNight, NightAmbience);
         
-        var counter = (short)((Fight != null ? 1 : 0) + (BossFight != null ? 1 : 0));
-        writer.WriteShort(counter);
-        Fight?.Save(writer);
-        BossFight?.Save(writer);
+        var fightMusics = new List<MusicData>();
+        if (Fight != null) fightMusics.Add(Fight);
+        if (BossFight != null) fightMusics.Add(BossFight);
+        SaveMusic(writer, fightMusics, null);
     }
 
     private void LoadMusic(ExtendedDataInputStream reader, int musicType)
