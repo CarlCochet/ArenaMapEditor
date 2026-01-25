@@ -376,7 +376,10 @@ public class TopologyData
 
         private void RecomputeBounds()
         {
-            Reset();
+            MinX = int.MaxValue;
+            MinY = int.MaxValue;
+            MaxX = int.MinValue;
+            MaxY = int.MinValue;
             foreach (var map in Maps)
             {
                 MinX = Math.Min(MinX, map.TopoC.X);
