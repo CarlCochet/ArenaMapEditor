@@ -54,7 +54,7 @@ public partial class Tile : Sprite2D
         if (VisibilityData.CanViewThrough)
             return;
         
-        var cubeHeight = VisibilityData.Height * GlobalData.ElevationStep;
+        var cubeHeight = VisibilityData.Height == 0 ? GlobalData.ElevationStep : VisibilityData.Height * GlobalData.ElevationStep;
         const float halfWidth = GlobalData.CellWidth * 0.5f;
         const float halfHeight = GlobalData.CellHeight * 0.5f;
 
@@ -113,6 +113,7 @@ public partial class Tile : Sprite2D
         X = VisibilityData.X;
         Y = VisibilityData.Y;
         Z = VisibilityData.Z;
+        Name = $"{X}_{Y}";
         QueueRedraw();
     }
 

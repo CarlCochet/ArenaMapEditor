@@ -310,7 +310,10 @@ public partial class Map : Node2D
         _gfx.GetNodeOrNull<Tile>(element.HashCode.ToString())?.QueueFree();
         _mapData.Gfx.RemoveElement(element);
         if (!_mapData.Gfx.HasElementAt(element.CellX, element.CellY))
-            _mapData.Topology.ResetTile(element.CellX, element.CellY);
+        {
+            var (path, visibility) = _mapData.Topology.ResetTile(element.CellX, element.CellY);
+            _topology.GetNodeOrNull<Tile>($"{element.CellX}_{element.CellY}")?.SetTopology(path, visibility);
+        }
         CleanupGfxState();
     }
 

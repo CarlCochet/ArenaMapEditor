@@ -244,7 +244,7 @@ public class TopologyData
         InstanceSet.PruneEmptyMaps();
     }
 
-    public void ResetTile(int x, int y)
+    public (CellPathData, CellVisibilityData) ResetTile(int x, int y)
     {
         var pathData = GetPathData(x, y);
         var visibilityData = GetVisibilityData(x, y);
@@ -258,6 +258,7 @@ public class TopologyData
         visibilityData.Height = 0;
         visibilityData.CanViewThrough = false;
         Update(pathData, visibilityData);
+        return (pathData, visibilityData);
     }
 
     private long GetHashCode(int worldId, long x, long y, int instanceId)
