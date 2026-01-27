@@ -9,6 +9,7 @@ public partial class Map : Node2D
     
     public int CurrentHeight { get; set; }
     public List<Tile> SelectedTiles = [];
+    public Tile Center { get; set; }
     
     [Export] public Camera CustomCamera;
     

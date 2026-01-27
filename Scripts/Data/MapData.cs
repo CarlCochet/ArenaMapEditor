@@ -1,10 +1,7 @@
 using Godot;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
 using System.Linq;
-using FileAccess = Godot.FileAccess;
 
 public class MapData
 {
@@ -16,6 +13,8 @@ public class MapData
     public EnvData Env { get; set; }
     public AmbianceData Ambiances { get; set; }
     public List<(int x, int y)> ValidPositions { get; set; }
+    
+    
     
     public MapData(string id)
     {

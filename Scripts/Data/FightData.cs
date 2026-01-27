@@ -2,7 +2,7 @@ using Godot;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
+using System.Linq;
 
 public class FightData
 {
@@ -10,6 +10,7 @@ public class FightData
     public int[] CoachPoints = new int[6];
     public List<int>[] StartPoints = new List<int>[2];
     public Dictionary<int, int> Bonus = new();
+    public (int x, int y) MapCenter = (8, 8);
 
     public FightData(string id)
     {
@@ -73,6 +74,39 @@ public class FightData
         using var fileStream = File.Create(filePath);
         using var writer = new OutputBitStream(fileStream);
         SaveData(writer);
+    }
+
+    public object GetSaveObject()
+    {
+        return new
+        {
+            id = Id,
+            mapCenter = new { x = MapCenter.x, y = MapCenter.y },
+            specialCells = Bonus.Select(kvp =>
+            {
+                var (x, y, z) = GetCoords(kvp.Key);
+                return new
+                {
+                    position = new { x, y, z },
+                    value = kvp.Value.ToString()
+                };
+            }).ToArray(),
+            startingPointTeam0 = StartPoints[0].Select(coord =>
+            {
+                var (x, y, z) = GetCoords(coord);
+                return new { x, y, z };
+            }).ToArray(),
+            startingPointTeam1 = StartPoints[1].Select(coord =>
+            {
+                var (x, y, z) = GetCoords(coord);
+                return new { x, y, z };
+            }).ToArray(),
+            coachPos = CoachPoints.Where(c => c != 0).Select(coord =>
+            {
+                var (x, y, z) = GetCoords(coord);
+                return new { x, y, z };
+            }).ToArray()
+        };
     }
 
     public (int placement, int bonus) GetData(int x, int y, int z)

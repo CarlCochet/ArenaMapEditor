@@ -1,6 +1,8 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text.Json;
 
 public partial class Editor : Node2D
 {
@@ -20,6 +22,7 @@ public partial class Editor : Node2D
 	private int _y;
 	private int _z; 
 	private string _lastDir;
+	private JsonSerializerOptions _jsonOptions = new() { WriteIndented = true };
 	
 	public override void _Ready()
 	{
@@ -205,12 +208,15 @@ public partial class Editor : Node2D
 		using var dirAccess = DirAccess.Open(dir);
 		dirAccess.MakeDir("json");
 
+		var allMapsData = new List<object>();
 		foreach (var map in GlobalData.Instance.Maps.Values)
 		{
 			map.Save(dir);
+			allMapsData.Add(map.Fight.GetSaveObject());
 		}
 		GlobalData.Instance.SaveElements($"{dir}/maps");
 		// GlobalData.Instance.SavePlaylists($"{dir}/maps_sounds");
+		File.WriteAllText($"{dir}/fight_map_info.json", JsonSerializer.Serialize(allMapsData, _jsonOptions));
 		_lastDir = dir;
 	}
 }
