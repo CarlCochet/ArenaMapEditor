@@ -100,7 +100,7 @@ public partial class Inspector : Control
         _properties.Text = element.CommonData.PropertiesFlag.ToString();
         _sound.Text = element.CommonData.GroundSoundType.ToString();
         _slope.Text = element.CommonData.Slope.ToString();
-        _walkable.ButtonPressed = element.CommonData.Walkable;
+        _walkable.ButtonPressed = element.Walkable;
 
         _color.Color = element.Colors.Length == 3
             ? new Color(element.Colors[0], element.Colors[1], element.Colors[2])

@@ -170,17 +170,13 @@ public class TopologyData
         var elements = gfxData.Partitions.SelectMany(p => p.Elements);
         foreach (var element in elements)
         {
-            AddFromElement(element);
+            InstanceSet.AddElement(element);
         }
     }
     
     public void AddFromElement(GfxData.Element element)
     {
-        if (GlobalData.Instance.IgnoreGfxIds.Contains(element.CommonData.GfxId))
-            return;
-        
-        var topoC = InstanceSet.GetTopologyMap(element.CellX, element.CellY) ?? InstanceSet.CreateTopologyMap(element.CellX, element.CellY);
-        topoC.AddElement(element);
+        InstanceSet.AddElement(element);
     }
 
     public void Save(string path)
@@ -307,6 +303,15 @@ public class TopologyData
             return topologyMap;
         }
 
+        public void AddElement(GfxData.Element element)
+        {
+            if (GlobalData.Instance.IgnoreGfxIds.Contains(element.CommonData.GfxId))
+                return;
+        
+            var topoC = GetTopologyMap(element.CellX, element.CellY) ?? CreateTopologyMap(element.CellX, element.CellY);
+            topoC.AddElement(element);
+        }
+        
         public bool IsInMap(int x, int y)
         {
             return x >= MinX && x < MaxX + Width && y >= MinY && y < MaxY + Height;
@@ -1005,6 +1010,7 @@ public class TopologyData
 
         public TopologyMapC(int x, int y)
         {
+            Header = (2 << 4) | MethodC;
             X = x;
             Y = y;
             
@@ -1043,12 +1049,12 @@ public class TopologyData
             {
                 Zs[index] = element.CellZ;
                 Heights[index] = element.Height;
-                Costs[index] = (sbyte)(element.CommonData.Walkable ? 0 : -1);
+                Costs[index] = (sbyte)(element.Walkable ? 0 : -1);
                 _orders[index] = element.AltitudeOrder;
                 return;
             }
 
-            if (baseZ - element.CellZ >= 6 && element.CommonData.Walkable && Costs[index] < 0)
+            if (baseZ - element.CellZ >= 6 && element.Walkable && Costs[index] < 0)
             {
                 Zs[index] = element.CellZ;
                 Heights[index] = element.Height;
@@ -1057,7 +1063,7 @@ public class TopologyData
                 return;
             }
 
-            if (element.CellZ > z && element.CommonData.Walkable)
+            if (element.CellZ > z && element.Walkable)
             {
                 Zs[index] = element.CellZ;
                 Heights[index] = element.Height;
@@ -1078,14 +1084,14 @@ public class TopologyData
             {
                 Zs[index] = element.CellZ;
                 Heights[index] = element.Height;
-                Costs[index] = (sbyte)(element.CommonData.Walkable ? 0 : -1);
+                Costs[index] = (sbyte)(element.Walkable ? 0 : -1);
                 _orders[index] = element.AltitudeOrder;
             }
             
             if (element.CellZ == z && element.AltitudeOrder > _orders[index])
             {
                 Heights[index] = element.Height;
-                Costs[index] = (sbyte)(element.CommonData.Walkable ? 0 : -1);
+                Costs[index] = (sbyte)(element.Walkable ? 0 : -1);
                 _orders[index] = element.AltitudeOrder;
             }
         }

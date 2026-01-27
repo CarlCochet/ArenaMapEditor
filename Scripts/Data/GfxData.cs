@@ -288,12 +288,12 @@ public class GfxData
                             element.Load(reader);
                             
                             var groupIndex = reader.ReadShort() & 0xFFFF;
-                            element.GroupKey = groupKeys[groupIndex];
-                            element.LayerIndex = layerIndexes[groupIndex];
-                            element.GroupId = groupIds[groupIndex];
+                            element.GroupKey = groupIndex < groupKeys.Length ? groupKeys[groupIndex] : 0;
+                            element.LayerIndex = groupIndex < layerIndexes.Length ? layerIndexes[groupIndex] : (sbyte)0;
+                            element.GroupId = groupIndex < groupIds.Length ? groupIds[groupIndex] : 0;
                             
                             var colorIndex = reader.ReadShort() & 0xFFFF;
-                            element.Colors = colors[colorIndex];
+                            element.Colors = colorIndex < colors.Length ? colors[colorIndex] : [ 1.0f, 1.0f, 1.0f ];
                             element.Color = element.Colors.Length < 3
                                 ? new Color(1, 1, 1)
                                 : new Color(element.Colors[0], element.Colors[1], element.Colors[2]);
@@ -516,6 +516,7 @@ public class GfxData
         public bool Occluder { get; set; }
         public sbyte TypeMask { get; set; }
         public long HashCode { get; set; }
+        public bool Walkable { get; set; }
         public float[] Colors { get; set; }
         public Color Color { get; set; }
         public ElementData CommonData { get; set; }
@@ -535,14 +536,19 @@ public class GfxData
             if (GlobalData.Instance.Elements.TryGetValue(elementId, out var data))
             {
                 CommonData = data;
-                (Left, Top) = IsoToScreen(CellX, CellY, CellZ - Height);
-                Top += CommonData.OriginY;
             }
             else
             {
+                var newData = new ElementData();
+                GlobalData.Instance.Elements.Add(elementId, newData);
+                CommonData = newData;
                 GD.PrintErr($"Element {elementId} not found");
             }
             
+            (Left, Top) = IsoToScreen(CellX, CellY, CellZ - Height);
+            Top += CommonData.OriginY;
+            // Walkable = CommonData.Walkable;
+            Walkable = reader.ReadBooleanBit();
             ComputeHashCode();
         }
         
@@ -558,6 +564,7 @@ public class GfxData
             writer.WriteBooleanBit((TypeMask & GradientMask) != 0);
             
             writer.WriteInt(CommonData.Id);
+            writer.WriteBooleanBit(Walkable);
         }
         
         private static (int x, int y) IsoToScreen(int isoX, int isoY, int isoAltitude)

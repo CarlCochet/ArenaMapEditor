@@ -160,7 +160,7 @@ public partial class Editor : Node2D
 		else if (dirAccess.DirExists("game/contents/maps/env"))
 			GlobalData.Instance.Settings.ArenaPath = $"{dir}/game/contents";
 		else if (dirAccess.DirExists("contents/maps/env"))
-			GlobalData.Instance.Settings.ArenaPath = $"{dir}contents";
+			GlobalData.Instance.Settings.ArenaPath = $"{dir}/contents";
 		else if (dirAccess.DirExists("maps/env"))
 			GlobalData.Instance.Settings.ArenaPath = dir;
 		else
@@ -169,7 +169,7 @@ public partial class Editor : Node2D
 			return;
 		}
 
-		GlobalData.Instance.LoadElements($"{GlobalData.Instance.Settings.ArenaPath}/maps/data");
+		GlobalData.Instance.LoadElements($"{GlobalData.Instance.Settings.ArenaPath}/maps");
 		// GlobalData.Instance.LoadPlaylists($"{GlobalData.Instance.Settings.ArenaPath}/maps_sounds");
 
 		if (!dirAccess.DirExists($"{GlobalData.Instance.Settings.ArenaPath}/maps/fight"))
@@ -209,7 +209,7 @@ public partial class Editor : Node2D
 		{
 			map.Save(dir);
 		}
-		GlobalData.Instance.SaveElements($"{dir}/maps/data");
+		GlobalData.Instance.SaveElements($"{dir}/maps");
 		// GlobalData.Instance.SavePlaylists($"{dir}/maps_sounds");
 		_lastDir = dir;
 	}

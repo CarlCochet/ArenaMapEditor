@@ -94,7 +94,7 @@ public class GlobalData
     
     public void LoadElements(string path)
     {
-        var reader = GetReader(path, "elements.lib");
+        var reader = GetReader(path, "elements.lib", "/data");
 
         if (reader == null)
         {
@@ -172,9 +172,9 @@ public class GlobalData
 		Settings = JsonSerializer.Deserialize<Settings>(settingsFile.GetAsText());
     }
 
-    public ExtendedDataInputStream GetReader(string path, string internalPath)
+    public ExtendedDataInputStream GetReader(string path, string internalPath, string jarSpecific = "")
     {
-        var jarName = $"{path}.jar";
+        var jarName = $"{path}{jarSpecific}.jar";
         ExtendedDataInputStream reader = null;
 
         if (FileAccess.FileExists(jarName))

@@ -35,7 +35,7 @@ public class ElementData
         VisualHeight = reader.ReadByte();
         VisibilityMask = reader.ReadByte();
         ShaderId = reader.ReadByte();
-            
+        
         Slope = (sbyte)(PropertiesFlag & 15);
         Flip = (PropertiesFlag & 16) == 16;
         MoveTop = (PropertiesFlag & 32) == 32;
