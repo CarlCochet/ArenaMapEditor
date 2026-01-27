@@ -181,6 +181,9 @@ public class TopologyData
 
     public void Save(string path)
     {
+        using var coordStream = File.Create(Path.Combine(path, "coord"));
+        using var coordWriter = new OutputBitStream(coordStream);
+        
         foreach (var mapInstance in InstanceSet.Maps)
         {
             var topologyMap = mapInstance.TopoC;
@@ -195,6 +198,12 @@ public class TopologyData
             using var writer = new OutputBitStream(fileStream);
             writer.WriteByte(topologyMap.Header);
             topologyMap.Save(writer);
+            
+            var bigEndianX = System.Buffers.Binary.BinaryPrimitives.ReverseEndianness((short)mapX);
+            var bigEndianY = System.Buffers.Binary.BinaryPrimitives.ReverseEndianness((short)mapY);
+            
+            coordWriter.WriteShort(bigEndianX);
+            coordWriter.WriteShort(bigEndianY);
         }
     }
 

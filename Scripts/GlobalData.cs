@@ -71,8 +71,11 @@ public class GlobalData
  
     public void LoadAssets()
     {
-        using var file = FileAccess.Open("res://Assets/metadata.json", FileAccess.ModeFlags.Read);
-        Assets = JsonSerializer.Deserialize<List<TileData>>(file.GetAsText());
+        var assetStr = FileAccess.GetFileAsString("res://Assets/metadata.json");
+        if (assetStr.Length == 0) 
+            return;
+        
+        Assets = JsonSerializer.Deserialize<List<TileData>>(assetStr);
         foreach (var asset in Assets)
         {
             asset.LoadTexture();
@@ -165,11 +168,11 @@ public class GlobalData
     
     public void LoadSettings()
     {
-        using var settingsFile = FileAccess.Open("user://settings.json", FileAccess.ModeFlags.Read);
-        if (settingsFile == null)
+        var settingsStr = FileAccess.GetFileAsString("user://settings.json");
+        if (settingsStr.Length == 0)
             return;
 		
-		Settings = JsonSerializer.Deserialize<Settings>(settingsFile.GetAsText());
+		Settings = JsonSerializer.Deserialize<Settings>(settingsStr);
     }
 
     public ExtendedDataInputStream GetReader(string path, string internalPath, string jarSpecific = "")

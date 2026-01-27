@@ -101,11 +101,20 @@ public class GfxData
 
     public void Save(string path)
     {
+        using var coordStream = File.Create(Path.Combine(path, "coord"));
+        using var coordWriter = new OutputBitStream(coordStream);
+        
         foreach (var partition in Partitions)
         {
             using var fileStream = File.Create(Path.Combine(path, $"{partition.X}_{partition.Y}"));
             using var writer = new OutputBitStream(fileStream);
             partition.Save(writer);
+            
+            var bigEndianX = System.Buffers.Binary.BinaryPrimitives.ReverseEndianness(partition.X);
+            var bigEndianY = System.Buffers.Binary.BinaryPrimitives.ReverseEndianness(partition.Y);
+            
+            coordWriter.WriteShort(bigEndianX);
+            coordWriter.WriteShort(bigEndianY);
         }
     }
 
