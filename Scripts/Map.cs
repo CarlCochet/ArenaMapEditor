@@ -247,6 +247,22 @@ public partial class Map : Node2D
                 continue;
             tile.SetFightData(fight);
         }
+        
+        Center.SetCenter(fight.MapCenter.x, fight.MapCenter.y);
+        var children = _topology.GetChildren();
+        for (var i = 0; i < children.Count; i++)
+        {
+            var child = children[i];
+            if (child is not Tile tile)
+                continue;
+            if (tile.Name == "Center")
+                continue;
+            if (tile.X <= Center.X || tile.Y <= Center.Y)
+                continue;
+            
+            _topology.MoveChild(Center, i);
+            break;
+        }
     }
 
     public Tile AddElement(GfxData.Element element)
@@ -266,7 +282,6 @@ public partial class Map : Node2D
             var child = children[i];
             if (child is not Tile t)
                 continue;
-
             if (t.Element.HashCode <= element.HashCode)
                 continue;
             
@@ -298,7 +313,7 @@ public partial class Map : Node2D
             var child = children[i];
             if (child is not Tile t)
                 continue;
-            if (t.PathData.GetHash() <= pathData.GetHash())
+            if (t.GetHash() <= pathData.GetHash())
                 continue;
             _topology.MoveChild(topologyTile, i);
             break;
@@ -431,6 +446,7 @@ public partial class Map : Node2D
         }
         
         var topology = _mapData.Topology;
+        var centerAdded = false;
         for (var x = topology.InstanceSet.MinX; x <= topology.InstanceSet.MinX + topology.InstanceSet.Width; x++)
         {
             for (var y = topology.InstanceSet.MinY; y <= topology.InstanceSet.MinY + topology.InstanceSet.Height; y++)
@@ -446,8 +462,23 @@ public partial class Map : Node2D
                 tile.SetTopology(cellPathData, cellVisibilityData);
                 tile.SetFightData(_mapData.Fight);
                 _topology.AddChild(tile);
+
+                if (x != _mapData.Fight.MapCenter.x || y != _mapData.Fight.MapCenter.y)
+                    continue;
+                
+                Center = _tileScene.Instantiate<Tile>();
+                Center.SetCenter(_mapData.Fight.MapCenter.x, _mapData.Fight.MapCenter.y);
+                _topology.AddChild(Center);
+                centerAdded = true;
             }
         }
+        
+        if (centerAdded)
+            return;
+        
+        Center = _tileScene.Instantiate<Tile>();
+        Center.SetCenter(_mapData.Fight.MapCenter.x, _mapData.Fight.MapCenter.y);
+        _topology.AddChild(Center);
     }
 
     private void LoadLight()

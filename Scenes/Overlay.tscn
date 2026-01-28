@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3 uid="uid://bs7nf7ebx8s4w"]
+[gd_scene format=3 uid="uid://bs7nf7ebx8s4w"]
 
 [ext_resource type="Script" uid="uid://ba23v0xvpcgoi" path="res://Scripts/Overlay.cs" id="1_ic50a"]
 [ext_resource type="Texture2D" uid="uid://dma4ldynf4oya" path="res://Assets/UI/Left.png" id="2_20wea"]
@@ -22,7 +22,7 @@ font_size = 24
 outline_size = 3
 outline_color = Color(0, 0, 0, 1)
 
-[node name="Overlay" type="Control" node_paths=PackedStringArray("_preview", "_position", "_previousButton", "_nextButton", "_generateButton", "_upButton", "_downButton", "_highlightButton", "_previewContainer", "_generateContainer", "_heightContainer")]
+[node name="Overlay" type="Control" unique_id=1970316626 node_paths=PackedStringArray("_preview", "_position", "_previousButton", "_nextButton", "_generateButton", "_upButton", "_downButton", "_highlightButton", "_previewContainer", "_generateContainer", "_heightContainer")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -44,7 +44,7 @@ _previewContainer = NodePath("SelectorPreview")
 _generateContainer = NodePath("MarginContainer")
 _heightContainer = NodePath("HeightModifier")
 
-[node name="SelectorPreview" type="MarginContainer" parent="."]
+[node name="SelectorPreview" type="MarginContainer" parent="." unique_id=2060869610]
 layout_mode = 1
 offset_right = 40.0
 offset_bottom = 40.0
@@ -53,23 +53,24 @@ theme_override_constants/margin_top = 5
 theme_override_constants/margin_right = 5
 theme_override_constants/margin_bottom = 5
 
-[node name="HBoxContainer" type="HBoxContainer" parent="SelectorPreview"]
+[node name="HBoxContainer" type="HBoxContainer" parent="SelectorPreview" unique_id=785502899]
 layout_mode = 2
 
-[node name="Previous" type="TextureButton" parent="SelectorPreview/HBoxContainer"]
+[node name="Previous" type="TextureButton" parent="SelectorPreview/HBoxContainer" unique_id=298786561]
 layout_mode = 2
 mouse_filter = 1
+disabled = true
 texture_normal = ExtResource("2_20wea")
 texture_pressed = ExtResource("3_37y85")
 texture_hover = ExtResource("4_mhq33")
 
-[node name="Background" type="ColorRect" parent="SelectorPreview/HBoxContainer"]
+[node name="Background" type="ColorRect" parent="SelectorPreview/HBoxContainer" unique_id=296906267]
 custom_minimum_size = Vector2(60, 60)
 layout_mode = 2
 mouse_filter = 1
 color = Color(0.712129, 0.712129, 0.712129, 1)
 
-[node name="Background2" type="ColorRect" parent="SelectorPreview/HBoxContainer/Background"]
+[node name="Background2" type="ColorRect" parent="SelectorPreview/HBoxContainer/Background" unique_id=1400649728]
 custom_minimum_size = Vector2(56, 56)
 layout_mode = 1
 anchors_preset = 8
@@ -86,7 +87,7 @@ grow_vertical = 2
 mouse_filter = 1
 color = Color(0, 0, 0, 1)
 
-[node name="Preview" type="TextureRect" parent="SelectorPreview/HBoxContainer/Background/Background2"]
+[node name="Preview" type="TextureRect" parent="SelectorPreview/HBoxContainer/Background/Background2" unique_id=1141730391]
 custom_minimum_size = Vector2(50, 50)
 layout_mode = 1
 anchors_preset = 8
@@ -103,14 +104,15 @@ grow_vertical = 2
 expand_mode = 4
 stretch_mode = 5
 
-[node name="Next" type="TextureButton" parent="SelectorPreview/HBoxContainer"]
+[node name="Next" type="TextureButton" parent="SelectorPreview/HBoxContainer" unique_id=1089773574]
 layout_mode = 2
 mouse_filter = 1
+disabled = true
 texture_normal = ExtResource("5_evixr")
 texture_pressed = ExtResource("6_5nyjn")
 texture_hover = ExtResource("7_apyyq")
 
-[node name="MarginContainer" type="MarginContainer" parent="."]
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=210340609]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
@@ -123,13 +125,13 @@ theme_override_constants/margin_top = 5
 theme_override_constants/margin_right = 5
 theme_override_constants/margin_bottom = 5
 
-[node name="Button" type="Button" parent="MarginContainer"]
+[node name="Button" type="Button" parent="MarginContainer" unique_id=790963978]
 custom_minimum_size = Vector2(170, 40)
 layout_mode = 2
 mouse_filter = 1
 text = "Generate Topology"
 
-[node name="Position" type="MarginContainer" parent="."]
+[node name="Position" type="MarginContainer" parent="." unique_id=1210256307]
 layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
@@ -143,13 +145,13 @@ theme_override_constants/margin_top = 5
 theme_override_constants/margin_right = 5
 theme_override_constants/margin_bottom = 5
 
-[node name="Label" type="Label" parent="Position"]
+[node name="Label" type="Label" parent="Position" unique_id=1435767749]
 layout_mode = 2
 text = "(0, 0, 0)"
 label_settings = SubResource("LabelSettings_t0xsw")
 vertical_alignment = 1
 
-[node name="HeightModifier" type="MarginContainer" parent="."]
+[node name="HeightModifier" type="MarginContainer" parent="." unique_id=1245849806]
 layout_mode = 1
 anchors_preset = 3
 anchor_left = 1.0
@@ -165,18 +167,18 @@ theme_override_constants/margin_top = 5
 theme_override_constants/margin_right = 5
 theme_override_constants/margin_bottom = 5
 
-[node name="VBoxContainer" type="VBoxContainer" parent="HeightModifier"]
+[node name="VBoxContainer" type="VBoxContainer" parent="HeightModifier" unique_id=1060129510]
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="Up" type="TextureButton" parent="HeightModifier/VBoxContainer"]
+[node name="Up" type="TextureButton" parent="HeightModifier/VBoxContainer" unique_id=2129724764]
 layout_mode = 2
 mouse_filter = 1
 texture_normal = ExtResource("23_gjujf")
 texture_pressed = ExtResource("24_uuvrw")
 texture_hover = ExtResource("25_dosm3")
 
-[node name="Highlight" type="TextureButton" parent="HeightModifier/VBoxContainer"]
+[node name="Highlight" type="TextureButton" parent="HeightModifier/VBoxContainer" unique_id=820451578]
 layout_mode = 2
 mouse_filter = 1
 toggle_mode = true
@@ -184,7 +186,7 @@ texture_normal = ExtResource("26_2hu0k")
 texture_pressed = ExtResource("27_dputo")
 texture_hover = ExtResource("28_sv3im")
 
-[node name="Down" type="TextureButton" parent="HeightModifier/VBoxContainer"]
+[node name="Down" type="TextureButton" parent="HeightModifier/VBoxContainer" unique_id=1640382730]
 layout_mode = 2
 mouse_filter = 1
 texture_normal = ExtResource("26_cf6e0")

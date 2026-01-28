@@ -1,4 +1,4 @@
-[gd_scene load_steps=36 format=3 uid="uid://d14hqwtpnn5ek"]
+[gd_scene format=3 uid="uid://d14hqwtpnn5ek"]
 
 [ext_resource type="Script" uid="uid://ejao00um5dw" path="res://Scripts/Tools.cs" id="1_6s3ac"]
 [ext_resource type="Texture2D" uid="uid://cr0hplinhgo3t" path="res://Assets/UI/ToolSelect.png" id="2_78btu"]
@@ -38,7 +38,7 @@
 [sub_resource type="LabelSettings" id="LabelSettings_kgn1q"]
 font_size = 14
 
-[node name="Tools" type="Control" node_paths=PackedStringArray("_selectButton", "_brushButton", "_lineButton", "_areaButton", "_eraserButton", "_flipButton", "_sizeField", "_loadButton", "_colorPickerButton", "_undoButton", "_redoButton", "_newMapButton", "_locateButton", "_exportButton", "_loadMapButton", "_createMapContainer", "_mapIdInput", "_validateButton", "_cancelButton")]
+[node name="Tools" type="Control" unique_id=38230724 node_paths=PackedStringArray("_selectButton", "_brushButton", "_lineButton", "_areaButton", "_eraserButton", "_flipButton", "_sizeField", "_loadButton", "_colorPickerButton", "_undoButton", "_redoButton", "_newMapButton", "_locateButton", "_exportButton", "_loadMapButton", "_createMapContainer", "_mapIdInput", "_validateButton", "_cancelButton")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -66,7 +66,7 @@ _mapIdInput = NodePath("PopupPanel/MarginContainer/VBoxContainer/MapId")
 _validateButton = NodePath("PopupPanel/MarginContainer/VBoxContainer/HBoxContainer/Validate")
 _cancelButton = NodePath("PopupPanel/MarginContainer/VBoxContainer/HBoxContainer/Cancel")
 
-[node name="MarginContainer" type="MarginContainer" parent="."]
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=1400885398]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 40.0
@@ -75,11 +75,11 @@ theme_override_constants/margin_top = 10
 theme_override_constants/margin_right = 10
 theme_override_constants/margin_bottom = 10
 
-[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer" unique_id=216124371]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="Selector" type="TextureButton" parent="MarginContainer/HBoxContainer"]
+[node name="Selector" type="TextureButton" parent="MarginContainer/HBoxContainer" unique_id=684468361]
 layout_mode = 2
 tooltip_text = "Selection (S)"
 mouse_filter = 1
@@ -89,7 +89,7 @@ texture_normal = ExtResource("2_78btu")
 texture_pressed = ExtResource("3_c31eb")
 texture_hover = ExtResource("4_0mtuu")
 
-[node name="Brush" type="TextureButton" parent="MarginContainer/HBoxContainer"]
+[node name="Brush" type="TextureButton" parent="MarginContainer/HBoxContainer" unique_id=1636589758]
 layout_mode = 2
 tooltip_text = "Dessin (D)"
 mouse_filter = 1
@@ -98,25 +98,27 @@ texture_normal = ExtResource("4_48r52")
 texture_pressed = ExtResource("9_seshs")
 texture_hover = ExtResource("10_m4mf0")
 
-[node name="Line" type="TextureButton" parent="MarginContainer/HBoxContainer"]
+[node name="Line" type="TextureButton" parent="MarginContainer/HBoxContainer" unique_id=1569238913]
 layout_mode = 2
 tooltip_text = "Ligne (T)"
 mouse_filter = 1
+disabled = true
 toggle_mode = true
 texture_normal = ExtResource("5_6pqdi")
 texture_pressed = ExtResource("10_htrqw")
 texture_hover = ExtResource("11_6x28h")
 
-[node name="Area" type="TextureButton" parent="MarginContainer/HBoxContainer"]
+[node name="Area" type="TextureButton" parent="MarginContainer/HBoxContainer" unique_id=1475222950]
 layout_mode = 2
 tooltip_text = "Rectangle (R)"
 mouse_filter = 1
+disabled = true
 toggle_mode = true
 texture_normal = ExtResource("6_ejfkd")
 texture_pressed = ExtResource("15_ryfbt")
 texture_hover = ExtResource("16_mwthy")
 
-[node name="Eraser" type="TextureButton" parent="MarginContainer/HBoxContainer"]
+[node name="Eraser" type="TextureButton" parent="MarginContainer/HBoxContainer" unique_id=1494639119]
 layout_mode = 2
 tooltip_text = "Efface (E)"
 mouse_filter = 1
@@ -125,20 +127,21 @@ texture_normal = ExtResource("17_nax05")
 texture_pressed = ExtResource("18_q8l62")
 texture_hover = ExtResource("19_hm6ee")
 
-[node name="Flip" type="TextureButton" parent="MarginContainer/HBoxContainer"]
+[node name="Flip" type="TextureButton" parent="MarginContainer/HBoxContainer" unique_id=481358912]
 layout_mode = 2
 tooltip_text = "Flip horizontal (F)"
 mouse_filter = 1
+disabled = true
 texture_normal = ExtResource("17_wjtxm")
 texture_pressed = ExtResource("18_bsk82")
 texture_hover = ExtResource("19_74djj")
 
-[node name="BrushSize" type="Control" parent="MarginContainer/HBoxContainer"]
+[node name="BrushSize" type="Control" parent="MarginContainer/HBoxContainer" unique_id=775254242]
 custom_minimum_size = Vector2(170, 0)
 layout_mode = 2
 mouse_filter = 1
 
-[node name="SizeLabel" type="Label" parent="MarginContainer/HBoxContainer/BrushSize"]
+[node name="SizeLabel" type="Label" parent="MarginContainer/HBoxContainer/BrushSize" unique_id=1779308718]
 layout_mode = 0
 offset_left = 26.0
 offset_top = -2.0
@@ -149,7 +152,7 @@ text = "Taille:"
 label_settings = SubResource("LabelSettings_kgn1q")
 vertical_alignment = 1
 
-[node name="SizeField" type="SpinBox" parent="MarginContainer/HBoxContainer/BrushSize"]
+[node name="SizeField" type="SpinBox" parent="MarginContainer/HBoxContainer/BrushSize" unique_id=482786802]
 layout_mode = 0
 offset_left = 79.0
 offset_right = 165.5625
@@ -158,14 +161,15 @@ mouse_filter = 1
 min_value = 1.0
 value = 1.0
 alignment = 1
+editable = false
 
-[node name="ColorPicker" type="ColorPickerButton" parent="MarginContainer/HBoxContainer"]
+[node name="ColorPicker" type="ColorPickerButton" parent="MarginContainer/HBoxContainer" unique_id=1176001743]
 custom_minimum_size = Vector2(30, 0)
 layout_mode = 2
 mouse_filter = 1
 color = Color(1, 1, 1, 1)
 
-[node name="Undo" type="TextureButton" parent="MarginContainer/HBoxContainer"]
+[node name="Undo" type="TextureButton" parent="MarginContainer/HBoxContainer" unique_id=81072183]
 layout_mode = 2
 tooltip_text = "Annuler (Ctrl + Z)"
 mouse_filter = 1
@@ -173,7 +177,7 @@ texture_normal = ExtResource("20_yyeh5")
 texture_pressed = ExtResource("21_nyhfs")
 texture_hover = ExtResource("22_m5x4e")
 
-[node name="Redo" type="TextureButton" parent="MarginContainer/HBoxContainer"]
+[node name="Redo" type="TextureButton" parent="MarginContainer/HBoxContainer" unique_id=1459575140]
 layout_mode = 2
 tooltip_text = "Réappliquer (Ctrl + Y)"
 mouse_filter = 1
@@ -181,7 +185,7 @@ texture_normal = ExtResource("23_hwnd8")
 texture_pressed = ExtResource("24_yuo05")
 texture_hover = ExtResource("25_v1ccl")
 
-[node name="MarginContainer2" type="MarginContainer" parent="."]
+[node name="MarginContainer2" type="MarginContainer" parent="." unique_id=1936155585]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
@@ -194,10 +198,10 @@ theme_override_constants/margin_top = 10
 theme_override_constants/margin_right = 10
 theme_override_constants/margin_bottom = 10
 
-[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer2"]
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer2" unique_id=747644343]
 layout_mode = 2
 
-[node name="NewMap" type="TextureButton" parent="MarginContainer2/HBoxContainer"]
+[node name="NewMap" type="TextureButton" parent="MarginContainer2/HBoxContainer" unique_id=234121701]
 layout_mode = 2
 tooltip_text = "Nouvelle carte"
 mouse_filter = 1
@@ -205,7 +209,7 @@ texture_normal = ExtResource("26_t8hl2")
 texture_pressed = ExtResource("27_qpnmp")
 texture_hover = ExtResource("28_otwkm")
 
-[node name="ExportMap" type="TextureButton" parent="MarginContainer2/HBoxContainer"]
+[node name="ExportMap" type="TextureButton" parent="MarginContainer2/HBoxContainer" unique_id=1125374481]
 layout_mode = 2
 tooltip_text = "Exporter carte"
 mouse_filter = 1
@@ -213,7 +217,7 @@ texture_normal = ExtResource("29_qco4g")
 texture_pressed = ExtResource("30_sh4qp")
 texture_hover = ExtResource("31_el88t")
 
-[node name="LocateArena" type="TextureButton" parent="MarginContainer2/HBoxContainer"]
+[node name="LocateArena" type="TextureButton" parent="MarginContainer2/HBoxContainer" unique_id=598426220]
 layout_mode = 2
 tooltip_text = "Localiser dossier Arena"
 mouse_filter = 1
@@ -221,18 +225,18 @@ texture_normal = ExtResource("32_ad17n")
 texture_pressed = ExtResource("33_hqjf2")
 texture_hover = ExtResource("34_or3wh")
 
-[node name="LoadMap" type="OptionButton" parent="MarginContainer2/HBoxContainer"]
+[node name="LoadMap" type="OptionButton" parent="MarginContainer2/HBoxContainer" unique_id=597900224]
 custom_minimum_size = Vector2(130, 30)
 layout_mode = 2
 tooltip_text = "Sélectionner carte du client Arena (localiser Arena avant utilisation)"
 mouse_filter = 1
 
-[node name="PopupPanel" type="PopupPanel" parent="."]
+[node name="PopupPanel" type="PopupPanel" parent="." unique_id=2050491595]
 oversampling_override = 1.0
 initial_position = 2
 size = Vector2i(258, 143)
 
-[node name="MarginContainer" type="MarginContainer" parent="PopupPanel"]
+[node name="MarginContainer" type="MarginContainer" parent="PopupPanel" unique_id=2089160568]
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
@@ -249,30 +253,30 @@ theme_override_constants/margin_top = 5
 theme_override_constants/margin_right = 5
 theme_override_constants/margin_bottom = 5
 
-[node name="VBoxContainer" type="VBoxContainer" parent="PopupPanel/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="PopupPanel/MarginContainer" unique_id=1520175032]
 layout_mode = 2
 theme_override_constants/separation = 20
 
-[node name="Label" type="Label" parent="PopupPanel/MarginContainer/VBoxContainer"]
+[node name="Label" type="Label" parent="PopupPanel/MarginContainer/VBoxContainer" unique_id=674242686]
 layout_mode = 2
 text = "ID nouvelle map :"
 
-[node name="MapId" type="SpinBox" parent="PopupPanel/MarginContainer/VBoxContainer"]
+[node name="MapId" type="SpinBox" parent="PopupPanel/MarginContainer/VBoxContainer" unique_id=2104359845]
 layout_mode = 2
 min_value = 111.0
 max_value = 1000.0
 value = 111.0
 
-[node name="HBoxContainer" type="HBoxContainer" parent="PopupPanel/MarginContainer/VBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="PopupPanel/MarginContainer/VBoxContainer" unique_id=2145671998]
 layout_mode = 2
 alignment = 2
 
-[node name="Validate" type="Button" parent="PopupPanel/MarginContainer/VBoxContainer/HBoxContainer"]
+[node name="Validate" type="Button" parent="PopupPanel/MarginContainer/VBoxContainer/HBoxContainer" unique_id=429363904]
 custom_minimum_size = Vector2(70, 0)
 layout_mode = 2
 text = "Valider"
 
-[node name="Cancel" type="Button" parent="PopupPanel/MarginContainer/VBoxContainer/HBoxContainer"]
+[node name="Cancel" type="Button" parent="PopupPanel/MarginContainer/VBoxContainer/HBoxContainer" unique_id=1886646817]
 custom_minimum_size = Vector2(70, 0)
 layout_mode = 2
 text = "Annuler"

@@ -38,6 +38,8 @@ public partial class Inspector : Control
     [Export] private OptionButton _bonus;
     [Export] private VBoxContainer _gfxContainer;
     [Export] private VBoxContainer _topologyContainer;
+    [Export] private SpinBox _centerX;
+    [Export] private SpinBox _centerY;
     
     private GfxData.Element _elementData;
     private TopologyData.CellPathData _pathData;
@@ -124,6 +126,8 @@ public partial class Inspector : Control
         var (placement, bonus) = fightData.GetData(pathData.X, pathData.Y, pathData.Z);
         _placement.Selected = placement + 1;
         _bonus.Selected = bonus + 1;
+        _centerX.Value = fightData.MapCenter.x;
+        _centerY.Value = fightData.MapCenter.y;
         
         _suppressSignals = false;
     }
@@ -315,6 +319,20 @@ public partial class Inspector : Control
             _fightData.RemoveBonus(_pathData.X, _pathData.Y, _pathData.Z);
         else
             _fightData.AddBonus(_pathData.X, _pathData.Y, _pathData.Z, (int) id + 1001);
+        FightUpdated?.Invoke(this, new FightUpdatedEventArgs(oldFightData, _fightData));
+    }
+
+    private void _OnCenterXChanged(double value)
+    {
+        var oldFightData = _fightData.Copy();
+        _fightData.MapCenter.x = (int)value;
+        FightUpdated?.Invoke(this, new FightUpdatedEventArgs(oldFightData, _fightData));
+    }
+
+    private void _OnCenterYChanged(double value)
+    {
+        var oldFightData = _fightData.Copy();
+        _fightData.MapCenter.y = (int)value;
         FightUpdated?.Invoke(this, new FightUpdatedEventArgs(oldFightData, _fightData));
     }
 

@@ -1,8 +1,8 @@
-[gd_scene load_steps=2 format=3 uid="uid://bd4spy67wa1ic"]
+[gd_scene format=3 uid="uid://bd4spy67wa1ic"]
 
 [ext_resource type="Script" uid="uid://0isfc62nmil3" path="res://Scripts/Filter.cs" id="1_ajv58"]
 
-[node name="Filter" type="Control" node_paths=PackedStringArray("_biomeButton", "_categoryButton", "_modeButton")]
+[node name="Filter" type="Control" unique_id=221806953 node_paths=PackedStringArray("_biomeButton", "_categoryButton", "_modeButton")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -14,7 +14,7 @@ _biomeButton = NodePath("MarginContainer/GridContainer/BiomeButton")
 _categoryButton = NodePath("MarginContainer/GridContainer/CategoryButton")
 _modeButton = NodePath("MarginContainer/GridContainer/ModeButton")
 
-[node name="MarginContainer" type="MarginContainer" parent="."]
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=1473599344]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 40.0
@@ -23,22 +23,23 @@ theme_override_constants/margin_top = 5
 theme_override_constants/margin_right = 5
 theme_override_constants/margin_bottom = 5
 
-[node name="GridContainer" type="GridContainer" parent="MarginContainer"]
+[node name="GridContainer" type="GridContainer" parent="MarginContainer" unique_id=1013997226]
 layout_mode = 2
 columns = 2
 
-[node name="BiomeLabel" type="Label" parent="MarginContainer/GridContainer"]
+[node name="BiomeLabel" type="Label" parent="MarginContainer/GridContainer" unique_id=1392339729]
 custom_minimum_size = Vector2(140, 0)
 layout_mode = 2
 text = "Biome :"
 
-[node name="CategoryLabel" type="Label" parent="MarginContainer/GridContainer"]
+[node name="CategoryLabel" type="Label" parent="MarginContainer/GridContainer" unique_id=1718725301]
 custom_minimum_size = Vector2(140, 0)
 layout_mode = 2
 text = "Catégorie :"
 
-[node name="BiomeButton" type="OptionButton" parent="MarginContainer/GridContainer"]
+[node name="BiomeButton" type="OptionButton" parent="MarginContainer/GridContainer" unique_id=240363064]
 layout_mode = 2
+disabled = true
 selected = 0
 item_count = 12
 popup/item_0/text = "Global"
@@ -66,8 +67,9 @@ popup/item_10/id = 10
 popup/item_11/text = "Marais"
 popup/item_11/id = 11
 
-[node name="CategoryButton" type="OptionButton" parent="MarginContainer/GridContainer"]
+[node name="CategoryButton" type="OptionButton" parent="MarginContainer/GridContainer" unique_id=1520353939]
 layout_mode = 2
+disabled = true
 selected = 0
 item_count = 15
 popup/item_0/text = "Global"
@@ -101,14 +103,14 @@ popup/item_13/id = 13
 popup/item_14/text = "Eau"
 popup/item_14/id = 14
 
-[node name="ModeLabel" type="Label" parent="MarginContainer/GridContainer"]
+[node name="ModeLabel" type="Label" parent="MarginContainer/GridContainer" unique_id=1746324915]
 layout_mode = 2
 text = "Mode :"
 
-[node name="Control4" type="Control" parent="MarginContainer/GridContainer"]
+[node name="Control4" type="Control" parent="MarginContainer/GridContainer" unique_id=1048603943]
 layout_mode = 2
 
-[node name="ModeButton" type="OptionButton" parent="MarginContainer/GridContainer"]
+[node name="ModeButton" type="OptionButton" parent="MarginContainer/GridContainer" unique_id=1847679291]
 layout_mode = 2
 selected = 0
 item_count = 3
@@ -119,16 +121,17 @@ popup/item_1/id = 1
 popup/item_2/text = "Lumière"
 popup/item_2/id = 2
 
-[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/GridContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/GridContainer" unique_id=668881276]
 layout_mode = 2
 alignment = 1
 
-[node name="Label" type="Label" parent="MarginContainer/GridContainer/HBoxContainer"]
+[node name="Label" type="Label" parent="MarginContainer/GridContainer/HBoxContainer" unique_id=1986278041]
 layout_mode = 2
 text = "Utilisés :"
 
-[node name="CheckBox" type="CheckBox" parent="MarginContainer/GridContainer/HBoxContainer"]
+[node name="CheckBox" type="CheckBox" parent="MarginContainer/GridContainer/HBoxContainer" unique_id=1900393637]
 layout_mode = 2
+disabled = true
 
 [connection signal="item_selected" from="MarginContainer/GridContainer/BiomeButton" to="." method="_OnBiomeSelected"]
 [connection signal="item_selected" from="MarginContainer/GridContainer/CategoryButton" to="." method="_OnCategorySelected"]

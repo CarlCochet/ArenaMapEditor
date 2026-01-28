@@ -89,7 +89,7 @@ public class GlobalData
             BonusTextures.Add(GD.Load<CompressedTexture2D>($"res://Assets/Bonus/{i}.tgam.png"));
         }
 
-        for (var i = 0; i < 3; i++)
+        for (var i = 0; i < 4; i++)
         {
             PlacementTextures.Add(GD.Load<CompressedTexture2D>($"res://Assets/Placement/{i}.tgam.png"));
         }

@@ -126,6 +126,17 @@ public partial class Tile : Sprite2D
         _placement.Texture = placement != -1 ? GlobalData.Instance.PlacementTextures[placement] : null;
         _bonus.Texture = bonus != -1 ? GlobalData.Instance.BonusTextures[bonus] : null;
     }
+
+    public void SetCenter(int x, int y)
+    {
+        Mode = Enums.Mode.Topology;
+        Texture = GlobalData.Instance.PlacementTextures[3];
+        X = x;
+        Y = y;
+        Z = 0;
+        PositionToIso(x, y, 0, 0, 0, 0);
+        Name = "Center";
+    }
 	
     public void PositionToIso(int x, int y, int z, int height, int originX, int originY)
     {
@@ -182,5 +193,11 @@ public partial class Tile : Sprite2D
         var point = new Vector2I((int)pos.X, (int)pos.Y);
 		
         return Data.GetImage().GetPixelv(point).A > 0.1f;
+    }
+    
+    public long GetHash()
+    {
+        return (Y + 8192L & 0x3FFFL) << 34 |
+               (X + 8192L & 0x3FFFL) << 19;
     }
 }
