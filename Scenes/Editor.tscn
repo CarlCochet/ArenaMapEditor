@@ -9,7 +9,7 @@
 [ext_resource type="PackedScene" uid="uid://btqhc3kx587xd" path="res://Scenes/Inspector.tscn" id="7_8t728"]
 [ext_resource type="PackedScene" uid="uid://7w02tr37xxmq" path="res://Scenes/Gizmo.tscn" id="8_vbhsn"]
 
-[node name="Editor" type="Node2D" unique_id=262530090 node_paths=PackedStringArray("_map", "_filter", "_assetsPreview", "_tools", "_overlay", "_openDialog", "_saveDialog", "_inspector", "_gizmo", "_waitPopup", "_loading", "_saving")]
+[node name="Editor" type="Node2D" unique_id=262530090 node_paths=PackedStringArray("_map", "_filter", "_assetsPreview", "_tools", "_overlay", "_openDialog", "_saveDialog", "_inspector", "_gizmo")]
 script = ExtResource("1_c7qby")
 _map = NodePath("Map")
 _filter = NodePath("CanvasLayer/SplitContainer/SplitContainer/ColorRect/Filter")
@@ -20,9 +20,6 @@ _openDialog = NodePath("CanvasLayer/OpenDialog")
 _saveDialog = NodePath("CanvasLayer/SaveDialog")
 _inspector = NodePath("CanvasLayer/SplitContainer/SplitContainer2/SplitContainer/ColorRect/Inspector")
 _gizmo = NodePath("CanvasLayer/Gizmo")
-_waitPopup = NodePath("CanvasLayer/Wait")
-_loading = NodePath("CanvasLayer/Wait/Panel/Loading")
-_saving = NodePath("CanvasLayer/Wait/Panel/Saving")
 
 [node name="Map" parent="." unique_id=845456565 instance=ExtResource("2_pkgv6")]
 
@@ -117,64 +114,6 @@ color = Color(0.172833, 0.172833, 0.172833, 1)
 
 [node name="Inspector" parent="CanvasLayer/SplitContainer/SplitContainer2/SplitContainer/ColorRect" unique_id=927731534 instance=ExtResource("7_8t728")]
 layout_mode = 1
-
-[node name="Wait" type="Control" parent="CanvasLayer" unique_id=1553203583]
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="Panel" type="Panel" parent="CanvasLayer/Wait" unique_id=2063207076]
-custom_minimum_size = Vector2(200, 100)
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -100.0
-offset_top = -50.0
-offset_right = 100.0
-offset_bottom = 50.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="Loading" type="Label" parent="CanvasLayer/Wait/Panel" unique_id=892514933]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -37.5
-offset_top = -11.5
-offset_right = 37.5
-offset_bottom = 11.5
-grow_horizontal = 2
-grow_vertical = 2
-text = "Loading..."
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="Saving" type="Label" parent="CanvasLayer/Wait/Panel" unique_id=1159363440]
-visible = false
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -37.5
-offset_top = -11.5
-offset_right = 37.5
-offset_bottom = 11.5
-grow_horizontal = 2
-grow_vertical = 2
-text = "Saving..."
-horizontal_alignment = 1
-vertical_alignment = 1
 
 [node name="OpenDialog" type="FileDialog" parent="CanvasLayer" unique_id=187006006]
 title = "Open a Directory"
