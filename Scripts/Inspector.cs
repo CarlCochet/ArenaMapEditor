@@ -149,7 +149,9 @@ public partial class Inspector : Control
 
     private void _OnXChanged(double value)
     {
-        if (_suppressSignals) return;
+        if (_suppressSignals || _elementData == null)
+            return;
+
         var newElement = _elementData.Copy();
         newElement.CellX = (int) value;
         ElementUpdated?.Invoke(this, new ElementUpdatedEventArgs(_elementData, newElement));
@@ -157,7 +159,9 @@ public partial class Inspector : Control
     
     private void _OnYChanged(double value)
     {
-        if (_suppressSignals) return;
+        if (_suppressSignals || _elementData == null)
+            return;
+
         var newElement = _elementData.Copy();
         newElement.CellY = (int) value;
         ElementUpdated?.Invoke(this, new ElementUpdatedEventArgs(_elementData, newElement));
@@ -165,7 +169,9 @@ public partial class Inspector : Control
     
     private void _OnZChanged(double value)
     {
-        if (_suppressSignals) return;
+        if (_suppressSignals || _elementData == null)
+            return;
+
         var newElement = _elementData.Copy();
         newElement.CellZ = (short) value;
         ElementUpdated?.Invoke(this, new ElementUpdatedEventArgs(_elementData, newElement));
@@ -173,7 +179,9 @@ public partial class Inspector : Control
 
     private void _OnHeightChanged(double value)
     {
-        if (_suppressSignals) return;
+        if (_suppressSignals || _elementData == null)
+            return;
+
         var newElement = _elementData.Copy();
         newElement.Height = (sbyte) value;
         ElementUpdated?.Invoke(this, new ElementUpdatedEventArgs(_elementData, newElement));
@@ -181,7 +189,9 @@ public partial class Inspector : Control
 
     private void _OnOrderChanged(double value)
     {
-        if (_suppressSignals) return;
+        if (_suppressSignals || _elementData == null)
+            return;
+
         var newElement = _elementData.Copy();
         newElement.AltitudeOrder = (sbyte) value;
         ElementUpdated?.Invoke(this, new ElementUpdatedEventArgs(_elementData, newElement));
@@ -189,7 +199,9 @@ public partial class Inspector : Control
     
     private void _OnGroupIdChanged(double value)
     {
-        if (_suppressSignals) return;
+        if (_suppressSignals || _elementData == null)
+            return;
+
         var newElement = _elementData.Copy();
         newElement.GroupId = (int) value;
         ElementUpdated?.Invoke(this, new ElementUpdatedEventArgs(_elementData, newElement));
@@ -197,7 +209,9 @@ public partial class Inspector : Control
     
     private void _OnLayerIndexChanged(double value)
     {
-        if (_suppressSignals) return;
+        if (_suppressSignals || _elementData == null)
+            return;
+
         var newElement = _elementData.Copy();
         newElement.LayerIndex = (sbyte) value;
         ElementUpdated?.Invoke(this, new ElementUpdatedEventArgs(_elementData, newElement));
@@ -205,7 +219,9 @@ public partial class Inspector : Control
     
     private void _OnGroupLayerChanged(double value)
     {
-        if (_suppressSignals) return;
+        if (_suppressSignals || _elementData == null)
+            return;
+
         var newElement = _elementData.Copy();
         newElement.GroupKey = (int) value;
         ElementUpdated?.Invoke(this, new ElementUpdatedEventArgs(_elementData, newElement));
@@ -213,7 +229,9 @@ public partial class Inspector : Control
     
     private void _OnColorChanged(Color newColor)
     {
-        if (_suppressSignals) return;
+        if (_suppressSignals || _elementData == null)
+            return;
+
         var newElement = _elementData.Copy();
         newElement.Color = newColor;
         ElementUpdated?.Invoke(this, new ElementUpdatedEventArgs(_elementData, newElement));
@@ -221,7 +239,9 @@ public partial class Inspector : Control
     
     private void _OnOccluderToggled(bool toggledOn)
     {
-        if (_suppressSignals) return;
+        if (_suppressSignals || _elementData == null)
+            return;
+
         var newElement = _elementData.Copy();
         newElement.Occluder = toggledOn;
         ElementUpdated?.Invoke(this, new ElementUpdatedEventArgs(_elementData, newElement));
@@ -229,7 +249,9 @@ public partial class Inspector : Control
     
     private void _OnTopoXChanged(double value)
     {
-        if (_suppressSignals) return;
+        if (_suppressSignals || _pathData == null || _visibilityData == null)
+            return;
+
         _pathData.X = (int) value;
         _visibilityData.X = (int) value;
         TopologyUpdated?.Invoke(this, new TopologyUpdatedEventArgs(_pathData, _visibilityData));
@@ -237,7 +259,9 @@ public partial class Inspector : Control
     
     private void _OnTopoYChanged(double value)
     {
-        if (_suppressSignals) return;
+        if (_suppressSignals || _pathData == null || _visibilityData == null)
+            return;
+        
         _pathData.Y = (int) value;
         _visibilityData.Y = (int) value;
         TopologyUpdated?.Invoke(this, new TopologyUpdatedEventArgs(_pathData, _visibilityData));
@@ -245,7 +269,9 @@ public partial class Inspector : Control
     
     private void _OnTopoZChanged(double value)
     {
-        if (_suppressSignals) return;
+        if (_suppressSignals || _pathData == null || _visibilityData == null)
+            return;
+        
         _pathData.Z = (short) value;
         _visibilityData.Z = (short) value;
         TopologyUpdated?.Invoke(this, new TopologyUpdatedEventArgs(_pathData, _visibilityData));
@@ -253,7 +279,9 @@ public partial class Inspector : Control
     
     private void _OnTopoHeightChanged(double value)
     {
-        if (_suppressSignals) return;
+        if (_suppressSignals || _pathData == null || _visibilityData == null)
+            return;
+        
         _pathData.Height = (sbyte) value;
         _visibilityData.Height = (sbyte) value;
         TopologyUpdated?.Invoke(this, new TopologyUpdatedEventArgs(_pathData, _visibilityData));
@@ -261,41 +289,54 @@ public partial class Inspector : Control
     
     private void _OnCostChanged(double value)
     {
-        if (_suppressSignals) return;
+        if (_suppressSignals || _pathData == null) 
+            return;
+        
         _pathData.Cost = (sbyte) value;
         TopologyUpdated?.Invoke(this, new TopologyUpdatedEventArgs(_pathData, _visibilityData));
     }
     
     private void _OnCanMoveThroughToggled(bool toggledOn)
     {
-        if (_suppressSignals) return;
+        if (_suppressSignals || _pathData == null) 
+            return;
+        
         _pathData.CanMoveThrough = toggledOn;
         TopologyUpdated?.Invoke(this, new TopologyUpdatedEventArgs(_pathData, _visibilityData));
     }
     
     private void _OnCanViewThroughToggled(bool toggledOn)
     {
-        if (_suppressSignals) return;
+        if (_suppressSignals || _visibilityData == null)
+            return;
+        
         _visibilityData.CanViewThrough = toggledOn;
         TopologyUpdated?.Invoke(this, new TopologyUpdatedEventArgs(_pathData, _visibilityData));
     }
     
     private void _OnMurFinInfoChanged(double value)
     {
-        if (_suppressSignals) return;
+        if (_suppressSignals || _pathData == null)
+            return;
+        
         _pathData.MurFinInfo = (sbyte) value;
         TopologyUpdated?.Invoke(this, new TopologyUpdatedEventArgs(_pathData, _visibilityData));
     }
     
     private void _OnMiscPropertiesChanged(double value)
     {
-        if (_suppressSignals) return;
+        if (_suppressSignals || _pathData == null)
+            return;
+        
         _pathData.MiscProperties = (sbyte) value;
         TopologyUpdated?.Invoke(this, new TopologyUpdatedEventArgs(_pathData, _visibilityData));
     }
 
     private void _OnPlacementChanged(long id)
     {
+        if (_suppressSignals || _fightData == null || _pathData == null)
+            return;
+        
         var oldFightData = _fightData.Copy();
         switch (id)
         {
@@ -314,6 +355,9 @@ public partial class Inspector : Control
 
     private void _OnBonusChanged(long id)
     {
+        if (_suppressSignals || _fightData == null || _pathData == null)
+            return;
+        
         var oldFightData = _fightData.Copy();
         if (id == 0)
             _fightData.RemoveBonus(_pathData.X, _pathData.Y, _pathData.Z);
@@ -324,6 +368,9 @@ public partial class Inspector : Control
 
     private void _OnCenterXChanged(double value)
     {
+        if (_suppressSignals || _fightData == null)
+            return;
+        
         var oldFightData = _fightData.Copy();
         _fightData.MapCenter.x = (int)value;
         FightUpdated?.Invoke(this, new FightUpdatedEventArgs(oldFightData, _fightData));
@@ -331,6 +378,9 @@ public partial class Inspector : Control
 
     private void _OnCenterYChanged(double value)
     {
+        if (_suppressSignals || _fightData == null)
+            return;
+
         var oldFightData = _fightData.Copy();
         _fightData.MapCenter.y = (int)value;
         FightUpdated?.Invoke(this, new FightUpdatedEventArgs(oldFightData, _fightData));

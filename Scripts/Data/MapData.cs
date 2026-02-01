@@ -74,6 +74,7 @@ public class MapData
         {
             Fight = new FightData(Id);
             Fight.Load($"{path}/maps/fight");
+            Fight.LoadCenter(path);
         }
         catch (Exception e)
         {

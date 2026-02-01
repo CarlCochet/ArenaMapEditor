@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
+using FileAccess = Godot.FileAccess;
 
 public class FightData
 {
@@ -65,6 +67,27 @@ public class FightData
             var position = reader.ReadInt();
             var type = reader.ReadInt();
             Bonus.TryAdd(position, type);
+        }
+    }
+
+    public void LoadCenter(string path)
+    {
+        var filename = $"{path}/fight_map_info.json";
+        if (!FileAccess.FileExists(filename))
+            return;
+
+        var text = File.ReadAllText(filename);
+        var json = JsonDocument.Parse(text);
+
+        foreach (var map in json.RootElement.EnumerateArray())
+        {
+            if (!map.TryGetProperty("id", out var mapId) || mapId.GetInt32() != Id)
+                continue;
+            if (!map.TryGetProperty("mapCenter", out var center))
+                break;
+
+            MapCenter = (center.GetProperty("x").GetInt32(), center.GetProperty("y").GetInt32());
+            break;
         }
     }
     

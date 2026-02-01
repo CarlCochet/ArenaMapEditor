@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://cvasy00hsj0lk"]
+[gd_scene format=3 uid="uid://cvasy00hsj0lk"]
 
 [ext_resource type="Script" uid="uid://cfo3k2hl7j6lu" path="res://Scripts/Editor.cs" id="1_c7qby"]
 [ext_resource type="PackedScene" uid="uid://5k8sgg41ctpm" path="res://Scenes/Map.tscn" id="2_pkgv6"]
@@ -9,7 +9,7 @@
 [ext_resource type="PackedScene" uid="uid://btqhc3kx587xd" path="res://Scenes/Inspector.tscn" id="7_8t728"]
 [ext_resource type="PackedScene" uid="uid://7w02tr37xxmq" path="res://Scenes/Gizmo.tscn" id="8_vbhsn"]
 
-[node name="Editor" type="Node2D" node_paths=PackedStringArray("_map", "_filter", "_assetsPreview", "_tools", "_overlay", "_openDialog", "_saveDialog", "_inspector", "_gizmo")]
+[node name="Editor" type="Node2D" unique_id=262530090 node_paths=PackedStringArray("_map", "_filter", "_assetsPreview", "_tools", "_overlay", "_openDialog", "_saveDialog", "_inspector", "_gizmo", "_waitPopup", "_loading", "_saving")]
 script = ExtResource("1_c7qby")
 _map = NodePath("Map")
 _filter = NodePath("CanvasLayer/SplitContainer/SplitContainer/ColorRect/Filter")
@@ -20,12 +20,15 @@ _openDialog = NodePath("CanvasLayer/OpenDialog")
 _saveDialog = NodePath("CanvasLayer/SaveDialog")
 _inspector = NodePath("CanvasLayer/SplitContainer/SplitContainer2/SplitContainer/ColorRect/Inspector")
 _gizmo = NodePath("CanvasLayer/Gizmo")
+_waitPopup = NodePath("CanvasLayer/Wait")
+_loading = NodePath("CanvasLayer/Wait/Panel/Loading")
+_saving = NodePath("CanvasLayer/Wait/Panel/Saving")
 
-[node name="Map" parent="." instance=ExtResource("2_pkgv6")]
+[node name="Map" parent="." unique_id=845456565 instance=ExtResource("2_pkgv6")]
 
-[node name="CanvasLayer" type="CanvasLayer" parent="."]
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=834548803]
 
-[node name="Gizmo" parent="CanvasLayer" instance=ExtResource("8_vbhsn")]
+[node name="Gizmo" parent="CanvasLayer" unique_id=227256016 instance=ExtResource("8_vbhsn")]
 visible = false
 anchors_preset = 15
 anchor_right = 1.0
@@ -38,7 +41,7 @@ grow_horizontal = 2
 grow_vertical = 2
 scale = Vector2(0.5, 0.5)
 
-[node name="SplitContainer" type="SplitContainer" parent="CanvasLayer"]
+[node name="SplitContainer" type="SplitContainer" parent="CanvasLayer" unique_id=289380026]
 custom_minimum_size = Vector2(1200, 600)
 anchors_preset = 15
 anchor_right = 1.0
@@ -48,74 +51,132 @@ grow_vertical = 2
 dragging_enabled = false
 dragger_visibility = 2
 
-[node name="SplitContainer" type="SplitContainer" parent="CanvasLayer/SplitContainer"]
+[node name="SplitContainer" type="SplitContainer" parent="CanvasLayer/SplitContainer" unique_id=335086376]
 custom_minimum_size = Vector2(300, 600)
 layout_mode = 2
 dragging_enabled = false
 dragger_visibility = 2
 vertical = true
 
-[node name="ColorRect" type="ColorRect" parent="CanvasLayer/SplitContainer/SplitContainer"]
+[node name="ColorRect" type="ColorRect" parent="CanvasLayer/SplitContainer/SplitContainer" unique_id=1617499251]
 custom_minimum_size = Vector2(300, 150)
 layout_mode = 2
 color = Color(0.172833, 0.172833, 0.172833, 1)
 
-[node name="Filter" parent="CanvasLayer/SplitContainer/SplitContainer/ColorRect" instance=ExtResource("3_a4ic1")]
+[node name="Filter" parent="CanvasLayer/SplitContainer/SplitContainer/ColorRect" unique_id=659463774 instance=ExtResource("3_a4ic1")]
 custom_minimum_size = Vector2(300, 150)
 layout_mode = 1
 
-[node name="ColorRect2" type="ColorRect" parent="CanvasLayer/SplitContainer/SplitContainer"]
+[node name="ColorRect2" type="ColorRect" parent="CanvasLayer/SplitContainer/SplitContainer" unique_id=2101392194]
 custom_minimum_size = Vector2(300, 450)
 layout_mode = 2
 color = Color(0.172833, 0.172833, 0.172833, 1)
 
-[node name="AssetsPreview" parent="CanvasLayer/SplitContainer/SplitContainer/ColorRect2" instance=ExtResource("4_7hrj1")]
+[node name="AssetsPreview" parent="CanvasLayer/SplitContainer/SplitContainer/ColorRect2" unique_id=583038987 instance=ExtResource("4_7hrj1")]
 custom_minimum_size = Vector2(300, 450)
 layout_mode = 1
 size_flags_vertical = 3
 
-[node name="SplitContainer2" type="SplitContainer" parent="CanvasLayer/SplitContainer"]
+[node name="SplitContainer2" type="SplitContainer" parent="CanvasLayer/SplitContainer" unique_id=1280076723]
 custom_minimum_size = Vector2(900, 600)
 layout_mode = 2
 dragging_enabled = false
 dragger_visibility = 2
 vertical = true
 
-[node name="ColorRect" type="ColorRect" parent="CanvasLayer/SplitContainer/SplitContainer2"]
+[node name="ColorRect" type="ColorRect" parent="CanvasLayer/SplitContainer/SplitContainer2" unique_id=1207337385]
 custom_minimum_size = Vector2(900, 50)
 layout_mode = 2
 color = Color(0.172833, 0.172833, 0.172833, 1)
 
-[node name="Tools" parent="CanvasLayer/SplitContainer/SplitContainer2/ColorRect" instance=ExtResource("5_uvmdi")]
+[node name="Tools" parent="CanvasLayer/SplitContainer/SplitContainer2/ColorRect" unique_id=917342147 instance=ExtResource("5_uvmdi")]
 custom_minimum_size = Vector2(900, 50)
 layout_mode = 1
 
-[node name="SplitContainer" type="SplitContainer" parent="CanvasLayer/SplitContainer/SplitContainer2"]
+[node name="SplitContainer" type="SplitContainer" parent="CanvasLayer/SplitContainer/SplitContainer2" unique_id=2059926967]
 custom_minimum_size = Vector2(900, 550)
 layout_mode = 2
 dragging_enabled = false
 dragger_visibility = 2
 
-[node name="ColorRect2" type="ColorRect" parent="CanvasLayer/SplitContainer/SplitContainer2/SplitContainer"]
+[node name="ColorRect2" type="ColorRect" parent="CanvasLayer/SplitContainer/SplitContainer2/SplitContainer" unique_id=1402403043]
 custom_minimum_size = Vector2(650, 550)
 layout_mode = 2
 size_flags_horizontal = 3
 color = Color(0.341176, 0.341176, 0.341176, 0)
 
-[node name="Overlay" parent="CanvasLayer/SplitContainer/SplitContainer2/SplitContainer/ColorRect2" instance=ExtResource("6_ehtoy")]
+[node name="Overlay" parent="CanvasLayer/SplitContainer/SplitContainer2/SplitContainer/ColorRect2" unique_id=1783884822 instance=ExtResource("6_ehtoy")]
 custom_minimum_size = Vector2(650, 550)
 layout_mode = 1
 
-[node name="ColorRect" type="ColorRect" parent="CanvasLayer/SplitContainer/SplitContainer2/SplitContainer"]
+[node name="ColorRect" type="ColorRect" parent="CanvasLayer/SplitContainer/SplitContainer2/SplitContainer" unique_id=961669912]
 custom_minimum_size = Vector2(250, 550)
 layout_mode = 2
 size_flags_horizontal = 8
 color = Color(0.172833, 0.172833, 0.172833, 1)
 
-[node name="Inspector" parent="CanvasLayer/SplitContainer/SplitContainer2/SplitContainer/ColorRect" instance=ExtResource("7_8t728")]
+[node name="Inspector" parent="CanvasLayer/SplitContainer/SplitContainer2/SplitContainer/ColorRect" unique_id=927731534 instance=ExtResource("7_8t728")]
 layout_mode = 1
 
-[node name="OpenDialog" type="FileDialog" parent="CanvasLayer"]
+[node name="Wait" type="Control" parent="CanvasLayer" unique_id=1553203583]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="Panel" parent="CanvasLayer/Wait" unique_id=2063207076]
+custom_minimum_size = Vector2(200, 100)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -100.0
+offset_top = -50.0
+offset_right = 100.0
+offset_bottom = 50.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Loading" type="Label" parent="CanvasLayer/Wait/Panel" unique_id=892514933]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -37.5
+offset_top = -11.5
+offset_right = 37.5
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
+text = "Loading..."
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Saving" type="Label" parent="CanvasLayer/Wait/Panel" unique_id=1159363440]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -37.5
+offset_top = -11.5
+offset_right = 37.5
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
+text = "Saving..."
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="OpenDialog" type="FileDialog" parent="CanvasLayer" unique_id=187006006]
 title = "Open a Directory"
 size = Vector2i(348, 180)
 ok_button_text = "Select Current Folder"
@@ -125,7 +186,7 @@ access = 2
 filters = PackedStringArray("*.jar", "*.json")
 use_native_dialog = true
 
-[node name="SaveDialog" type="FileDialog" parent="CanvasLayer"]
+[node name="SaveDialog" type="FileDialog" parent="CanvasLayer" unique_id=220597530]
 title = "Open a Directory"
 file_mode = 2
 display_mode = 1

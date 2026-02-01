@@ -2,7 +2,9 @@ using Godot;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
+using FileAccess = Godot.FileAccess;
 
 public partial class Editor : Node2D
 {
@@ -22,19 +24,15 @@ public partial class Editor : Node2D
 	private int _y;
 	private int _z; 
 	private string _lastDir;
-	private JsonSerializerOptions _jsonOptions = new() { WriteIndented = true };
+	private readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true };
 	
 	public override void _Ready()
 	{
 		DisplayServer.WindowSetMinSize(new Vector2I(1200, 600));
-		GlobalData.Instance.LoadAssets();
-		GlobalData.Instance.LoadSettings();
-		
-		_assetsPreview.DisplayAssets(_filter.Biome, _filter.Category, _filter.Mode);
 
 		_filter.FilterUpdated += (_, _) => _assetsPreview.DisplayAssets(_filter.Biome, _filter.Category, _filter.Mode);
 		_filter.ModeUpdated += _OnModeUpdated;
-		
+	
 		_tools.MouseEntered += () => _map.UpdateFocus(false);
 		_tools.MouseExited += () => _map.UpdateFocus(true);
 		_tools.MapSelected += _OnMapSelected;
@@ -51,7 +49,7 @@ public partial class Editor : Node2D
 		_overlay.HeightChanged += _OnHeightChanged;
 		_overlay.HighlightHeightToggled += OnHighlightHeightToggled;
 		_overlay.GenerateTopologyPressed += _OnGenerateTopologyPressed;
-		
+	
 		_assetsPreview.MouseEntered += () => _map.UpdateFocus(false);
 		_assetsPreview.MouseExited += () => _map.UpdateFocus(true);
 		_assetsPreview.AssetSelected += (_, e) => _map.UpdatePreview(e.Element);
@@ -63,6 +61,11 @@ public partial class Editor : Node2D
 		_inspector.MouseExited += () => _map.UpdateFocus(true);
 		
 		_map.TileSelected += _OnTileSelected;
+		
+		LoadAssets();
+		_assetsPreview.DisplayAssets(_filter.Biome, _filter.Category, _filter.Mode);
+		
+		GlobalData.Instance.LoadSettings();
 		if (GlobalData.Instance.Settings != null)
 			_OnDirectorySelected(GlobalData.Instance.Settings.ArenaPath);
 	}
@@ -156,6 +159,16 @@ public partial class Editor : Node2D
 
 	private void _OnDirectorySelected(string dir)
 	{
+		LoadMaps(dir);
+	}
+
+	private void _OnSaveDirectorySelected(string dir)
+	{
+		SaveMap(dir);
+	}
+
+	private void LoadMaps(string dir)
+	{
 		GlobalData.Instance.Settings ??= new Settings();
 		using var dirAccess = DirAccess.Open(dir);
 		if (dirAccess.DirExists("ArenaReturnsClient/game/contents/maps/env"))
@@ -171,13 +184,13 @@ public partial class Editor : Node2D
 			GD.PrintErr("Selected directory is not a valid Arena Client folder.");
 			return;
 		}
-
-		GlobalData.Instance.LoadElements($"{GlobalData.Instance.Settings.ArenaPath}/maps");
+		
+		LoadElements($"{GlobalData.Instance.Settings.ArenaPath}/maps");
 		// GlobalData.Instance.LoadPlaylists($"{GlobalData.Instance.Settings.ArenaPath}/maps_sounds");
 
 		if (!dirAccess.DirExists($"{GlobalData.Instance.Settings.ArenaPath}/maps/fight"))
 			return;
-		
+
 		List<string> mapNames = [];
 		GlobalData.Instance.Maps.Clear();
 
@@ -192,16 +205,10 @@ public partial class Editor : Node2D
 			name = fightDir.GetNext();
 		}
 		fightDir.ListDirEnd();
-		
 		_tools.SetMapOptions(mapNames);
 		GlobalData.Instance.SaveSettings();
 	}
-
-	private void _OnSaveDirectorySelected(string dir)
-	{
-		SaveMap(dir);
-	}
-
+	
 	private void SaveMap(string dir)
 	{
 		DirAccess.MakeDirRecursiveAbsolute(dir);
@@ -218,5 +225,51 @@ public partial class Editor : Node2D
 		// GlobalData.Instance.SavePlaylists($"{dir}/maps_sounds");
 		File.WriteAllText($"{dir}/fight_map_info.json", JsonSerializer.Serialize(allMapsData, _jsonOptions));
 		_lastDir = dir;
+	}
+	
+	private void LoadAssets()
+	{
+		var assetStr = FileAccess.GetFileAsString("res://Assets/metadata.json");
+		if (assetStr.Length == 0) 
+			return;
+
+		GlobalData.Instance.Assets = JsonSerializer.Deserialize<List<TileData>>(assetStr);
+		foreach (var asset in GlobalData.Instance.Assets)
+		{
+			asset.LoadTexture();
+			if (asset.IsValid)
+				GlobalData.Instance.ValidAssets.Add(asset.Id, asset);
+		}
+		GlobalData.Instance.AssetIds = GlobalData.Instance.ValidAssets.Keys.ToArray();
+
+		for (var i = 0; i < 8; i++)
+		{
+			GlobalData.Instance.BonusTextures.Add(GD.Load<CompressedTexture2D>($"res://Assets/Bonus/{i}.tgam.png"));
+		}
+
+		for (var i = 0; i < 4; i++)
+		{
+			GlobalData.Instance.PlacementTextures.Add(GD.Load<CompressedTexture2D>($"res://Assets/Placement/{i}.tgam.png"));
+		}
+	}
+    
+	private void LoadElements(string path)
+	{
+		var reader = GlobalData.Instance.GetReader(path, "elements.lib", "/data");
+		if (reader == null)
+		{
+			GD.PrintErr("elements.lib not found.");
+			return; 
+		}
+        
+		var elementCount = reader.ReadInt();
+		GlobalData.Instance.Elements.EnsureCapacity(elementCount);
+        
+		for (var i = 0; i < elementCount; i++)
+		{
+			var elementProperties = new ElementData();
+			elementProperties.Load(reader);
+			GlobalData.Instance.Elements.TryAdd(elementProperties.Id, elementProperties);
+		}
 	}
 }

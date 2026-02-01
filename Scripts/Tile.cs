@@ -133,7 +133,7 @@ public partial class Tile : Sprite2D
         Texture = GlobalData.Instance.PlacementTextures[3];
         X = x;
         Y = y;
-        Z = 0;
+        Z = PathData?.Z ?? 0;
         PositionToIso(x, y, 0, 0, 0, 0);
         Name = "Center";
     }

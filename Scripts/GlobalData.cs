@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using FileAccess = Godot.FileAccess;
@@ -18,9 +17,9 @@ public class GlobalData
     public bool Erasing { get; set; } = false;
     public Color SelectedColor { get; set; } = Colors.White;
     public List<int> SelectedTiles = [];
-    public List<TileData> Assets { get; private set; } = [];
+    public List<TileData> Assets { get; set; } = [];
     public Dictionary<int, TileData> ValidAssets { get; private set; } = new();
-    public int[] AssetIds { get; private set; }
+    public int[] AssetIds { get; set; }
     public RandomNumberGenerator Rng { get; private set; } = new();
     public Settings Settings { get; set; }
 
@@ -67,53 +66,6 @@ public class GlobalData
     {
         Maps[mapName] = new MapData(mapName);
         Maps[mapName].Load(Settings.ArenaPath);
-    }
- 
-    public void LoadAssets()
-    {
-        var assetStr = FileAccess.GetFileAsString("res://Assets/metadata.json");
-        if (assetStr.Length == 0) 
-            return;
-        
-        Assets = JsonSerializer.Deserialize<List<TileData>>(assetStr);
-        foreach (var asset in Assets)
-        {
-            asset.LoadTexture();
-            if (asset.IsValid)
-                ValidAssets.Add(asset.Id, asset);
-        }
-        AssetIds = ValidAssets.Keys.ToArray();
-
-        for (var i = 0; i < 8; i++)
-        {
-            BonusTextures.Add(GD.Load<CompressedTexture2D>($"res://Assets/Bonus/{i}.tgam.png"));
-        }
-
-        for (var i = 0; i < 4; i++)
-        {
-            PlacementTextures.Add(GD.Load<CompressedTexture2D>($"res://Assets/Placement/{i}.tgam.png"));
-        }
-    }
-    
-    public void LoadElements(string path)
-    {
-        var reader = GetReader(path, "elements.lib", "/data");
-
-        if (reader == null)
-        {
-            GD.PrintErr("elements.lib not found.");
-            return; 
-        }
-        
-        var elementCount = reader.ReadInt();
-        Elements.EnsureCapacity(elementCount);
-        
-        for (var i = 0; i < elementCount; i++)
-        {
-            var elementProperties = new ElementData();
-            elementProperties.Load(reader);
-            Elements.TryAdd(elementProperties.Id, elementProperties);
-        }
     }
 
     public void LoadPlaylists(string path)

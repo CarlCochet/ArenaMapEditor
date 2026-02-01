@@ -204,7 +204,8 @@ public partial class Map : Node2D
     }
 
     public void RegisterAddElement(GfxData.Element element)
-    {if (_mapData == null)
+    {
+        if (_mapData == null)
             return;
         
         _undos.Push(new ReversibleAction(Do: () => AddElement(element),
