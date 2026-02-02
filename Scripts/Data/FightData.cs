@@ -208,12 +208,9 @@ public class FightData
         return new FightData($"{Id}")
         {
             CoachPoints = (int[])CoachPoints.Clone(),
-            StartPoints = StartPoints =
-            [
-                [..StartPoints[0]],
-                [..StartPoints[1]]
-            ],
-            Bonus = new Dictionary<int, int>(Bonus)
+            StartPoints = StartPoints = [[..StartPoints[0]], [..StartPoints[1]]],
+            Bonus = new Dictionary<int, int>(Bonus),
+            MapCenter = (MapCenter.x, MapCenter.y)
         };
     }
 

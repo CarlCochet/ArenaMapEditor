@@ -59,10 +59,11 @@ public partial class Editor : Node2D
 		_inspector.FightUpdated += (_, e) => _map.RegisterUpdateFight(e.OldFightData, e.NewFightData);
 		_inspector.MouseEntered += () => _map.UpdateFocus(false);
 		_inspector.MouseExited += () => _map.UpdateFocus(true);
+		_inspector.Topo2DToggled += (_, is2D) => _map.ToggleTopologyRender(is2D);
 		
 		_map.TileSelected += _OnTileSelected;
 		
-		LoadAssets();
+		GlobalData.Instance.LoadAssets();
 		_assetsPreview.DisplayAssets(_filter.Biome, _filter.Category, _filter.Mode);
 		
 		GlobalData.Instance.LoadSettings();
@@ -185,7 +186,7 @@ public partial class Editor : Node2D
 			return;
 		}
 		
-		LoadElements($"{GlobalData.Instance.Settings.ArenaPath}/maps");
+		GlobalData.Instance.LoadElements($"{GlobalData.Instance.Settings.ArenaPath}/maps");
 		// GlobalData.Instance.LoadPlaylists($"{GlobalData.Instance.Settings.ArenaPath}/maps_sounds");
 
 		if (!dirAccess.DirExists($"{GlobalData.Instance.Settings.ArenaPath}/maps/fight"))
@@ -211,6 +212,13 @@ public partial class Editor : Node2D
 	
 	private void SaveMap(string dir)
 	{
+		if (Directory.Exists(dir))
+		{
+			var directory = new DirectoryInfo(dir);
+			foreach (var file in directory.GetFiles()) file.Delete();
+			foreach (var subDirectory in directory.GetDirectories()) subDirectory.Delete(true);
+		}
+		
 		DirAccess.MakeDirRecursiveAbsolute(dir);
 		using var dirAccess = DirAccess.Open(dir);
 		dirAccess.MakeDir("json");
@@ -225,51 +233,5 @@ public partial class Editor : Node2D
 		// GlobalData.Instance.SavePlaylists($"{dir}/maps_sounds");
 		File.WriteAllText($"{dir}/fight_map_info.json", JsonSerializer.Serialize(allMapsData, _jsonOptions));
 		_lastDir = dir;
-	}
-	
-	private void LoadAssets()
-	{
-		var assetStr = FileAccess.GetFileAsString("res://Assets/metadata.json");
-		if (assetStr.Length == 0) 
-			return;
-
-		GlobalData.Instance.Assets = JsonSerializer.Deserialize<List<TileData>>(assetStr);
-		foreach (var asset in GlobalData.Instance.Assets)
-		{
-			asset.LoadTexture();
-			if (asset.IsValid)
-				GlobalData.Instance.ValidAssets.Add(asset.Id, asset);
-		}
-		GlobalData.Instance.AssetIds = GlobalData.Instance.ValidAssets.Keys.ToArray();
-
-		for (var i = 0; i < 8; i++)
-		{
-			GlobalData.Instance.BonusTextures.Add(GD.Load<CompressedTexture2D>($"res://Assets/Bonus/{i}.tgam.png"));
-		}
-
-		for (var i = 0; i < 4; i++)
-		{
-			GlobalData.Instance.PlacementTextures.Add(GD.Load<CompressedTexture2D>($"res://Assets/Placement/{i}.tgam.png"));
-		}
-	}
-    
-	private void LoadElements(string path)
-	{
-		var reader = GlobalData.Instance.GetReader(path, "elements.lib", "/data");
-		if (reader == null)
-		{
-			GD.PrintErr("elements.lib not found.");
-			return; 
-		}
-        
-		var elementCount = reader.ReadInt();
-		GlobalData.Instance.Elements.EnsureCapacity(elementCount);
-        
-		for (var i = 0; i < elementCount; i++)
-		{
-			var elementProperties = new ElementData();
-			elementProperties.Load(reader);
-			GlobalData.Instance.Elements.TryAdd(elementProperties.Id, elementProperties);
-		}
 	}
 }

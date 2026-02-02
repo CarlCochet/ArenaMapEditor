@@ -1,17 +1,31 @@
-[gd_scene load_steps=2 format=3 uid="uid://bnepr33hnfesr"]
+[gd_scene format=3 uid="uid://bnepr33hnfesr"]
 
 [ext_resource type="Script" uid="uid://dxph80sl10ip0" path="res://Scripts/Tile.cs" id="1_bn515"]
 
-[node name="Tile" type="Sprite2D" node_paths=PackedStringArray("_placement", "_bonus")]
+[sub_resource type="LabelSettings" id="LabelSettings_er2vu"]
+font_size = 12
+font_color = Color(0, 0, 0, 1)
+outline_size = 2
+
+[node name="Tile" type="Sprite2D" unique_id=534307703 node_paths=PackedStringArray("_placement", "_bonus")]
 centered = false
 script = ExtResource("1_bn515")
 _placement = NodePath("Placement")
 _bonus = NodePath("Bonus")
 
-[node name="Placement" type="Sprite2D" parent="."]
+[node name="Placement" type="Sprite2D" parent="." unique_id=1899021776]
 centered = false
 offset = Vector2(-43, -21)
 
-[node name="Bonus" type="Sprite2D" parent="."]
+[node name="Bonus" type="Sprite2D" parent="." unique_id=1507828549]
 centered = false
 offset = Vector2(-34, -17)
+
+[node name="Z" type="Label" parent="." unique_id=778507308]
+offset_left = -20.0
+offset_top = -11.0
+offset_right = 20.0
+offset_bottom = 12.0
+label_settings = SubResource("LabelSettings_er2vu")
+horizontal_alignment = 1
+vertical_alignment = 1

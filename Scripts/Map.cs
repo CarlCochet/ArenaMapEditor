@@ -149,6 +149,20 @@ public partial class Map : Node2D
         }
     }
 
+    public void ToggleTopologyRender(bool is2D)
+    {
+        foreach (var child in _topology.GetChildren())
+        {
+            if (child is not Tile tile)
+                continue;
+            
+            if (is2D)
+                tile.Render2D();
+            else
+                tile.Render3D();
+        }
+    }
+
     public void Undo(object sender, EventArgs e)
     {
         if (_undos.Count == 0)
@@ -197,10 +211,10 @@ public partial class Map : Node2D
     {
         if (_mapData == null)
             return;
-        _undos.Push(new ReversibleAction(Do: () => UpdateFight(newFightData),
-            Undo: () => UpdateFight(oldFightData)));
+        _undos.Push(new ReversibleAction(Do: () => UpdateFight(oldFightData, newFightData),
+            Undo: () => UpdateFight(newFightData, oldFightData)));
         _redos.Clear();
-        UpdateFight(newFightData);
+        UpdateFight(oldFightData, newFightData);
     }
 
     public void RegisterAddElement(GfxData.Element element)
@@ -239,17 +253,19 @@ public partial class Map : Node2D
         CleanupGfxState();
     }
 
-    public void UpdateFight(FightData fight)
+    public void UpdateFight(FightData oldFight, FightData newFight)
     {
-        _mapData.Fight = fight;
+        var offset = Math.Max(0, oldFight.MapCenter.x - newFight.MapCenter.x + oldFight.MapCenter.y - newFight.MapCenter.y);
+        _mapData.Fight = newFight;
         foreach (var child in _topology.GetChildren())
         {
             if (child is not Tile tile)
                 continue;
-            tile.SetFightData(fight);
+            tile.SetFightData(newFight);
         }
         
-        Center.SetCenter(fight.MapCenter.x, fight.MapCenter.y);
+        Center.SetCenter(newFight.MapCenter.x, newFight.MapCenter.y, _mapData.Topology.GetPathData(newFight.MapCenter.x, newFight.MapCenter.y));
+        
         var children = _topology.GetChildren();
         for (var i = 0; i < children.Count; i++)
         {
@@ -258,10 +274,10 @@ public partial class Map : Node2D
                 continue;
             if (tile.Name == "Center")
                 continue;
-            if (tile.X <= Center.X || tile.Y <= Center.Y)
+            if (tile.X < Center.X || tile.Y < Center.Y)
                 continue;
             
-            _topology.MoveChild(Center, i);
+            _topology.MoveChild(Center, i+offset);
             break;
         }
     }
@@ -468,7 +484,7 @@ public partial class Map : Node2D
                     continue;
                 
                 Center = _tileScene.Instantiate<Tile>();
-                Center.SetCenter(_mapData.Fight.MapCenter.x, _mapData.Fight.MapCenter.y);
+                Center.SetCenter(_mapData.Fight.MapCenter.x, _mapData.Fight.MapCenter.y, cellPathData);
                 _topology.AddChild(Center);
                 centerAdded = true;
             }
@@ -478,7 +494,7 @@ public partial class Map : Node2D
             return;
         
         Center = _tileScene.Instantiate<Tile>();
-        Center.SetCenter(_mapData.Fight.MapCenter.x, _mapData.Fight.MapCenter.y);
+        Center.SetCenter(_mapData.Fight.MapCenter.x, _mapData.Fight.MapCenter.y, null);
         _topology.AddChild(Center);
     }
 

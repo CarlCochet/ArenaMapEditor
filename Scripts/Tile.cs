@@ -1,10 +1,12 @@
 using Godot;
 using System;
+using System.IO;
 
 public partial class Tile : Sprite2D
 {
     [Export] private Sprite2D _placement;
     [Export] private Sprite2D _bonus;
+    [Export] private Label _zLabel;
     
     public TileData Data;
     public GfxData.Element Element;
@@ -17,7 +19,9 @@ public partial class Tile : Sprite2D
 
     public bool Highlighted = true;
     public Enums.Mode Mode;
-	
+
+    private bool _is2D;
+    
     private bool _isSelected;
     private Color _highlightColor = Colors.Green;
     private Color _baseColor = Colors.White;
@@ -43,9 +47,14 @@ public partial class Tile : Sprite2D
             DrawRect(GetRect(), Colors.Red, false);
         }
 
-        if (VisibilityData != null)
+        if (VisibilityData != null && PathData != null && !_is2D)
         {
             DrawIsometricCube();
+        }
+
+        if (VisibilityData != null && PathData != null && _is2D)
+        {
+            DrawPlane();
         }
     }
 
@@ -86,6 +95,26 @@ public partial class Tile : Sprite2D
         DrawPolylineColors(rightFace.AsSpan(), [Colors.Black, Colors.Black, Colors.Black, Colors.Black], 1.0f, false);
     }
 
+    private void DrawPlane()
+    {
+        if (VisibilityData.CanViewThrough)
+            return;
+        
+        const float halfWidth = GlobalData.CellWidth * 0.5f;
+        const float halfHeight = GlobalData.CellHeight * 0.5f;
+        
+        Vector2[] topFace = [new(0, -halfHeight), new(halfWidth, 0), new(0, halfHeight), new(-halfWidth, 0), new(0, -halfHeight)];
+        
+        if (_isSelected)
+            DrawColoredPolygon(topFace, _topHighlightColor);
+        if (!_isSelected && PathData.Cost == -1)
+            DrawColoredPolygon(topFace, _topObstacleColor);
+        if (!_isSelected && PathData.Cost != -1)
+            DrawColoredPolygon(topFace, _topColor);
+
+        DrawPolylineColors(topFace.AsSpan(), [Colors.Black, Colors.Black, Colors.Black, Colors.Black], 0.5f, true);
+    }
+
     public void SetElementData(GfxData.Element element)
     {
         Mode = Enums.Mode.Gfx;
@@ -109,11 +138,34 @@ public partial class Tile : Sprite2D
         Mode = Enums.Mode.Topology;
         PathData = pathData;
         VisibilityData = visibilityData;
-        PositionToIso(VisibilityData.X, VisibilityData.Y, VisibilityData.Z - VisibilityData.Height, -VisibilityData.Height, 0, 0);
         X = VisibilityData.X;
         Y = VisibilityData.Y;
         Z = VisibilityData.Z;
         Name = $"{X}_{Y}";
+        
+        if (_is2D)
+            Render2D();
+        else
+            Render3D();
+    }
+
+    public void Render3D()
+    {
+        _is2D = false;
+        if (VisibilityData == null) 
+            return;
+        
+        PositionToIso(VisibilityData.X, VisibilityData.Y, VisibilityData.Z - VisibilityData.Height, -VisibilityData.Height, 0, 0);
+        QueueRedraw();
+    }
+
+    public void Render2D()
+    {
+        _is2D = true;
+        if (VisibilityData == null) 
+            return;
+        
+        PositionToIso(VisibilityData.X, VisibilityData.Y, 0, 0, 0, 0);
         QueueRedraw();
     }
 
@@ -127,14 +179,14 @@ public partial class Tile : Sprite2D
         _bonus.Texture = bonus != -1 ? GlobalData.Instance.BonusTextures[bonus] : null;
     }
 
-    public void SetCenter(int x, int y)
+    public void SetCenter(int x, int y, TopologyData.CellPathData pathData)
     {
         Mode = Enums.Mode.Topology;
         Texture = GlobalData.Instance.PlacementTextures[3];
         X = x;
         Y = y;
-        Z = PathData?.Z ?? 0;
-        PositionToIso(x, y, 0, 0, 0, 0);
+        Z = pathData?.Z == short.MinValue ? 0 : pathData?.Z ?? 0;
+        PositionToIso(x, y, Z, 0, 43, 21);
         Name = "Center";
     }
 	

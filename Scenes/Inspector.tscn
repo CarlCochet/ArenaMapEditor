@@ -26,7 +26,7 @@ font_size = 12
 [sub_resource type="LabelSettings" id="LabelSettings_mnv65"]
 font_size = 12
 
-[node name="Inspector" type="Control" unique_id=1401068884 node_paths=PackedStringArray("_cellX", "_cellY", "_cellZ", "_offsetX", "_offsetY", "_height", "_gfxId", "_order", "_hashcode", "_groupId", "_layerIndex", "_groupLayer", "_properties", "_sound", "_slope", "_shader", "_mask", "_walkable", "_occluder", "_flip", "_animated", "_color", "_topoX", "_topoY", "_topoZ", "_topoHeight", "_cost", "_canMoveThrough", "_canViewThrough", "_murFinInfo", "_miscProperties", "_placement", "_bonus", "_gfxContainer", "_topologyContainer", "_centerX", "_centerY")]
+[node name="Inspector" type="Control" unique_id=1401068884 node_paths=PackedStringArray("_cellX", "_cellY", "_cellZ", "_offsetX", "_offsetY", "_height", "_gfxId", "_order", "_hashcode", "_groupId", "_layerIndex", "_groupLayer", "_properties", "_sound", "_slope", "_shader", "_mask", "_walkable", "_occluder", "_flip", "_animated", "_color", "_topo2D", "_topoX", "_topoY", "_topoZ", "_topoHeight", "_cost", "_canMoveThrough", "_canViewThrough", "_murFinInfo", "_miscProperties", "_placement", "_bonus", "_gfxContainer", "_topologyContainer", "_centerX", "_centerY")]
 custom_minimum_size = Vector2(250, 550)
 layout_mode = 3
 anchors_preset = 15
@@ -57,6 +57,7 @@ _occluder = NodePath("ScrollContainer/MarginContainer/GfxContainer/VisualsContai
 _flip = NodePath("ScrollContainer/MarginContainer/GfxContainer/VisualsContainer/Flip/CheckBox")
 _animated = NodePath("ScrollContainer/MarginContainer/GfxContainer/VisualsContainer/Animated/CheckBox")
 _color = NodePath("ScrollContainer/MarginContainer/GfxContainer/VisualsContainer/Color/ColorPickerButton")
+_topo2D = NodePath("ScrollContainer/MarginContainer/TopologyContainer/DisplayMode/CheckBox")
 _topoX = NodePath("ScrollContainer/MarginContainer/TopologyContainer/TopologyContainer/X/SpinBox")
 _topoY = NodePath("ScrollContainer/MarginContainer/TopologyContainer/TopologyContainer/Y/SpinBox")
 _topoZ = NodePath("ScrollContainer/MarginContainer/TopologyContainer/TopologyContainer/Z/SpinBox")
@@ -491,6 +492,19 @@ custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 theme_override_constants/separation = 10
 
+[node name="DisplayMode" type="HBoxContainer" parent="ScrollContainer/MarginContainer/TopologyContainer" unique_id=1669869473]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/TopologyContainer/DisplayMode" unique_id=1808723606]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "Affichage 2D"
+label_settings = SubResource("LabelSettings_mnv65")
+
+[node name="CheckBox" type="CheckBox" parent="ScrollContainer/MarginContainer/TopologyContainer/DisplayMode" unique_id=749950398]
+layout_mode = 2
+
 [node name="Topology" type="Label" parent="ScrollContainer/MarginContainer/TopologyContainer" unique_id=260742150]
 layout_mode = 2
 text = "Topologie"
@@ -767,6 +781,3 @@ mouse_filter = 1
 min_value = -2147483600.0
 max_value = 2147483647.0
 rounded = true
-
-[connection signal="value_changed" from="ScrollContainer/MarginContainer/TopologyContainer/CenterContainer/X/SpinBox" to="." method="_OnCenterXChanged"]
-[connection signal="value_changed" from="ScrollContainer/MarginContainer/TopologyContainer/CenterContainer/Y/SpinBox" to="." method="_OnCenterYChanged"]

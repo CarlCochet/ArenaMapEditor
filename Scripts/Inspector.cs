@@ -25,6 +25,7 @@ public partial class Inspector : Control
     [Export] private CheckBox _flip;
     [Export] private CheckBox _animated;
     [Export] private ColorPickerButton _color;
+    [Export] private CheckBox _topo2D;
     [Export] private SpinBox _topoX;
     [Export] private SpinBox _topoY;
     [Export] private SpinBox _topoZ;
@@ -51,6 +52,7 @@ public partial class Inspector : Control
     public event EventHandler<ElementUpdatedEventArgs> ElementUpdated;
     public event EventHandler<TopologyUpdatedEventArgs> TopologyUpdated;
     public event EventHandler<FightUpdatedEventArgs> FightUpdated;
+    public event EventHandler<bool> Topo2DToggled;
 
     public override void _Ready()
     {
@@ -64,6 +66,7 @@ public partial class Inspector : Control
         _groupLayer.ValueChanged += _OnGroupLayerChanged;
         _color.ColorChanged += _OnColorChanged;
         _occluder.Toggled += _OnOccluderToggled;
+        _topo2D.Toggled += _OnTopo2DToggled;
         _topoX.ValueChanged += _OnTopoXChanged;
         _topoY.ValueChanged += _OnTopoYChanged;
         _topoZ.ValueChanged += _OnTopoZChanged;
@@ -74,6 +77,8 @@ public partial class Inspector : Control
         _murFinInfo.ValueChanged += _OnMurFinInfoChanged;
         _placement.ItemSelected += _OnPlacementChanged;
         _bonus.ItemSelected += _OnBonusChanged;
+        _centerX.ValueChanged += _OnCenterXChanged;
+        _centerY.ValueChanged += _OnCenterYChanged;
     }
 
     public void Update(GfxData.Element element, TopologyData.CellPathData pathData, TopologyData.CellVisibilityData visibilityData, FightData fightData)
@@ -245,6 +250,11 @@ public partial class Inspector : Control
         var newElement = _elementData.Copy();
         newElement.Occluder = toggledOn;
         ElementUpdated?.Invoke(this, new ElementUpdatedEventArgs(_elementData, newElement));
+    }
+    
+    private void _OnTopo2DToggled(bool toggledOn)
+    {
+        Topo2DToggled?.Invoke(this, toggledOn);
     }
     
     private void _OnTopoXChanged(double value)
