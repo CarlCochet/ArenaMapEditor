@@ -39,6 +39,7 @@ public partial class Editor : Node2D
 		_tools.LocateArenaPressed += (_, _) => _openDialog.Visible = true;
 		_tools.ExportMapPressed += (_, _) => _saveDialog.Visible = true;
 		_tools.ToolSelected += (_, e) => _map.ShowPlacementPreview(e);
+		_tools.FlipPressed += _map.FlipPlacementPreview;
 		_tools.UndoPressed += _map.Undo;
 		_tools.RedoPressed += _map.Redo;
 		_tools.NewMapPressed += _OnNewMapPressed;

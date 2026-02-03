@@ -134,4 +134,32 @@ public class ElementData
             }
         }
     }
+
+    public ElementData CreateFlipped()
+    {
+        GlobalData.Instance.MaxElementId++;
+        var newElementData = new ElementData
+        {
+            Id = GlobalData.Instance.MaxElementId,
+            AnimData = AnimData,
+            OriginX = OriginX,
+            OriginY = OriginY,
+            ImgWidth = ImgWidth,
+            ImgHeight = ImgHeight,
+            GfxId = GfxId,
+            VisualHeight = VisualHeight,
+            VisibilityMask = VisibilityMask,
+            ShaderId = ShaderId,
+            PropertiesFlag = PropertiesFlag,
+            GroundSoundType = GroundSoundType,
+            Slope = Slope,
+            MoveTop = MoveTop,
+            Walkable = Walkable,
+            Animated = Animated,
+            BeforeMobile = BeforeMobile,
+            Flip = !Flip,
+        };
+        GlobalData.Instance.Elements.Add(newElementData.Id, newElementData);
+        return newElementData;
+    }
 }

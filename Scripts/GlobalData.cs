@@ -24,6 +24,7 @@ public class GlobalData
     public RandomNumberGenerator Rng { get; private set; } = new();
     public Settings Settings { get; set; }
 
+    public int MaxElementId { get; set; }
     public Dictionary<int, ElementData> Elements { get; set; } = new();
     public Dictionary<short, PlaylistData> Playlists { get; set; } = new();
     public Dictionary<string, MapData> Maps { get; set; } = new();
@@ -112,6 +113,9 @@ public class GlobalData
             var elementProperties = new ElementData();
             elementProperties.Load(reader);
             Elements.TryAdd(elementProperties.Id, elementProperties);
+            
+            if (elementProperties.Id > MaxElementId)
+                MaxElementId = elementProperties.Id;
         }
     }
 

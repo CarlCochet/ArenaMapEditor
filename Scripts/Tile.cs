@@ -120,9 +120,6 @@ public partial class Tile : Sprite2D
 
     private void DrawPlane()
     {
-        if (VisibilityData.CanViewThrough || VisibilityData.Z == short.MinValue)
-            return;
-        
         _topFace = [
             new Vector2(0, -HalfHeight),
             new Vector2(HalfWidth, 0),
@@ -130,15 +127,18 @@ public partial class Tile : Sprite2D
             new Vector2(-HalfWidth, 0),
             new Vector2(0, -HalfHeight)
         ];
+        _rightFace = null;
+        _leftFace = null;
         
         if (_isSelected)
             DrawColoredPolygon(_topFace, _topHighlightColor);
         if (!_isSelected && PathData.Cost == -1)
-            DrawColoredPolygon(_topFace, _topObstacleColor);
+            DrawColoredPolygon(_topFace, VisibilityData.Z == short.MinValue ? Colors.Black : _topObstacleColor);
         if (!_isSelected && PathData.Cost != -1)
             DrawColoredPolygon(_topFace, _topColor);
-
-        DrawPolylineColors(_topFace.AsSpan(), [Colors.Black, Colors.Black, Colors.Black, Colors.Black], 0.5f, true);
+        
+        var color = VisibilityData.Z == short.MinValue ? Colors.White : Colors.Black;
+        DrawPolylineColors(_topFace.AsSpan(), [color, color, color, color], 0.5f, true);
     }
 
     public void SetElementData(GfxData.Element element)

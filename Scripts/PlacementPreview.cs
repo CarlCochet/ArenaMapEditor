@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.Linq;
 
 public partial class PlacementPreview : Sprite2D
 {
@@ -19,6 +20,17 @@ public partial class PlacementPreview : Sprite2D
         
         TileData = asset.Copy();
         Texture = asset.Texture;
+    }
+
+    public void Flip()
+    {
+        if (ElementData == null) 
+            return;
+        
+        var newElementData = GlobalData.Instance.Elements.Values.FirstOrDefault(e => e.GfxId == ElementData.GfxId && e.Flip != ElementData.Flip) ?? 
+                             ElementData.CreateFlipped();
+        FlipH = newElementData.Flip;
+        SetAsset(newElementData);
     }
     
     public void PositionToIso(int x, int y, int z)

@@ -92,7 +92,6 @@ theme_override_constants/margin_right = 20
 theme_override_constants/margin_bottom = 10
 
 [node name="GfxContainer" type="VBoxContainer" parent="ScrollContainer/MarginContainer" unique_id=2038959727]
-visible = false
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 theme_override_constants/separation = 10
@@ -488,6 +487,7 @@ mouse_filter = 1
 disabled = true
 
 [node name="TopologyContainer" type="VBoxContainer" parent="ScrollContainer/MarginContainer" unique_id=1193019771]
+visible = false
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 theme_override_constants/separation = 10

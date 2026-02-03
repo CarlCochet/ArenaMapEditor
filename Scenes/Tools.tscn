@@ -131,7 +131,6 @@ texture_hover = ExtResource("19_hm6ee")
 layout_mode = 2
 tooltip_text = "Flip horizontal (F)"
 mouse_filter = 1
-disabled = true
 texture_normal = ExtResource("17_wjtxm")
 texture_pressed = ExtResource("18_bsk82")
 texture_hover = ExtResource("19_74djj")

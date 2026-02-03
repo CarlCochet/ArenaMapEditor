@@ -162,6 +162,8 @@ public partial class Map : Node2D
             else
                 tile.Render3D();
         }
+        var fight = _mapData.Fight;
+        Center.SetCenter(fight.MapCenter.x, fight.MapCenter.y, _mapData.Topology.GetPathData(fight.MapCenter.x, fight.MapCenter.y));
     }
 
     public void Undo(object sender, EventArgs e)
@@ -250,6 +252,8 @@ public partial class Map : Node2D
     public void UpdateTopologyCell(TopologyData.CellPathData path, TopologyData.CellVisibilityData visibility)
     {
         _mapData.Topology.Update(path, visibility);
+        if (SelectedTile == null)
+            return;
         if (SelectedTile.Mode == Enums.Mode.Topology)
             SelectedTile.SetTopology(path, visibility);
     }
@@ -285,6 +289,9 @@ public partial class Map : Node2D
 
     public Tile AddElement(GfxData.Element element)
     {
+        if (element == null)
+            return null;
+        
         UnselectTile();
         UpdateTopologyFromElement(element);
         
@@ -313,6 +320,9 @@ public partial class Map : Node2D
 
     public void UpdateTopologyFromElement(GfxData.Element element)
     {
+        if (element == null) 
+            return;
+        
         var pathData = _mapData.Topology.GetPathData(element.CellX, element.CellY);
         if (pathData is { Z: > short.MinValue })
             return;
@@ -340,6 +350,9 @@ public partial class Map : Node2D
 
     public void RemoveElement(GfxData.Element element)
     {
+        if (element == null) 
+            return;
+        
         UnselectTile();
         _gfx.GetNodeOrNull<Tile>(element.HashCode.ToString())?.QueueFree();
         _mapData.Gfx.RemoveElement(element);
@@ -433,6 +446,11 @@ public partial class Map : Node2D
     {
         _placementPreview.Visible = e.Tool != Enums.Tool.Select && e.Tool != Enums.Tool.Erase;
     }
+
+    public void FlipPlacementPreview(object sender, EventArgs e)
+    {
+        _placementPreview.Flip();
+    }
  
     private void LoadGfx()
     {
@@ -472,8 +490,6 @@ public partial class Map : Node2D
                 var cellVisibilityData = topology.GetVisibilityData(x, y);
                 var cellPathData = topology.GetPathData(x, y);
                 if (cellVisibilityData == null || cellPathData == null)
-                    continue;
-                if (cellVisibilityData.CanViewThrough && cellPathData.CanMoveThrough) 
                     continue;
                 
                 var tile = _tileScene.Instantiate<Tile>();
@@ -628,10 +644,10 @@ public partial class Map : Node2D
         }
     }
     
-    private void _OnZoomUpdated(object sender, Camera.ZoomUpdatedEventArgs e)
+    private void _OnZoomUpdated(object sender, float zoom)
     {
-        _gridMaterial.SetShaderParameter("zoom", e.Zoom);
-        _grid2Material.SetShaderParameter("zoom", e.Zoom);
+        _gridMaterial.SetShaderParameter("zoom", zoom);
+        _grid2Material.SetShaderParameter("zoom", zoom);
     }
 
     private void ResetDisplay()
