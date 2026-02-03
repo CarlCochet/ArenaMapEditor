@@ -81,15 +81,63 @@ public partial class Inspector : Control
         _centerY.ValueChanged += _OnCenterYChanged;
     }
 
-    public void Update(GfxData.Element element, TopologyData.CellPathData pathData, TopologyData.CellVisibilityData visibilityData, FightData fightData)
+    public void Reset()
     {
-        _elementData = element;
-        _pathData = pathData;
-        _visibilityData = visibilityData;
-        _fightData = fightData;
+        _elementData = null;
+        _pathData = null;
+        _visibilityData = null;
+        _fightData = null;
         
         _suppressSignals = true;
         
+        _cellX.Value = 0;
+        _cellY.Value = 0;
+        _cellZ.Value = 0;
+        
+        _offsetX.Text = "0";
+        _offsetY.Text = "0";
+        _height.Value = 0;
+        
+        _gfxId.Text = "0";
+        _order.Value = 0;
+        _hashcode.Text = "0";
+        _groupId.Value = 0;
+        _layerIndex.Value = 0;
+        _groupLayer.Value = 0;
+        _properties.Text = "0";
+        _sound.Text = "0";
+        _slope.Text = "0";
+        _walkable.ButtonPressed = false;
+        
+        _color.Color = Colors.White;
+        _shader.Text = "0";
+        _mask.Text = "0";
+        _occluder.ButtonPressed = false;
+        _flip.ButtonPressed = false;
+        _animated.ButtonPressed = false;
+        _topoX.Value = 0;
+        _topoY.Value = 0;
+        _topoZ.Value = 0;
+        _topoHeight.Value = 0;
+        _cost.Value = 0;
+        _canMoveThrough.ButtonPressed = false;
+        _canViewThrough.ButtonPressed = false;
+        _murFinInfo.Value = 0;
+        _miscProperties.Value = 0;
+        
+        _placement.Selected = 0;
+        _bonus.Selected = 0;
+        _centerX.Value = 0;
+        _centerY.Value = 0;
+        
+        _suppressSignals = false;
+    }
+
+    public void UpdateGfx(GfxData.Element element)
+    {
+        _elementData = element;
+        _suppressSignals = true;
+
         _cellX.Value = element.CellX;
         _cellY.Value = element.CellY;
         _cellZ.Value = element.CellZ;
@@ -118,6 +166,15 @@ public partial class Inspector : Control
         _flip.ButtonPressed = element.CommonData.Flip;
         _animated.ButtonPressed = element.CommonData.Animated;
         
+        _suppressSignals = false;
+    }
+
+    public void UpdateTopology(TopologyData.CellPathData pathData, TopologyData.CellVisibilityData visibilityData)
+    {
+        _pathData = pathData;
+        _visibilityData = visibilityData;
+        _suppressSignals = true;
+        
         _topoX.Value = pathData.X;
         _topoY.Value = pathData.Y;
         _topoZ.Value = pathData.Z;
@@ -127,10 +184,29 @@ public partial class Inspector : Control
         _canViewThrough.ButtonPressed = visibilityData.CanViewThrough;
         _murFinInfo.Value = pathData.MurFinInfo;
         _miscProperties.Value = pathData.MiscProperties;
+        
+        if (_fightData != null)
+        {
+            var (placement, bonus) = _fightData.GetData(_pathData.X, _pathData.Y, _pathData.Z);
+            _placement.Selected = placement + 1;
+            _bonus.Selected = bonus + 1;
+        }
 
-        var (placement, bonus) = fightData.GetData(pathData.X, pathData.Y, pathData.Z);
-        _placement.Selected = placement + 1;
-        _bonus.Selected = bonus + 1;
+        _suppressSignals = false;
+    }
+
+    public void UpdateFight(FightData fightData)
+    {
+        _fightData = fightData;
+        _suppressSignals = true;
+
+        if (_pathData != null)
+        {
+            var (placement, bonus) = fightData.GetData(_pathData.X, _pathData.Y, _pathData.Z);
+            _placement.Selected = placement + 1;
+            _bonus.Selected = bonus + 1;
+        }
+        
         _centerX.Value = fightData.MapCenter.x;
         _centerY.Value = fightData.MapCenter.y;
         

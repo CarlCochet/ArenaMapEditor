@@ -3,15 +3,16 @@
 [ext_resource type="Script" uid="uid://dxph80sl10ip0" path="res://Scripts/Tile.cs" id="1_bn515"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_er2vu"]
-font_size = 12
+font_size = 14
 font_color = Color(0, 0, 0, 1)
 outline_size = 2
 
-[node name="Tile" type="Sprite2D" unique_id=534307703 node_paths=PackedStringArray("_placement", "_bonus")]
+[node name="Tile" type="Sprite2D" unique_id=534307703 node_paths=PackedStringArray("_placement", "_bonus", "_zLabel")]
 centered = false
 script = ExtResource("1_bn515")
 _placement = NodePath("Placement")
 _bonus = NodePath("Bonus")
+_zLabel = NodePath("Z")
 
 [node name="Placement" type="Sprite2D" parent="." unique_id=1899021776]
 centered = false

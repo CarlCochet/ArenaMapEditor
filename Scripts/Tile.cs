@@ -22,6 +22,9 @@ public partial class Tile : Sprite2D
 
     private bool _is2D;
     
+    private const float HalfWidth = GlobalData.CellWidth * 0.5f;
+    private const float HalfHeight = GlobalData.CellHeight * 0.5f;
+    
     private bool _isSelected;
     private Color _highlightColor = Colors.Green;
     private Color _baseColor = Colors.White;
@@ -37,6 +40,10 @@ public partial class Tile : Sprite2D
     private Color _topHighlightColor = new(0.3f, 1.0f, 0.3f);
     private Color _leftHighlightColor = new(0.2f, 0.8f, 0.2f);
     private Color _rightHighlightColor = new(0.1f, 0.6f, 0.1f);
+
+    private Vector2[] _topFace;
+    private Vector2[] _leftFace;
+    private Vector2[] _rightFace;
 
     public override void _Ready() { }
 	
@@ -64,55 +71,74 @@ public partial class Tile : Sprite2D
             return;
         
         var cubeHeight = VisibilityData.Height == 0 ? GlobalData.ElevationStep : VisibilityData.Height * GlobalData.ElevationStep;
-        const float halfWidth = GlobalData.CellWidth * 0.5f;
-        const float halfHeight = GlobalData.CellHeight * 0.5f;
 
-        Vector2[] topFace = [new(0, -halfHeight), new(halfWidth, 0), new(0, halfHeight), new(-halfWidth, 0), new(0, -halfHeight)];
-        Vector2[] leftFace = [new(-halfWidth, 0), new(-halfWidth, cubeHeight), new(0, halfHeight + cubeHeight), new(0, halfHeight), new(-halfWidth, 0)];
-        Vector2[] rightFace = [new(0, halfHeight), new(0, halfHeight + cubeHeight), new(halfWidth, cubeHeight), new(halfWidth, 0), new(0, halfHeight)];
+        _topFace = [
+            new Vector2(0, -HalfHeight),
+            new Vector2(HalfWidth, 0),
+            new Vector2(0, HalfHeight), 
+            new Vector2(-HalfWidth, 0), 
+            new Vector2(0, -HalfHeight)
+        ];
+        _leftFace = [
+            new Vector2(-HalfWidth, 0), 
+            new Vector2(-HalfWidth, cubeHeight), 
+            new Vector2(0, HalfHeight + cubeHeight), 
+            new Vector2(0, HalfHeight), 
+            new Vector2(-HalfWidth, 0)
+        ];
+        _rightFace = [
+            new Vector2(0, HalfHeight),
+            new Vector2(0, HalfHeight + cubeHeight), 
+            new Vector2(HalfWidth, cubeHeight), 
+            new Vector2(HalfWidth, 0), 
+            new Vector2(0, HalfHeight)
+        ];
 
         if (_isSelected)
         {
-            DrawColoredPolygon(leftFace, _leftHighlightColor);
-            DrawColoredPolygon(rightFace, _rightHighlightColor);
-            DrawColoredPolygon(topFace, _topHighlightColor);
+            DrawColoredPolygon(_leftFace, _leftHighlightColor);
+            DrawColoredPolygon(_rightFace, _rightHighlightColor);
+            DrawColoredPolygon(_topFace, _topHighlightColor);
         }
         if (!_isSelected && PathData.Cost == -1)
         {
-            DrawColoredPolygon(leftFace, _leftObstacleColor);
-            DrawColoredPolygon(rightFace, _rightObstacleColor);
-            DrawColoredPolygon(topFace, _topObstacleColor);
+            DrawColoredPolygon(_leftFace, _leftObstacleColor);
+            DrawColoredPolygon(_rightFace, _rightObstacleColor);
+            DrawColoredPolygon(_topFace, _topObstacleColor);
         }
         if (!_isSelected && PathData.Cost != -1)
         {
-            DrawColoredPolygon(leftFace, _leftColor);
-            DrawColoredPolygon(rightFace, _rightColor);
-            DrawColoredPolygon(topFace, _topColor);
+            DrawColoredPolygon(_leftFace, _leftColor);
+            DrawColoredPolygon(_rightFace, _rightColor);
+            DrawColoredPolygon(_topFace, _topColor);
         }
 
-        DrawPolylineColors(topFace.AsSpan(), [Colors.Black, Colors.Black, Colors.Black, Colors.Black], 0.5f, true);
-        DrawPolylineColors(leftFace.AsSpan(), [Colors.Black, Colors.Black, Colors.Black, Colors.Black], 1.0f, false);
-        DrawPolylineColors(rightFace.AsSpan(), [Colors.Black, Colors.Black, Colors.Black, Colors.Black], 1.0f, false);
+        DrawPolylineColors(_topFace.AsSpan(), [Colors.Black, Colors.Black, Colors.Black, Colors.Black], 0.5f, true);
+        DrawPolylineColors(_leftFace.AsSpan(), [Colors.Black, Colors.Black, Colors.Black, Colors.Black], 1.0f, false);
+        DrawPolylineColors(_rightFace.AsSpan(), [Colors.Black, Colors.Black, Colors.Black, Colors.Black], 1.0f, false);
     }
 
     private void DrawPlane()
     {
-        if (VisibilityData.CanViewThrough)
+        if (VisibilityData.CanViewThrough || VisibilityData.Z == short.MinValue)
             return;
         
-        const float halfWidth = GlobalData.CellWidth * 0.5f;
-        const float halfHeight = GlobalData.CellHeight * 0.5f;
-        
-        Vector2[] topFace = [new(0, -halfHeight), new(halfWidth, 0), new(0, halfHeight), new(-halfWidth, 0), new(0, -halfHeight)];
+        _topFace = [
+            new Vector2(0, -HalfHeight),
+            new Vector2(HalfWidth, 0),
+            new Vector2(0, HalfHeight), 
+            new Vector2(-HalfWidth, 0),
+            new Vector2(0, -HalfHeight)
+        ];
         
         if (_isSelected)
-            DrawColoredPolygon(topFace, _topHighlightColor);
+            DrawColoredPolygon(_topFace, _topHighlightColor);
         if (!_isSelected && PathData.Cost == -1)
-            DrawColoredPolygon(topFace, _topObstacleColor);
+            DrawColoredPolygon(_topFace, _topObstacleColor);
         if (!_isSelected && PathData.Cost != -1)
-            DrawColoredPolygon(topFace, _topColor);
+            DrawColoredPolygon(_topFace, _topColor);
 
-        DrawPolylineColors(topFace.AsSpan(), [Colors.Black, Colors.Black, Colors.Black, Colors.Black], 0.5f, true);
+        DrawPolylineColors(_topFace.AsSpan(), [Colors.Black, Colors.Black, Colors.Black, Colors.Black], 0.5f, true);
     }
 
     public void SetElementData(GfxData.Element element)
@@ -142,6 +168,7 @@ public partial class Tile : Sprite2D
         Y = VisibilityData.Y;
         Z = VisibilityData.Z;
         Name = $"{X}_{Y}";
+        _zLabel.Text = Z != short.MinValue ? Z.ToString() : "";
         
         if (_is2D)
             Render2D();
@@ -152,6 +179,7 @@ public partial class Tile : Sprite2D
     public void Render3D()
     {
         _is2D = false;
+        _zLabel.Visible = false;
         if (VisibilityData == null) 
             return;
         
@@ -162,6 +190,7 @@ public partial class Tile : Sprite2D
     public void Render2D()
     {
         _is2D = true;
+        _zLabel.Visible = true;
         if (VisibilityData == null) 
             return;
         
@@ -185,7 +214,7 @@ public partial class Tile : Sprite2D
         Texture = GlobalData.Instance.PlacementTextures[3];
         X = x;
         Y = y;
-        Z = pathData?.Z == short.MinValue ? 0 : pathData?.Z ?? 0;
+        Z = pathData?.Z == short.MinValue || _is2D ? 0 : pathData?.Z ?? 0;
         PositionToIso(x, y, Z, 0, 43, 21);
         Name = "Center";
     }
@@ -232,12 +261,12 @@ public partial class Tile : Sprite2D
     {
         if (!IsInsideTree() || IsQueuedForDeletion())
             return false;
-        
         if (!Highlighted)
             return false;
         
-        
         var localPos = ToLocal(position);
+        if (Mode == Enums.Mode.Topology)
+            return IsInsideTopologyRender(localPos);
         if (!GetRect().HasPoint(localPos))
             return false;
 		
@@ -246,7 +275,17 @@ public partial class Tile : Sprite2D
 		
         return Data.GetImage().GetPixelv(point).A > 0.1f;
     }
-    
+
+    private bool IsInsideTopologyRender(Vector2 localPos)
+    {
+        if (VisibilityData == null)
+            return false;
+
+        return (_topFace != null && Geometry2D.IsPointInPolygon(localPos, _topFace)) ||
+                (_leftFace != null && Geometry2D.IsPointInPolygon(localPos, _leftFace)) || 
+                (_rightFace != null && Geometry2D.IsPointInPolygon(localPos, _rightFace));
+    }
+
     public long GetHash()
     {
         return (Y + 8192L & 0x3FFFL) << 34 |

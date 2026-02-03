@@ -61,7 +61,8 @@ public partial class Editor : Node2D
 		_inspector.MouseExited += () => _map.UpdateFocus(true);
 		_inspector.Topo2DToggled += (_, is2D) => _map.ToggleTopologyRender(is2D);
 		
-		_map.TileSelected += _OnTileSelected;
+		_map.GfxTileSelected += OnGfxTileSelected;
+		_map.TopologyTileSelected += OnTopologyTileSelected;
 		
 		GlobalData.Instance.LoadAssets();
 		_assetsPreview.DisplayAssets(_filter.Biome, _filter.Category, _filter.Mode);
@@ -81,9 +82,9 @@ public partial class Editor : Node2D
 				_saveDialog.Visible = true;
 		}
 		
-		if (_map.SelectedTiles == null || _map.SelectedTiles.Count == 0)
+		if (_map.SelectedTile == null)
 			return;
-		_gizmo.Position = _map.SelectedTiles[0].GetGlobalTransformWithCanvas().Origin;
+		_gizmo.Position = _map.SelectedTile.GetGlobalTransformWithCanvas().Origin;
 	}
 
 	public override void _Input(InputEvent @event)
@@ -95,13 +96,19 @@ public partial class Editor : Node2D
 		}
 	}
 	
-	private void _OnTileSelected(object sender, Map.TileSelectedEventArgs e)
+	private void OnGfxTileSelected(object sender, Map.GfxTileSelectedEventArgs e)
 	{
-		_inspector.Update(e.Element, e.PathData, e.VisibilityData, e.FightData);
+		_inspector.UpdateGfx(e.Element);
 		_assetsPreview.Update(e.Element);
 		_tools.Update(e.Element);
 		_overlay.Update(e.Element);
 		_z = e.Element.CellZ;
+	}
+	
+	private void OnTopologyTileSelected(object sender, Map.TopologyTileSelectedEventArgs e)
+	{
+		_inspector.UpdateTopology(e.PathData, e.VisibilityData);
+		_z = e.PathData.Z;
 	}
 
 	private void OnHighlightHeightToggled(object sender, Overlay.HighlightHeightToggledEventArgs e)
@@ -151,6 +158,7 @@ public partial class Editor : Node2D
 		_filter.UpdateBiome(Enums.Biome.Global);
 		_filter.UpdateCategory(Enums.Category.Global);
 		_filter.UpdateMode(Enums.Mode.Gfx);
+		_inspector.UpdateFight(mapData.Fight);
 	}
 
 	private void _OnNewMapPressed(object sender, Tools.NewMapPressedEventArgs e)

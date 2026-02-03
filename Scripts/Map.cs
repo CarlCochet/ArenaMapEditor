@@ -8,7 +8,7 @@ public partial class Map : Node2D
     public record ReversibleAction(Action Do, Action Undo);
     
     public int CurrentHeight { get; set; }
-    public List<Tile> SelectedTiles = [];
+    public Tile SelectedTile;
     public Tile Center { get; set; }
     
     [Export] public Camera CustomCamera;
@@ -36,7 +36,8 @@ public partial class Map : Node2D
     private bool _pressed;
     private (int x, int y) _lastCoords = (int.MinValue, int.MinValue);
     
-    public event EventHandler<TileSelectedEventArgs> TileSelected;
+    public event EventHandler<GfxTileSelectedEventArgs> GfxTileSelected;
+    public event EventHandler<TopologyTileSelectedEventArgs> TopologyTileSelected;
 
     public override void _Ready()
     {
@@ -49,9 +50,9 @@ public partial class Map : Node2D
     {
         if (Input.IsActionJustPressed("delete"))
         {
-            if (SelectedTiles.Count == 0)
+            if (SelectedTile?.Element == null)
                 return;
-            RegisterRemoveElement(SelectedTiles[0].Element);
+            RegisterRemoveElement(SelectedTile.Element);
         }
         if (Input.IsActionJustPressed("undo"))
             Undo(null, EventArgs.Empty);
@@ -243,14 +244,14 @@ public partial class Map : Node2D
     {
         RemoveElement(oldElement);
         var tile = AddElement(newElement);
-        SelectTile(tile);
+        SelectGfxTile(tile);
     }
 
     public void UpdateTopologyCell(TopologyData.CellPathData path, TopologyData.CellVisibilityData visibility)
     {
         _mapData.Topology.Update(path, visibility);
-        SelectedTiles.FirstOrDefault(t => t.Mode == Enums.Mode.Topology)?.SetTopology(path, visibility);
-        CleanupGfxState();
+        if (SelectedTile.Mode == Enums.Mode.Topology)
+            SelectedTile.SetTopology(path, visibility);
     }
 
     public void UpdateFight(FightData oldFight, FightData newFight)
@@ -284,7 +285,7 @@ public partial class Map : Node2D
 
     public Tile AddElement(GfxData.Element element)
     {
-        UnselectTiles();
+        UnselectTile();
         UpdateTopologyFromElement(element);
         
         _mapData.Gfx.AddElement(element);
@@ -339,7 +340,7 @@ public partial class Map : Node2D
 
     public void RemoveElement(GfxData.Element element)
     {
-        UnselectTiles();
+        UnselectTile();
         _gfx.GetNodeOrNull<Tile>(element.HashCode.ToString())?.QueueFree();
         _mapData.Gfx.RemoveElement(element);
         if (!_mapData.Gfx.HasElementAt(element.CellX, element.CellY))
@@ -435,7 +436,7 @@ public partial class Map : Node2D
  
     private void LoadGfx()
     {
-        UnselectTiles();
+        UnselectTile();
         foreach (var child in _gfx.GetChildren())
         {
             child.QueueFree();
@@ -456,7 +457,7 @@ public partial class Map : Node2D
 
     private void LoadTopology()
     {
-        UnselectTiles();
+        UnselectTile();
         foreach (var child in _topology.GetChildren())
         {
             child.QueueFree();
@@ -500,41 +501,39 @@ public partial class Map : Node2D
 
     private void LoadLight()
     {
-        UnselectTiles();
+        UnselectTile();
         foreach (var child in _light.GetChildren())
         {
             child.QueueFree();
         }
     }
 
-    private void SelectTile(Tile selectedTile)
+    private void SelectGfxTile(Tile selectedTile)
     {
         if (selectedTile == null)
             return;
-
-        Tile topologyTile = null;
-        foreach (var child in _topology.GetChildren())
-        {
-            if (child is not Tile tile)
-                continue;
-            if (tile.X != selectedTile.X || tile.Y != selectedTile.Y)
-                continue;
-            topologyTile = tile;
-            break;
-        }
-        if (topologyTile == null)
-            return;
         
-        SelectedTiles.Add(selectedTile);
-        SelectedTiles.Add(topologyTile);
-        SelectedTiles.ForEach(t => t.Select());
+        SelectedTile = selectedTile;
+        SelectedTile.Select();
         
         _gridMaterial.SetShaderParameter("elevation", (float)(selectedTile.Z * GlobalData.ElevationStep));
         _grid2Material.SetShaderParameter("elevation", (float)(selectedTile.Z * GlobalData.ElevationStep));
         _z = selectedTile.Z;
-        var cellPathData = _mapData.Topology.GetPathData(selectedTile.X, selectedTile.Y);
-        var visibilityData = _mapData.Topology.GetVisibilityData(selectedTile.X, selectedTile.Y);
-        TileSelected?.Invoke(this, new TileSelectedEventArgs(selectedTile.Element, cellPathData, visibilityData, _mapData.Fight));
+        GfxTileSelected?.Invoke(this, new GfxTileSelectedEventArgs(selectedTile.Element));
+    }
+
+    private void SelectTopologyTile(Tile selectedTile)
+    {
+        if (selectedTile == null)
+            return;
+        
+        SelectedTile = selectedTile;
+        SelectedTile.Select();
+        
+        _gridMaterial.SetShaderParameter("elevation", (float)(selectedTile.Z * GlobalData.ElevationStep));
+        _grid2Material.SetShaderParameter("elevation", (float)(selectedTile.Z * GlobalData.ElevationStep));
+        _z = selectedTile.Z;
+        TopologyTileSelected?.Invoke(this, new TopologyTileSelectedEventArgs(selectedTile.PathData, SelectedTile.VisibilityData));
     }
 
     private void SelectTile(Vector2 position)
@@ -542,9 +541,12 @@ public partial class Map : Node2D
         if (!CustomCamera.HasFocus)
             return;
         
-        UnselectTiles();
+        UnselectTile();
         var selectedTile = GetTopTile(position, GlobalData.Instance.IgnoreGfxIds);
-        SelectTile(selectedTile);
+        if (_mode == Enums.Mode.Gfx)
+            SelectGfxTile(selectedTile);
+        if (_mode == Enums.Mode.Topology)
+            SelectTopologyTile(selectedTile);
     }
 
     private void EraseTile(Vector2 position)
@@ -563,18 +565,23 @@ public partial class Map : Node2D
     {
         Tile selectedTile = null;
         
-        foreach (var child in _gfx.GetChildren())
+        foreach (var child in _mode == Enums.Mode.Gfx ? _gfx.GetChildren() : _topology.GetChildren())
         {
             if (child is not Tile tile)
                 continue;
-            if (!tile.IsValidPixel(position) || ignoreIds.Contains(tile.Element.CommonData.GfxId))
+            if (!tile.IsValidPixel(position))
                 continue;
+            if (_mode == Enums.Mode.Gfx && ignoreIds.Contains(tile.Element.CommonData.GfxId))
+                continue;
+            
             if (selectedTile == null)
             {
                 selectedTile = tile;
                 continue;
             }
-            if (selectedTile.Element.HashCode > tile.Element.HashCode)
+            if (_mode == Enums.Mode.Gfx && selectedTile.Element.HashCode > tile.Element.HashCode)
+                continue;
+            if (_mode == Enums.Mode.Topology && (selectedTile.X > tile.X || selectedTile.Y > tile.Y))
                 continue;
             selectedTile = tile;
         }
@@ -629,22 +636,28 @@ public partial class Map : Node2D
 
     private void ResetDisplay()
     {
-        UnselectTiles();
+        UnselectTile();
+        _gfx.Visible = false;
         _light.Visible = false;
         _topology.Visible = false;
     }
 
-    private void UnselectTiles()
+    private void UnselectTile()
     {
-        SelectedTiles.ForEach(t => t.Unselect());
-        SelectedTiles.Clear();
+        SelectedTile?.Unselect();
+        SelectedTile = null;
     }
     
-    public class TileSelectedEventArgs(GfxData.Element element, TopologyData.CellPathData pathData, TopologyData.CellVisibilityData visibilityData, FightData fightData) : EventArgs
+    public class GfxTileSelectedEventArgs(GfxData.Element element) : EventArgs
     {
         public GfxData.Element Element => element;
+    }
+
+    public class TopologyTileSelectedEventArgs(
+        TopologyData.CellPathData pathData,
+        TopologyData.CellVisibilityData visibilityData) : EventArgs
+    {
         public TopologyData.CellPathData PathData => pathData;
         public TopologyData.CellVisibilityData VisibilityData => visibilityData;
-        public FightData FightData => fightData;
     }
 }
