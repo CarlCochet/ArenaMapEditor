@@ -2,9 +2,7 @@ using Godot;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text.Json;
-using FileAccess = Godot.FileAccess;
 
 public partial class Editor : Node2D
 {
@@ -159,6 +157,7 @@ public partial class Editor : Node2D
 		_filter.UpdateBiome(Enums.Biome.Global);
 		_filter.UpdateCategory(Enums.Category.Global);
 		_filter.UpdateMode(Enums.Mode.Gfx);
+		_inspector.Reset();
 		_inspector.UpdateFight(mapData.Fight);
 	}
 

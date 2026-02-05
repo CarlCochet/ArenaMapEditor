@@ -54,6 +54,18 @@ public partial class Tools : Control
 		_validateButton.Pressed += _OnValidatePressed;
 		_cancelButton.Pressed += _OnCancelPressed;
 	}
+	
+	public override void _Input(InputEvent @event)
+	{
+		if (@event.IsActionPressed("select"))
+			_OnSelectPressed();
+		else if (@event.IsActionPressed("paint"))
+			_OnBrushPressed();
+		else if (@event.IsActionPressed("eraser"))
+			_OnEraserPressed();
+		else if (@event.IsActionPressed("flip"))
+			_OnFlipPressed();
+	}
 
 	public void SetMapOptions(List<string> mapNames)
 	{

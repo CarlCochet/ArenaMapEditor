@@ -80,6 +80,29 @@ public partial class Inspector : Control
         _centerX.ValueChanged += _OnCenterXChanged;
         _centerY.ValueChanged += _OnCenterYChanged;
     }
+    
+    public override void _Input(InputEvent @event)
+    {
+        if (@event.IsActionPressed("cost") && _pathData != null && !@event.IsActionPressed("copy"))
+            _OnCostChanged(_pathData.Cost == 0 ? -1 : 0);
+        if (@event.IsActionPressed("hole") && _pathData != null && !@event.IsActionPressed("cut"))
+            _OnTopoZChanged(short.MinValue);
+
+        if (@event.IsActionPressed("up"))
+        {
+            if (_elementData != null)
+                _OnZChanged(_elementData.CellZ + 1);
+            if (_pathData != null)
+                _OnTopoZChanged(_pathData.Z + 1);
+        }
+        if (@event.IsActionPressed("down"))
+        {
+            if (_elementData != null)
+                _OnZChanged(_elementData.CellZ - 1);
+            if (_pathData != null)
+                _OnTopoZChanged(_pathData.Z - 1);
+        }
+    }
 
     public void Reset()
     {
@@ -93,11 +116,9 @@ public partial class Inspector : Control
         _cellX.Value = 0;
         _cellY.Value = 0;
         _cellZ.Value = 0;
-        
         _offsetX.Text = "0";
         _offsetY.Text = "0";
         _height.Value = 0;
-        
         _gfxId.Text = "0";
         _order.Value = 0;
         _hashcode.Text = "0";
@@ -108,13 +129,14 @@ public partial class Inspector : Control
         _sound.Text = "0";
         _slope.Text = "0";
         _walkable.ButtonPressed = false;
-        
         _color.Color = Colors.White;
         _shader.Text = "0";
         _mask.Text = "0";
         _occluder.ButtonPressed = false;
         _flip.ButtonPressed = false;
         _animated.ButtonPressed = false;
+        
+        _topo2D.ButtonPressed = false;
         _topoX.Value = 0;
         _topoY.Value = 0;
         _topoZ.Value = 0;
@@ -124,11 +146,12 @@ public partial class Inspector : Control
         _canViewThrough.ButtonPressed = false;
         _murFinInfo.Value = 0;
         _miscProperties.Value = 0;
-        
         _placement.Selected = 0;
         _bonus.Selected = 0;
         _centerX.Value = 0;
         _centerY.Value = 0;
+        
+        SwitchToMode(Enums.Mode.Gfx);
         
         _suppressSignals = false;
     }
@@ -470,6 +493,20 @@ public partial class Inspector : Control
         var oldFightData = _fightData.Copy();
         _fightData.MapCenter.y = (int)value;
         FightUpdated?.Invoke(this, new FightUpdatedEventArgs(oldFightData, _fightData));
+    }
+
+    private void SwitchCost()
+    {
+        if (_pathData == null) 
+            return;
+        _OnCostChanged(_pathData.Cost == 0 ? -1 : 0);
+    }
+
+    private void MakeHole()
+    {
+        if (_pathData == null) 
+            return;
+        _OnZChanged(short.MinValue);
     }
 
     public class ElementUpdatedEventArgs(GfxData.Element oldElement, GfxData.Element newElement) : EventArgs

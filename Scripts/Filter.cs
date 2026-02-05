@@ -15,7 +15,15 @@ public partial class Filter : Control
     [Export] private OptionButton _modeButton;
 	
     public override void _Ready() { }
-	
+
+    public override void _Input(InputEvent @event)
+    {
+        if (@event.IsActionPressed("gfx"))
+            _OnModeSelected(0);
+        else if (@event.IsActionPressed("topology"))
+            _OnModeSelected(1);
+    }
+
     private void _OnBiomeSelected(int index)
     {
         Biome = (Enums.Biome)index;
