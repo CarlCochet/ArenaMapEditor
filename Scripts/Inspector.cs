@@ -65,6 +65,7 @@ public partial class Inspector : Control
         _layerIndex.ValueChanged += _OnLayerIndexChanged;
         _groupLayer.ValueChanged += _OnGroupLayerChanged;
         _color.ColorChanged += _OnColorChanged;
+        _walkable.Toggled += _OnWalkableToggled;
         _occluder.Toggled += _OnOccluderToggled;
         _topo2D.Toggled += _OnTopo2DToggled;
         _topoX.ValueChanged += _OnTopoXChanged;
@@ -338,6 +339,16 @@ public partial class Inspector : Control
 
         var newElement = _elementData.Copy();
         newElement.Color = newColor;
+        ElementUpdated?.Invoke(this, new ElementUpdatedEventArgs(_elementData, newElement));
+    }
+
+    private void _OnWalkableToggled(bool toggledOn)
+    {
+        if (_suppressSignals || _elementData == null)
+            return;
+        
+        var newElement = _elementData.Copy();
+        newElement.Walkable = toggledOn;
         ElementUpdated?.Invoke(this, new ElementUpdatedEventArgs(_elementData, newElement));
     }
     

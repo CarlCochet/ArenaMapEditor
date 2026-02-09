@@ -381,7 +381,6 @@ label_settings = SubResource("LabelSettings_c8tcb")
 layout_mode = 2
 focus_mode = 0
 mouse_filter = 1
-disabled = true
 flat = true
 
 [node name="Visuals" type="Label" parent="ScrollContainer/MarginContainer/GfxContainer" unique_id=449623247]
