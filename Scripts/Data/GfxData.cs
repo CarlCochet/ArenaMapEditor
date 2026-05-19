@@ -123,6 +123,13 @@ public class GfxData
         var partition = Partitions
             .OrderBy(p => p.DistanceToCenter(element.CellX, element.CellY))
             .FirstOrDefault();
+        if (partition == null)
+        {
+            var mapX = (short)((int)Math.Floor((float)element.CellX / MapConstants.MapWidth) * MapConstants.MapWidth);
+            var mapY = (short)((int)Math.Floor((float)element.CellY / MapConstants.MapLength) * MapConstants.MapLength);
+            partition = new Partition(mapX, mapY);
+            Partitions.Add(partition);
+        }
         var cellElements = Partitions
             .SelectMany(p => p.Elements)
             .Where(e => e.CellX == element.CellX && e.CellY == element.CellY)

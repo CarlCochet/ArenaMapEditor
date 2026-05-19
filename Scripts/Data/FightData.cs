@@ -10,7 +10,7 @@ public class FightData
 {
     public int Id { get; set; }
     public int[] CoachPoints = new int[6];
-    public List<int>[] StartPoints = new List<int>[2];
+    public List<int>[] StartPoints = [[], []];
     public Dictionary<int, int> Bonus = new();
     public (int x, int y) MapCenter = (8, 8);
 

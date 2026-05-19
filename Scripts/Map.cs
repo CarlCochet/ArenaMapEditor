@@ -121,7 +121,7 @@ public partial class Map : Node2D
         var newMap = new MapData(mapId);
         newMap.CreateEmpty();
         GlobalData.Instance.Maps[mapId] = newMap;
-        _mapData = newMap;
+        Load(newMap);
     }
 
     public void UpdateFocus(bool hasFocus)
@@ -404,7 +404,7 @@ public partial class Map : Node2D
         
         var x = posX / GlobalData.CellWidth + posY / GlobalData.CellHeight;
         var y = posY / GlobalData.CellHeight - posX / GlobalData.CellWidth;
-        return ((int)x, (int)y);
+        return ((int)Math.Floor(x), (int)Math.Floor(y));
     }
 
     public void ToggleHeightHighlight(bool toggledOn, int z)
@@ -483,6 +483,13 @@ public partial class Map : Node2D
         
         var topology = _mapData.Topology;
         var centerAdded = false;
+        if (topology.InstanceSet.Maps.Count == 0)
+        {
+            Center = _tileScene.Instantiate<Tile>();
+            Center.SetCenter(_mapData.Fight.MapCenter.x, _mapData.Fight.MapCenter.y, null);
+            _topology.AddChild(Center);
+            return;
+        }
         for (var x = topology.InstanceSet.MinX; x <= topology.InstanceSet.MinX + topology.InstanceSet.Width; x++)
         {
             for (var y = topology.InstanceSet.MinY; y <= topology.InstanceSet.MinY + topology.InstanceSet.Height; y++)

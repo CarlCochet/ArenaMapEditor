@@ -161,10 +161,16 @@ public partial class Editor : Node2D
 		_inspector.UpdateFight(mapData.Fight);
 	}
 
-	private void _OnNewMapPressed(object sender, Tools.NewMapPressedEventArgs e)
-	{
-		_map.CreateNewMap(e.Id);
-	}
+    private void _OnNewMapPressed(object sender, Tools.NewMapPressedEventArgs e)
+    {
+        _map.CreateNewMap(e.Id);
+        _tools.SetMapOptions([..GlobalData.Instance.Maps.Keys]);
+        _filter.UpdateBiome(Enums.Biome.Global);
+        _filter.UpdateCategory(Enums.Category.Global);
+        _filter.UpdateMode(Enums.Mode.Gfx);
+        _inspector.Reset();
+        _inspector.UpdateFight(GlobalData.Instance.Maps[$"{e.Id}"].Fight);
+    }
 
 	private void _OnDirectorySelected(string dir)
 	{
