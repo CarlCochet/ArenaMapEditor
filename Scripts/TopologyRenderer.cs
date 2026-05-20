@@ -19,8 +19,12 @@ public partial class TopologyRenderer : Node2D
     private int _highlightZ;
     private bool _highlightActive;
     private FightData _fightData;
+    private bool _needsMeshRebuild;
+    private int _centerX = 8;
+    private int _centerY = 8;
 
     private MeshInstance2D _mesh;
+    private Sprite2D _centerMarker;
 
     private const float HalfWidth = GlobalData.CellWidth * 0.5f;
     private const float HalfHeight = GlobalData.CellHeight * 0.5f;
@@ -67,6 +71,29 @@ public partial class TopologyRenderer : Node2D
             ZIndex = -1
         };
         AddChild(_mesh);
+
+        _centerMarker = new Sprite2D
+        {
+            Name = "CenterMarker",
+            Centered = false,
+            ZIndex = 1
+        };
+        AddChild(_centerMarker);
+        UpdateCenterPosition();
+    }
+
+    private void UpdateCenterPosition()
+    {
+        var z = 0;
+        for (var i = 0; i < _cells.Count; i++)
+        {
+            if (_cells[i].X == _centerX && _cells[i].Y == _centerY)
+            {
+                z = _is2D ? 0 : _cells[i].Z;
+                break;
+            }
+        }
+        _centerMarker.Position = IsoFromGrid(_centerX, _centerY, z, 0) + new Vector2(-43, -21);
     }
 
     private static Vector2 IsoFromGrid(int x, int y, int z, int height)
@@ -80,13 +107,18 @@ public partial class TopologyRenderer : Node2D
     public void LoadTopology(TopologyData topology, int centerX, int centerY, TopologyData.CellPathData centerPath, FightData fightData)
     {
         _fightData = fightData;
+        _centerX = centerX;
+        _centerY = centerY;
         _cells.Clear();
         _selectedIndex = -1;
+        _needsMeshRebuild = false;
+        _centerMarker.Texture = GlobalData.Instance.PlacementTextures[3];
 
         if (topology.InstanceSet.Maps.Count == 0)
         {
             AddCenterCell(centerX, centerY, centerPath);
             BuildMesh();
+            UpdateCenterPosition();
             QueueRedraw();
             return;
         }
@@ -113,6 +145,7 @@ public partial class TopologyRenderer : Node2D
 
         _cells.Sort(CellSort);
         BuildMesh();
+        UpdateCenterPosition();
         QueueRedraw();
     }
 
@@ -168,6 +201,21 @@ public partial class TopologyRenderer : Node2D
         });
     }
 
+    public void SetCenter(int x, int y)
+    {
+        _centerX = x;
+        _centerY = y;
+        UpdateCenterPosition();
+    }
+
+    public void RebuildIfNeeded()
+    {
+        if (!_needsMeshRebuild)
+            return;
+        _needsMeshRebuild = false;
+        BuildMesh();
+    }
+
     private void BuildMesh()
     {
         var st = new SurfaceTool();
@@ -175,10 +223,26 @@ public partial class TopologyRenderer : Node2D
 
         foreach (var cell in _cells)
         {
-            if (cell.IsCenter || cell.CanViewThrough)
+            var pos = cell.IsoPos;
+
+            if (cell.IsCenter)
+            {
+                AddDiamondFilled(st, pos, TopColor);
+                AddDiamondOutline(st, pos, Colors.Black);
+                if (!_is2D)
+                {
+                    var cubeHeight = cell.Height == 0 ? GlobalData.ElevationStep : cell.Height * GlobalData.ElevationStep;
+                    AddWall(st, pos, -1, cubeHeight, LeftColor);
+                    AddWallOutline(st, pos, -1, cubeHeight, Colors.Black);
+                    AddWall(st, pos, 1, cubeHeight, RightColor);
+                    AddWallOutline(st, pos, 1, cubeHeight, Colors.Black);
+                }
+                continue;
+            }
+
+            if (cell.CanViewThrough)
                 continue;
 
-            var pos = cell.IsoPos;
             var selected = cell.IsSelected;
             var blocked = cell.IsBlocked;
             var highlighted = cell.Highlighted;
@@ -349,25 +413,73 @@ public partial class TopologyRenderer : Node2D
 
     public override void _Draw()
     {
+        if (_needsMeshRebuild)
+        {
+            _needsMeshRebuild = false;
+            BuildMesh();
+        }
+
         foreach (var cell in _cells)
         {
-            if (cell.IsCenter)
-            {
-                DrawCenterMarker(cell);
-                continue;
-            }
-            DrawPlacementBonus(cell);
+            if (!cell.IsCenter)
+                DrawPlacementBonus(cell);
         }
+
+        DrawSelectionHighlight();
     }
 
-    private void DrawCenterMarker(in CellData cell)
+    private void DrawSelectionHighlight()
     {
-        var texture = GlobalData.Instance.PlacementTextures[3];
-        if (texture == null)
+        if (_selectedIndex < 0 || _selectedIndex >= _cells.Count)
             return;
 
-        var pos = cell.IsoPos + new Vector2(-43, -21);
-        DrawTexture(texture, pos);
+        var cell = _cells[_selectedIndex];
+        if (cell.CanViewThrough)
+            return;
+
+        var pos = cell.IsoPos;
+
+        if (_is2D)
+        {
+            var topFace = new Vector2[]
+            {
+                pos + new Vector2(0, -HalfHeight),
+                pos + new Vector2(HalfWidth, 0),
+                pos + new Vector2(0, HalfHeight),
+                pos + new Vector2(-HalfWidth, 0),
+            };
+            DrawColoredPolygon(topFace, TopHighlightColor);
+        }
+        else
+        {
+            var cubeHeight = cell.Height == 0 ? GlobalData.ElevationStep : cell.Height * GlobalData.ElevationStep;
+
+            var topFace = new Vector2[]
+            {
+                pos + new Vector2(0, -HalfHeight),
+                pos + new Vector2(HalfWidth, 0),
+                pos + new Vector2(0, HalfHeight),
+                pos + new Vector2(-HalfWidth, 0),
+            };
+            var leftFace = new Vector2[]
+            {
+                pos + new Vector2(-HalfWidth, 0),
+                pos + new Vector2(-HalfWidth, cubeHeight),
+                pos + new Vector2(0, HalfHeight + cubeHeight),
+                pos + new Vector2(0, HalfHeight),
+            };
+            var rightFace = new Vector2[]
+            {
+                pos + new Vector2(0, HalfHeight),
+                pos + new Vector2(0, HalfHeight + cubeHeight),
+                pos + new Vector2(HalfWidth, cubeHeight),
+                pos + new Vector2(HalfWidth, 0),
+            };
+
+            DrawColoredPolygon(leftFace, LeftHighlightColor);
+            DrawColoredPolygon(rightFace, RightHighlightColor);
+            DrawColoredPolygon(topFace, TopHighlightColor);
+        }
     }
 
     private void DrawPlacementBonus(in CellData cell)
@@ -416,58 +528,58 @@ public partial class TopologyRenderer : Node2D
         }
 
         BuildMesh();
+        UpdateCenterPosition();
         QueueRedraw();
     }
 
     public int? GetCellIndexAt(Vector2 globalPosition)
     {
         var localPos = globalPosition - GlobalPosition;
+        var halfW = (float)HalfWidth;
+        var halfH = (float)HalfHeight;
 
         for (var i = _cells.Count - 1; i >= 0; i--)
         {
             var cell = _cells[i];
             if (!cell.Highlighted)
                 continue;
-            if (cell.IsCenter)
-                continue;
 
             var pos = cell.IsoPos;
-            var topFace = new Vector2[]
-            {
-                pos + new Vector2(0, -HalfHeight),
-                pos + new Vector2(HalfWidth, 0),
-                pos + new Vector2(0, HalfHeight),
-                pos + new Vector2(-HalfWidth, 0),
-            };
 
-            if (Geometry2D.IsPointInPolygon(localPos, topFace))
+            var r = pos + new Vector2(halfW, 0);
+            var b = pos + new Vector2(0, halfH);
+            var l = pos + new Vector2(-halfW, 0);
+            var t = pos + new Vector2(0, -halfH);
+
+            if (IsPointInConvexQuad(localPos, r, b, l, t))
                 return i;
 
             if (_is2D)
                 continue;
 
             var cubeHeight = cell.Height == 0 ? GlobalData.ElevationStep : cell.Height * GlobalData.ElevationStep;
-            var leftFace = new Vector2[]
-            {
-                pos + new Vector2(-HalfWidth, 0),
-                pos + new Vector2(-HalfWidth, cubeHeight),
-                pos + new Vector2(0, HalfHeight + cubeHeight),
-                pos + new Vector2(0, HalfHeight),
-            };
-            var rightFace = new Vector2[]
-            {
-                pos + new Vector2(0, HalfHeight),
-                pos + new Vector2(0, HalfHeight + cubeHeight),
-                pos + new Vector2(HalfWidth, cubeHeight),
-                pos + new Vector2(HalfWidth, 0),
-            };
+            var br = pos + new Vector2(0, halfH + cubeHeight);
+            var bl = pos + new Vector2(0, halfH);
 
-            if (Geometry2D.IsPointInPolygon(localPos, leftFace) ||
-                Geometry2D.IsPointInPolygon(localPos, rightFace))
+            var leftR = pos + new Vector2(-halfW, cubeHeight);
+            if (IsPointInConvexQuad(localPos, pos + new Vector2(-halfW, 0), leftR, pos + new Vector2(0, halfH + cubeHeight), bl))
+                return i;
+
+            if (IsPointInConvexQuad(localPos, bl, br, pos + new Vector2(halfW, cubeHeight), pos + new Vector2(halfW, 0)))
                 return i;
         }
 
         return null;
+    }
+
+    private static bool IsPointInConvexQuad(Vector2 p, Vector2 v0, Vector2 v1, Vector2 v2, Vector2 v3)
+    {
+        return IsLeft(v0, v1, p) && IsLeft(v1, v2, p) && IsLeft(v2, v3, p) && IsLeft(v3, v0, p);
+    }
+
+    private static bool IsLeft(Vector2 a, Vector2 b, Vector2 p)
+    {
+        return (b.X - a.X) * (p.Y - a.Y) - (b.Y - a.Y) * (p.X - a.X) >= 0;
     }
 
     public void SelectCell(int index)
@@ -485,7 +597,6 @@ public partial class TopologyRenderer : Node2D
             sel.IsSelected = true;
             _cells[index] = sel;
         }
-        BuildMesh();
         QueueRedraw();
     }
 
@@ -526,14 +637,14 @@ public partial class TopologyRenderer : Node2D
             cell.IsBlocked = pathData.Cost == -1;
             cell.IsoPos = pos;
             _cells[i] = cell;
-            BuildMesh();
+            _needsMeshRebuild = true;
             QueueRedraw();
             return;
         }
 
         AddCell(pathData, visData, false);
         _cells.Sort(CellSort);
-        BuildMesh();
+        _needsMeshRebuild = true;
         QueueRedraw();
     }
 
@@ -541,7 +652,7 @@ public partial class TopologyRenderer : Node2D
     {
         AddCell(pathData, visData, false);
         _cells.Sort(CellSort);
-        BuildMesh();
+        _needsMeshRebuild = true;
         QueueRedraw();
     }
 

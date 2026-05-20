@@ -254,6 +254,7 @@ public partial class Map : Node2D
     public void UpdateFight(FightData oldFight, FightData newFight)
     {
         _mapData.Fight = newFight;
+        _topology.SetCenter(newFight.MapCenter.x, newFight.MapCenter.y);
         _topology.SetFightData(newFight);
     }
 
@@ -310,6 +311,7 @@ public partial class Map : Node2D
                 _multiMeshRenderer.Visible = true;
                 break;
             case Enums.Mode.Topology:
+                _topology.RebuildIfNeeded();
                 _topology.Visible = true;
                 break;
             case Enums.Mode.Light:
