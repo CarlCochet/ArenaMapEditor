@@ -157,7 +157,6 @@ public partial class Editor : Node2D
 		_filter.UpdateBiome(Enums.Biome.Global);
 		_filter.UpdateCategory(Enums.Category.Global);
 		_filter.UpdateMode(Enums.Mode.Gfx);
-		_filter.SetModeButtonEnabled(mapData.Fight != null);
 		_inspector.Reset();
 		_inspector.UpdateFight(mapData.Fight);
 	}
@@ -170,7 +169,6 @@ public partial class Editor : Node2D
         _filter.UpdateCategory(Enums.Category.Global);
         _filter.UpdateMode(Enums.Mode.Gfx);
         var mapData = GlobalData.Instance.Maps[$"{e.Id}"];
-        _filter.SetModeButtonEnabled(mapData?.Fight != null);
         _inspector.Reset();
         _inspector.UpdateFight(mapData?.Fight);
     }
