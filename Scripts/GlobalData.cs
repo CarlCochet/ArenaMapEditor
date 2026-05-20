@@ -30,6 +30,9 @@ public class GlobalData
     public Dictionary<string, MapData> Maps { get; set; } = new();
     public List<Texture2D> BonusTextures { get; set; } = [];
     public List<Texture2D> PlacementTextures { get; set; } = [];
+    public ImageTexture3D AtlasTexture { get; set; }
+    public Dictionary<int, TextureAtlasGenerator.AtlasEntry> AtlasEntries { get; set; } = new();
+    public int TotalAtlasLayers { get; set; }
     
     public int[] IgnoreGfxIds { get; set; } = [76, 113, 114, 141, 252, 253, 331, 332, 333, 461, 462, 463, 504, 610, 613,
         730, 731, 907, 908, 909, 910, 927, 933, 991, 993, 1048, 1194, 1209, 1210, 1211, 1230, 1236, 1237, 1238, 1246, 
@@ -94,6 +97,18 @@ public class GlobalData
         {
             PlacementTextures.Add(GD.Load<CompressedTexture2D>($"res://Assets/Placement/{i}.tgam.png"));
         }
+
+        GenerateAtlas();
+    }
+
+    private void GenerateAtlas()
+    {
+        GD.Print("Generating texture atlases...");
+        var (texture, entries, totalLayers) = TextureAtlasGenerator.Generate(ValidAssets);
+        AtlasTexture = texture;
+        AtlasEntries = entries;
+        TotalAtlasLayers = totalLayers;
+        GD.Print($"Atlas generation complete: {totalLayers} layers, {entries.Count} entries");
     }
     
     public void LoadElements(string path)

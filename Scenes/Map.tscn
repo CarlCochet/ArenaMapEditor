@@ -31,13 +31,11 @@ shader_parameter/elevation = 0.0
 [sub_resource type="CompressedTexture2D" id="CompressedTexture2D_g5138"]
 load_path = "res://.godot/imported/blackBackground.png-e8eafb64790ac4dfa3e369ac4f67a5b5.ctex"
 
-[node name="Map" type="Node2D" node_paths=PackedStringArray("CustomCamera", "_gfx", "_topology", "_light", "_fight", "_grid", "_grid2", "_placementPreview")]
+[node name="Map" type="Node2D" node_paths=PackedStringArray("CustomCamera", "_topology", "_light", "_grid", "_grid2", "_placementPreview")]
 script = ExtResource("1_h4evd")
 CustomCamera = NodePath("Camera")
-_gfx = NodePath("GFX")
 _topology = NodePath("Topology")
 _light = NodePath("Light")
-_fight = NodePath("")
 _tileScene = ExtResource("2_d05hl")
 _grid = NodePath("Grid")
 _grid2 = NodePath("Grid2")
@@ -67,8 +65,6 @@ material = SubResource("ShaderMaterial_38poy")
 position = Vector2(7.85589e-05, 3.15309e-05)
 scale = Vector2(4700, 3300)
 texture = SubResource("CompressedTexture2D_g5138")
-
-[node name="GFX" type="Node2D" parent="."]
 
 [node name="Topology" type="Node2D" parent="."]
 

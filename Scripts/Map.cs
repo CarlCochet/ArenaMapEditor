@@ -8,12 +8,13 @@ public partial class Map : Node2D
     public record ReversibleAction(Action Do, Action Undo);
     
     public int CurrentHeight { get; set; }
-    public Tile SelectedTile;
+    public Tile SelectedTile { get; private set; }
+    public GfxData.Element SelectedElement { get; private set; }
     public Tile Center { get; set; }
     
     [Export] public Camera CustomCamera;
     
-    [Export] private Node2D _gfx;
+    private MultiMeshMapRenderer _multiMeshRenderer;
     [Export] private Node2D _topology;
     [Export] private Node2D _light;
     [Export] private PackedScene _tileScene;
@@ -23,9 +24,6 @@ public partial class Map : Node2D
 
     private readonly Stack<ReversibleAction> _undos = [];
     private readonly Stack<ReversibleAction> _redos = [];
-    
-    private Color _selectColor = new(0, 255, 0);
-    private Color _noHighlightColor = new(0, 255, 0, 64);
     
     private ShaderMaterial _gridMaterial;
     private ShaderMaterial _grid2Material;
@@ -39,20 +37,41 @@ public partial class Map : Node2D
     public event EventHandler<GfxTileSelectedEventArgs> GfxTileSelected;
     public event EventHandler<TopologyTileSelectedEventArgs> TopologyTileSelected;
 
+    public Vector2 SelectedTileGlobalPosition
+    {
+        get
+        {
+            if (_mode == Enums.Mode.Topology && SelectedTile != null)
+                return SelectedTile.GetGlobalTransformWithCanvas().Origin;
+            if (_mode == Enums.Mode.Gfx && SelectedElement != null)
+                return _multiMeshRenderer.GetSelectedTileCenter();
+            return Vector2.Zero;
+        }
+    }
+
     public override void _Ready()
     {
         _gridMaterial = (ShaderMaterial)_grid.Material;
         _grid2Material = (ShaderMaterial)_grid2.Material;
         CustomCamera.ZoomUpdated += _OnZoomUpdated;
+
+        var shader = GD.Load<Shader>("res://Shaders/MultiMeshTile.gdshader");
+        var material = new ShaderMaterial();
+        material.Shader = shader;
+        _multiMeshRenderer = new MultiMeshMapRenderer();
+        _multiMeshRenderer.Name = "MultiMeshTileRenderer";
+        _multiMeshRenderer.Setup(material);
+        AddChild(_multiMeshRenderer);
+        MoveChild(_multiMeshRenderer, 3);
     }
 
     public override void _Process(double delta)
     {
         if (Input.IsActionJustPressed("delete"))
         {
-            if (SelectedTile?.Element == null)
+            if (SelectedElement == null)
                 return;
-            RegisterRemoveElement(SelectedTile.Element);
+            RegisterRemoveElement(SelectedElement);
         }
         if (Input.IsActionJustPressed("undo"))
             Undo(null, EventArgs.Empty);
@@ -136,18 +155,8 @@ public partial class Map : Node2D
         if (!_isHighlightActivated)
             return;
         
-        foreach (var child in _gfx.GetChildren())
-        {
-            if (child is not Tile tile)
-                continue;
-            
-            if (tile.Z == _z)
-            {
-                tile.Highlight();
-                continue;
-            }
-            tile.RemoveHighlight();
-        }
+        if (_mode == Enums.Mode.Gfx)
+            _multiMeshRenderer.SetHeightHighlight(_z);
     }
 
     public void ToggleTopologyRender(bool is2D)
@@ -247,8 +256,8 @@ public partial class Map : Node2D
     public void UpdateElement(GfxData.Element oldElement, GfxData.Element newElement)
     {
         RemoveElement(oldElement);
-        var tile = AddElement(newElement);
-        SelectGfxTile(tile);
+        AddElement(newElement);
+        SelectGfxElement(newElement);
     }
 
     public void UpdateTopologyCell(TopologyData.CellPathData path, TopologyData.CellVisibilityData visibility)
@@ -289,35 +298,17 @@ public partial class Map : Node2D
         }
     }
 
-    public Tile AddElement(GfxData.Element element)
+    public void AddElement(GfxData.Element element)
     {
         if (element == null)
-            return null;
+            return;
         
-        UnselectTile();
+        UnselectAll();
         UpdateTopologyFromElement(element);
         
         _mapData.Gfx.AddElement(element);
-        var tile = _tileScene.Instantiate<Tile>();
-        tile.SetElementData(element);
-        tile.Name = element.HashCode.ToString();
-        _gfx.AddChild(tile);
-        
-        var children = _gfx.GetChildren();
-        for (var i = 0; i < children.Count; i++)
-        {
-            var child = children[i];
-            if (child is not Tile t)
-                continue;
-            if (t.Element.HashCode <= element.HashCode)
-                continue;
-            
-            _gfx.MoveChild(tile, i);
-            break;
-        }
-        
+        _multiMeshRenderer.AddElement(element);
         CleanupGfxState();
-        return tile;
     }
 
     public void UpdateTopologyFromElement(GfxData.Element element)
@@ -355,8 +346,8 @@ public partial class Map : Node2D
         if (element == null) 
             return;
         
-        UnselectTile();
-        _gfx.GetNodeOrNull<Tile>(element.HashCode.ToString())?.QueueFree();
+        UnselectAll();
+        _multiMeshRenderer.RemoveElement(element);
         _mapData.Gfx.RemoveElement(element);
         if (!_mapData.Gfx.HasElementAt(element.CellX, element.CellY))
         {
@@ -374,7 +365,7 @@ public partial class Map : Node2D
         switch (_mode)
         {
             case Enums.Mode.Gfx:
-                _gfx.Visible = true;
+                _multiMeshRenderer.Visible = true;
                 break;
             case Enums.Mode.Topology:
                 _topology.Visible = true;
@@ -412,27 +403,37 @@ public partial class Map : Node2D
     public void ToggleHeightHighlight(bool toggledOn, int z)
     {
         _isHighlightActivated = toggledOn;
-        if (!_isHighlightActivated)
+        if (_mode == Enums.Mode.Gfx)
         {
-            foreach (var child in _gfx.GetChildren())
+            if (!_isHighlightActivated)
+                _multiMeshRenderer.ClearHeightHighlight();
+            else
+                _multiMeshRenderer.SetHeightHighlight(z);
+        }
+        else
+        {
+            if (!_isHighlightActivated)
+            {
+                foreach (var child in _topology.GetChildren())
+                {
+                    if (child is not Tile tile)
+                        continue;
+                    tile.Highlight();
+                }
+                return;
+            }
+
+            foreach (var child in _topology.GetChildren())
             {
                 if (child is not Tile tile)
                     continue;
-                tile.Highlight();
+                if (tile.Z == z)
+                {
+                    tile.Highlight();
+                    continue;
+                }
+                tile.RemoveHighlight();
             }
-            return;
-        }
-
-        foreach (var child in _gfx.GetChildren())
-        {
-            if (child is not Tile tile)
-                continue;
-            if (tile.Z == z)
-            {
-                tile.Highlight();
-                continue;
-            }
-            tile.RemoveHighlight();
         }
     }
 
@@ -456,28 +457,25 @@ public partial class Map : Node2D
  
     private void LoadGfx()
     {
-        UnselectTile();
-        foreach (var child in _gfx.GetChildren())
-        {
-            child.QueueFree();
-        }
+        UnselectAll();
         
+        if (_multiMeshRenderer.Material is ShaderMaterial mat)
+        {
+            mat.SetShaderParameter("atlas_tex", GlobalData.Instance.AtlasTexture);
+            mat.SetShaderParameter("total_layers", (float)GlobalData.Instance.TotalAtlasLayers);
+        }
+
         var sortedElements = _mapData.Gfx.Partitions
             .SelectMany(p => p.Elements)
             .OrderBy(t => t.HashCode)
             .ToList();
 
-        foreach (var element in sortedElements)
-        {
-            var tile = _tileScene.Instantiate<Tile>();
-            tile.SetElementData(element);
-            _gfx.AddChild(tile);
-        }
+        _multiMeshRenderer.LoadElements(sortedElements);
     }
 
     private void LoadTopology()
     {
-        UnselectTile();
+        UnselectTopologyTile();
         foreach (var child in _topology.GetChildren())
         {
             child.QueueFree();
@@ -529,25 +527,26 @@ public partial class Map : Node2D
 
     private void LoadLight()
     {
-        UnselectTile();
+        UnselectAll();
         foreach (var child in _light.GetChildren())
         {
             child.QueueFree();
         }
     }
 
-    private void SelectGfxTile(Tile selectedTile)
+    private void SelectGfxElement(GfxData.Element element)
     {
-        if (selectedTile == null)
+        if (element == null)
             return;
         
-        SelectedTile = selectedTile;
-        SelectedTile.Select();
+        SelectedElement = element;
+        SelectedTile = null;
+        _multiMeshRenderer.SelectElement(element.HashCode);
         
-        _gridMaterial.SetShaderParameter("elevation", (float)(selectedTile.Z * GlobalData.ElevationStep));
-        _grid2Material.SetShaderParameter("elevation", (float)(selectedTile.Z * GlobalData.ElevationStep));
-        _z = selectedTile.Z;
-        GfxTileSelected?.Invoke(this, new GfxTileSelectedEventArgs(selectedTile.Element));
+        _gridMaterial.SetShaderParameter("elevation", (float)(element.CellZ * GlobalData.ElevationStep));
+        _grid2Material.SetShaderParameter("elevation", (float)(element.CellZ * GlobalData.ElevationStep));
+        _z = element.CellZ;
+        GfxTileSelected?.Invoke(this, new GfxTileSelectedEventArgs(element));
     }
 
     private void SelectTopologyTile(Tile selectedTile)
@@ -556,6 +555,7 @@ public partial class Map : Node2D
             return;
         
         SelectedTile = selectedTile;
+        SelectedElement = null;
         SelectedTile.Select();
         
         _gridMaterial.SetShaderParameter("elevation", (float)(selectedTile.Z * GlobalData.ElevationStep));
@@ -569,12 +569,18 @@ public partial class Map : Node2D
         if (!CustomCamera.HasFocus)
             return;
         
-        UnselectTile();
-        var selectedTile = GetTopTile(position, GlobalData.Instance.IgnoreGfxIds);
+        UnselectAll();
+        
         if (_mode == Enums.Mode.Gfx)
-            SelectGfxTile(selectedTile);
+        {
+            var element = _multiMeshRenderer.GetTopElementAt(position, GlobalData.Instance.IgnoreGfxIds);
+            SelectGfxElement(element);
+        }
         if (_mode == Enums.Mode.Topology)
-            SelectTopologyTile(selectedTile);
+        {
+            var tile = GetTopTopologyTile(position);
+            SelectTopologyTile(tile);
+        }
     }
 
     private void EraseTile(Vector2 position)
@@ -582,24 +588,23 @@ public partial class Map : Node2D
         if (!CustomCamera.HasFocus)
             return;
 
-        var topTile = GetTopTile(position, []);
-        if (topTile == null)
-            return;
-        
-        RegisterRemoveElement(topTile.Element);
+        if (_mode == Enums.Mode.Gfx)
+        {
+            var element = _multiMeshRenderer.GetTopElementAt(position, []);
+            if (element != null)
+                RegisterRemoveElement(element);
+        }
     }
 
-    private Tile GetTopTile(Vector2 position, int[] ignoreIds)
+    private Tile GetTopTopologyTile(Vector2 position)
     {
         Tile selectedTile = null;
         
-        foreach (var child in _mode == Enums.Mode.Gfx ? _gfx.GetChildren() : _topology.GetChildren())
+        foreach (var child in _topology.GetChildren())
         {
             if (child is not Tile tile)
                 continue;
             if (!tile.IsValidPixel(position))
-                continue;
-            if (_mode == Enums.Mode.Gfx && ignoreIds.Contains(tile.Element.CommonData.GfxId))
                 continue;
             
             if (selectedTile == null)
@@ -607,9 +612,7 @@ public partial class Map : Node2D
                 selectedTile = tile;
                 continue;
             }
-            if (_mode == Enums.Mode.Gfx && selectedTile.Element.HashCode > tile.Element.HashCode)
-                continue;
-            if (_mode == Enums.Mode.Topology && (selectedTile.X > tile.X || selectedTile.Y > tile.Y))
+            if (selectedTile.X > tile.X || selectedTile.Y > tile.Y)
                 continue;
             selectedTile = tile;
         }
@@ -640,19 +643,17 @@ public partial class Map : Node2D
 
     private void CleanupGfxState()
     {
-        foreach (var child in _gfx.GetChildren())
+        var elementsToRemove = new List<long>();
+        foreach (var element in _multiMeshRenderer.Elements)
         {
-            if (child is not Tile tile)
-                continue;
-            if (!_mapData.Gfx.ElementExists(tile.Element))
-            {
-                tile.QueueFree();
-                continue;
-            }
-            
-            if (tile.Element.HashCode.ToString().Equals(tile.Name))
-                continue;
-            tile.Name = tile.Element.HashCode.ToString();
+            if (!_mapData.Gfx.ElementExists(element))
+                elementsToRemove.Add(element.HashCode);
+        }
+        foreach (var hashCode in elementsToRemove)
+        {
+            var element = _multiMeshRenderer.Elements.FirstOrDefault(e => e.HashCode == hashCode);
+            if (element != null)
+                _multiMeshRenderer.RemoveElement(element);
         }
     }
     
@@ -664,13 +665,25 @@ public partial class Map : Node2D
 
     private void ResetDisplay()
     {
-        UnselectTile();
-        _gfx.Visible = false;
+        UnselectAll();
+        _multiMeshRenderer.Visible = false;
         _light.Visible = false;
         _topology.Visible = false;
     }
 
-    private void UnselectTile()
+    private void UnselectAll()
+    {
+        UnselectGfxElement();
+        UnselectTopologyTile();
+    }
+
+    private void UnselectGfxElement()
+    {
+        _multiMeshRenderer.DeselectAll();
+        SelectedElement = null;
+    }
+
+    private void UnselectTopologyTile()
     {
         SelectedTile?.Unselect();
         SelectedTile = null;

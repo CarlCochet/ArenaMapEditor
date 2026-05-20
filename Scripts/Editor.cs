@@ -81,9 +81,9 @@ public partial class Editor : Node2D
 				_saveDialog.Visible = true;
 		}
 		
-		if (_map.SelectedTile == null)
+		if (_map.SelectedTile == null && _map.SelectedElement == null)
 			return;
-		_gizmo.Position = _map.SelectedTile.GetGlobalTransformWithCanvas().Origin;
+		_gizmo.Position = _map.SelectedTileGlobalPosition;
 	}
 
 	public override void _Input(InputEvent @event)

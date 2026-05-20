@@ -41,7 +41,7 @@ public class FightData
             GD.Print($"Fight file not found for map {Id}");
             return;
         }
-
+        
         for (var i = 0; i < 6; i++)
         {
             CoachPoints[i] = reader.ReadInt();
