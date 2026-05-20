@@ -163,7 +163,6 @@ public class GfxData
     {
         var partition = Partitions.FirstOrDefault(p => p.Elements.Contains(element));
         partition?.Elements.Remove(element);
-        partition?.SortElements();
         
         var elements = Partitions
             .SelectMany(p => p.Elements)
@@ -176,7 +175,7 @@ public class GfxData
             elements[i].AltitudeOrder = (sbyte)i;
             elements[i].ComputeHashCode();
         }
-        Partitions.ForEach(p => p.SortElements());
+        partition?.SortElements();
     }
     
     public bool ElementExists(Element element) => Partitions.Any(p => p.Elements.Contains(element));
@@ -460,8 +459,10 @@ public class GfxData
 
         public void AddElement(Element element)
         {
-            Elements.Add(element);
-            SortElements();
+            var idx = Elements.BinarySearch(element, Comparer<Element>.Create((a, b) => a.HashCode.CompareTo(b.HashCode)));
+            if (idx < 0)
+                idx = ~idx;
+            Elements.Insert(idx, element);
             RecomputeBounds();
         }
         

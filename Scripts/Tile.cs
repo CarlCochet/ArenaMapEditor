@@ -1,6 +1,5 @@
 using Godot;
 using System;
-using System.IO;
 
 public partial class Tile : Sprite2D
 {
@@ -9,7 +8,6 @@ public partial class Tile : Sprite2D
     [Export] private Label _zLabel;
     
     public TileData Data;
-    public GfxData.Element Element;
     public TopologyData.CellPathData PathData;
     public TopologyData.CellVisibilityData VisibilityData;
     
@@ -139,24 +137,6 @@ public partial class Tile : Sprite2D
         
         var color = VisibilityData.Z == short.MinValue ? Colors.White : Colors.Black;
         DrawPolylineColors(_topFace.AsSpan(), [color, color, color, color], 0.5f, true);
-    }
-
-    public void SetElementData(GfxData.Element element)
-    {
-        Mode = Enums.Mode.Gfx;
-        if (!GlobalData.Instance.ValidAssets.TryGetValue(element.CommonData.GfxId, out var asset)) return;
-        Data = asset.Copy();
-        Element = element;
-        Texture = Data.Texture;
-        _baseColor = new Color(0.5f + 0.5f * Element.Color[0], 0.5f + 0.5f * Element.Color[1], 0.5f + 0.5f * Element.Color[2]);
-        // _baseColor = Element.Color;
-        SelfModulate = _baseColor;
-        PositionToIso(element.CellX, element.CellY, element.CellZ, element.Height, element.CommonData.OriginX, element.CommonData.OriginY);
-        X = element.CellX;
-        Y = element.CellY;
-        Z = element.CellZ;
-        FlipH = element.CommonData.Flip;
-        Name = element.HashCode.ToString();
     }
 
     public void SetTopology(TopologyData.CellPathData pathData, TopologyData.CellVisibilityData visibilityData)

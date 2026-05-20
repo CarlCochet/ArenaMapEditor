@@ -37,10 +37,7 @@ public class FightData
     {
         var reader = GlobalData.Instance.GetReader($"{path}/{Id}", $"{Id}.fmd");
         if (reader == null)
-        {
-            GD.Print($"Fight file not found for map {Id}");
-            return;
-        }
+            throw new FileNotFoundException($"{Id}.fmd not found.");
         
         for (var i = 0; i < 6; i++)
         {

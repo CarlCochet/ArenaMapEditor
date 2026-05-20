@@ -308,7 +308,6 @@ public partial class Map : Node2D
         
         _mapData.Gfx.AddElement(element);
         _multiMeshRenderer.AddElement(element);
-        CleanupGfxState();
     }
 
     public void UpdateTopologyFromElement(GfxData.Element element)
@@ -354,7 +353,6 @@ public partial class Map : Node2D
             var (path, visibility) = _mapData.Topology.ResetTile(element.CellX, element.CellY);
             _topology.GetNodeOrNull<Tile>($"{element.CellX}_{element.CellY}")?.SetTopology(path, visibility);
         }
-        CleanupGfxState();
     }
 
     public void UpdateDisplay(Enums.Mode mode)
@@ -639,22 +637,6 @@ public partial class Map : Node2D
             Colors = [1f, 1f, 1f]
         };
         RegisterAddElement(element);
-    }
-
-    private void CleanupGfxState()
-    {
-        var elementsToRemove = new List<long>();
-        foreach (var element in _multiMeshRenderer.Elements)
-        {
-            if (!_mapData.Gfx.ElementExists(element))
-                elementsToRemove.Add(element.HashCode);
-        }
-        foreach (var hashCode in elementsToRemove)
-        {
-            var element = _multiMeshRenderer.Elements.FirstOrDefault(e => e.HashCode == hashCode);
-            if (element != null)
-                _multiMeshRenderer.RemoveElement(element);
-        }
     }
     
     private void _OnZoomUpdated(object sender, float zoom)
