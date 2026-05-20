@@ -224,15 +224,18 @@ public partial class Inspector : Control
         _fightData = fightData;
         _suppressSignals = true;
 
-        if (_pathData != null)
+        if (fightData != null)
         {
-            var (placement, bonus) = fightData.GetData(_pathData.X, _pathData.Y, _pathData.Z);
-            _placement.Selected = placement + 1;
-            _bonus.Selected = bonus + 1;
+            if (_pathData != null)
+            {
+                var (placement, bonus) = fightData.GetData(_pathData.X, _pathData.Y, _pathData.Z);
+                _placement.Selected = placement + 1;
+                _bonus.Selected = bonus + 1;
+            }
+            
+            _centerX.Value = fightData.MapCenter.x;
+            _centerY.Value = fightData.MapCenter.y;
         }
-        
-        _centerX.Value = fightData.MapCenter.x;
-        _centerY.Value = fightData.MapCenter.y;
         
         _suppressSignals = false;
     }

@@ -79,6 +79,7 @@ public class MapData
         catch (Exception e)
         {
             GD.PrintErr($"Error loading FIGHT for map {Id}: {e.Message}");
+            Fight = null;
         }
         
         try
@@ -107,13 +108,14 @@ public class MapData
         dirAccess.MakeDirRecursive($"maps/tplg/{Id}");
         dirAccess.MakeDirRecursive($"maps/light/{Id}");
         dirAccess.MakeDirRecursive($"maps/gfx/{Id}");
-        dirAccess.MakeDirRecursive($"maps/fight/{Id}");
+        if (Fight != null)
+            dirAccess.MakeDirRecursive($"maps/fight/{Id}");
         dirAccess.MakeDirRecursive($"maps/env/{Id}");
         
         Topology.Save($"{path}/maps/tplg/{Id}");
         Light.Save($"{path}/maps/light/{Id}");
         Gfx.Save($"{path}/maps/gfx/{Id}");
-        Fight.Save($"{path}/maps/fight/{Id}");
+        Fight?.Save($"{path}/maps/fight/{Id}");
         Env.Save($"{path}/maps/env/{Id}");
         
         Topology.SaveJson($"{path}/json");

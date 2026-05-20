@@ -200,7 +200,7 @@ public partial class Tile : Sprite2D
 
     public void SetFightData(FightData fightData)
     {
-        if (PathData == null) 
+        if (PathData == null || fightData == null) 
             return;
         
         var (placement, bonus) = fightData.GetData(PathData.X, PathData.Y, PathData.Z);

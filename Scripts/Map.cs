@@ -162,8 +162,10 @@ public partial class Map : Node2D
             else
                 tile.Render3D();
         }
-        var fight = _mapData.Fight;
-        Center.SetCenter(fight.MapCenter.x, fight.MapCenter.y, _mapData.Topology.GetPathData(fight.MapCenter.x, fight.MapCenter.y));
+        var (centerX, centerY) = _mapData.Fight != null
+            ? (_mapData.Fight.MapCenter.x, _mapData.Fight.MapCenter.y)
+            : (8, 8);
+        Center.SetCenter(centerX, centerY, _mapData.Topology.GetPathData(centerX, centerY));
     }
 
     public void Undo(object sender, EventArgs e)
@@ -482,11 +484,14 @@ public partial class Map : Node2D
         }
         
         var topology = _mapData.Topology;
+        var (centerX, centerY) = _mapData.Fight != null
+            ? (_mapData.Fight.MapCenter.x, _mapData.Fight.MapCenter.y)
+            : (8, 8);
         var centerAdded = false;
         if (topology.InstanceSet.Maps.Count == 0)
         {
             Center = _tileScene.Instantiate<Tile>();
-            Center.SetCenter(_mapData.Fight.MapCenter.x, _mapData.Fight.MapCenter.y, null);
+            Center.SetCenter(centerX, centerY, null);
             _topology.AddChild(Center);
             return;
         }
@@ -504,11 +509,11 @@ public partial class Map : Node2D
                 tile.SetFightData(_mapData.Fight);
                 _topology.AddChild(tile);
 
-                if (x != _mapData.Fight.MapCenter.x || y != _mapData.Fight.MapCenter.y)
+                if (x != centerX || y != centerY)
                     continue;
                 
                 Center = _tileScene.Instantiate<Tile>();
-                Center.SetCenter(_mapData.Fight.MapCenter.x, _mapData.Fight.MapCenter.y, cellPathData);
+                Center.SetCenter(centerX, centerY, cellPathData);
                 _topology.AddChild(Center);
                 centerAdded = true;
             }
@@ -518,7 +523,7 @@ public partial class Map : Node2D
             return;
         
         Center = _tileScene.Instantiate<Tile>();
-        Center.SetCenter(_mapData.Fight.MapCenter.x, _mapData.Fight.MapCenter.y, null);
+        Center.SetCenter(centerX, centerY, null);
         _topology.AddChild(Center);
     }
 

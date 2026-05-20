@@ -18,6 +18,8 @@ public partial class Filter : Control
 
     public override void _Input(InputEvent @event)
     {
+        if (_modeButton.Disabled)
+            return;
         if (@event.IsActionPressed("gfx"))
             _OnModeSelected(0);
         else if (@event.IsActionPressed("topology"))
@@ -62,5 +64,10 @@ public partial class Filter : Control
         Mode = mode;
         _modeButton.Selected = (int)mode;
         FilterUpdated?.Invoke(this, EventArgs.Empty);
+    }
+
+    public void SetModeButtonEnabled(bool enabled)
+    {
+        _modeButton.Disabled = !enabled;
     }
 }

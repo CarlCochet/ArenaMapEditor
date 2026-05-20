@@ -157,6 +157,7 @@ public partial class Editor : Node2D
 		_filter.UpdateBiome(Enums.Biome.Global);
 		_filter.UpdateCategory(Enums.Category.Global);
 		_filter.UpdateMode(Enums.Mode.Gfx);
+		_filter.SetModeButtonEnabled(mapData.Fight != null);
 		_inspector.Reset();
 		_inspector.UpdateFight(mapData.Fight);
 	}
@@ -168,8 +169,10 @@ public partial class Editor : Node2D
         _filter.UpdateBiome(Enums.Biome.Global);
         _filter.UpdateCategory(Enums.Category.Global);
         _filter.UpdateMode(Enums.Mode.Gfx);
+        var mapData = GlobalData.Instance.Maps[$"{e.Id}"];
+        _filter.SetModeButtonEnabled(mapData?.Fight != null);
         _inspector.Reset();
-        _inspector.UpdateFight(GlobalData.Instance.Maps[$"{e.Id}"].Fight);
+        _inspector.UpdateFight(mapData?.Fight);
     }
 
 	private void _OnDirectorySelected(string dir)
@@ -203,23 +206,23 @@ public partial class Editor : Node2D
 		GlobalData.Instance.LoadElements($"{GlobalData.Instance.Settings.ArenaPath}/maps");
 		// GlobalData.Instance.LoadPlaylists($"{GlobalData.Instance.Settings.ArenaPath}/maps_sounds");
 
-		if (!dirAccess.DirExists($"{GlobalData.Instance.Settings.ArenaPath}/maps/fight"))
+		if (!dirAccess.DirExists($"{GlobalData.Instance.Settings.ArenaPath}/maps/gfx"))
 			return;
 
 		List<string> mapNames = [];
 		GlobalData.Instance.Maps.Clear();
 
-		using var fightDir = DirAccess.Open($"{GlobalData.Instance.Settings.ArenaPath}/maps/fight");
-		fightDir.ListDirBegin();
-		var name = fightDir.GetNext();
+		using var gfxDir = DirAccess.Open($"{GlobalData.Instance.Settings.ArenaPath}/maps/gfx");
+		gfxDir.ListDirBegin();
+		var name = gfxDir.GetNext();
 		while (name != "")
 		{
 			var mapName = name.EndsWith(".jar") ? name.Split(".")[0] : name;
 			mapNames.Add(mapName);
 			GlobalData.Instance.LoadMap(mapName);
-			name = fightDir.GetNext();
+			name = gfxDir.GetNext();
 		}
-		fightDir.ListDirEnd();
+		gfxDir.ListDirEnd();
 		_tools.SetMapOptions(mapNames);
 		GlobalData.Instance.SaveSettings();
 	}
@@ -241,7 +244,8 @@ public partial class Editor : Node2D
 		foreach (var map in GlobalData.Instance.Maps.Values)
 		{
 			map.Save(dir);
-			allMapsData.Add(map.Fight.GetSaveObject());
+			if (map.Fight != null)
+				allMapsData.Add(map.Fight.GetSaveObject());
 		}
 		GlobalData.Instance.SaveElements($"{dir}/maps");
 		// GlobalData.Instance.SavePlaylists($"{dir}/maps_sounds");
