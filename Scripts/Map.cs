@@ -34,6 +34,11 @@ public partial class Map : Node2D
     private bool _pressed;
     private (int x, int y) _lastCoords = (int.MinValue, int.MinValue);
     
+    private const double UndoInitialDelay = 0.4;
+    private const double UndoRepeatInterval = 0.08;
+    private bool _undoWasPressed, _redoWasPressed;
+    private double _undoNextRepeatTime, _redoNextRepeatTime;
+    
     public event EventHandler<GfxTileSelectedEventArgs> GfxTileSelected;
     public event EventHandler<TopologyTileSelectedEventArgs> TopologyTileSelected;
 
@@ -73,10 +78,32 @@ public partial class Map : Node2D
                 return;
             RegisterRemoveElement(SelectedElement);
         }
-        if (Input.IsActionJustPressed("undo"))
-            Undo(null, EventArgs.Empty);
-        if (Input.IsActionJustPressed("redo"))
-            Redo(null, EventArgs.Empty);
+        HandleRepeatAction("undo", ref _undoWasPressed, ref _undoNextRepeatTime, delta, Undo);
+        HandleRepeatAction("redo", ref _redoWasPressed, ref _redoNextRepeatTime, delta, Redo);
+    }
+
+    private void HandleRepeatAction(string action, ref bool wasPressed, ref double nextRepeatTime, double delta, EventHandler handler)
+    {
+        if (Input.IsActionPressed(action))
+        {
+            if (!wasPressed)
+            {
+                wasPressed = true;
+                nextRepeatTime = UndoInitialDelay;
+                handler(null, EventArgs.Empty);
+                return;
+            }
+            nextRepeatTime -= delta;
+            while (nextRepeatTime <= 0)
+            {
+                nextRepeatTime += UndoRepeatInterval;
+                handler(null, EventArgs.Empty);
+            }
+        }
+        else
+        {
+            wasPressed = false;
+        }
     }
 
     public override void _Input(InputEvent @event)
@@ -522,6 +549,8 @@ public partial class Map : Node2D
             Color = Colors.White,
             Colors = [1f, 1f, 1f]
         };
+        if (_mapData.Gfx.HasElement(element.CellX, element.CellY, element.CellZ, element.CommonData.GfxId))
+            return;
         RegisterAddElement(element);
     }
     
