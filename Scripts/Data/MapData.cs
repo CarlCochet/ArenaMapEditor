@@ -10,7 +10,7 @@ public class MapData
     public LightData Light { get; set; }
     public GfxData Gfx { get; set; }
     public FightData Fight { get; set; }
-    public EnvData Env { get; set; }
+    public EnvironmentData Environment { get; set; }
     public AmbianceData Ambiances { get; set; }
     public List<(int x, int y)> ValidPositions { get; set; }
     
@@ -27,7 +27,7 @@ public class MapData
         Light = new LightData(Id);
         Gfx = new GfxData(Id);
         Fight = new FightData(Id);
-        Env = new EnvData(Id);
+        Environment = new EnvironmentData(Id);
         Ambiances = new AmbianceData(Id);
     }
 
@@ -84,8 +84,8 @@ public class MapData
         
         try
         {
-            Env = new EnvData(Id);
-            Env.Load($"{path}/maps/env");
+            Environment = new EnvironmentData(Id);
+            Environment.Load($"{path}/maps/env");
         }
         catch (Exception e)
         {
@@ -116,7 +116,7 @@ public class MapData
         Light.Save($"{path}/maps/light/{Id}");
         Gfx.Save($"{path}/maps/gfx/{Id}");
         Fight?.Save($"{path}/maps/fight/{Id}");
-        Env.Save($"{path}/maps/env/{Id}");
+        Environment.Save($"{path}/maps/env/{Id}");
         
         Topology.SaveJson($"{path}/json");
         // SaveAmbiance($"{path}/maps_sounds");

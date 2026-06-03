@@ -6,13 +6,13 @@ using System.IO.Compression;
 using System.Linq;
 using FileAccess = Godot.FileAccess;
 
-public class EnvData
+public class EnvironmentData
 {
     public int Id { get; set; }
     public List<Partition> Partitions { get; set; } = [];
     public Dictionary<long, Partition> PartitionsMap { get; set; } = new();
 
-    public EnvData(string id)
+    public EnvironmentData(string id)
     {
         if (!int.TryParse(id, out var worldId))
             return;
