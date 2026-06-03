@@ -181,6 +181,10 @@ public class GfxData
     public bool ElementExists(Element element) => Partitions.Any(p => p.Elements.Contains(element));
 
     public bool HasElementAt(int x, int y) => Partitions.Any(p => p.Elements.Exists(e => e.CellX == x && e.CellY == y));
+
+    public bool HasElement(int cellX, int cellY, short cellZ, int gfxId) =>
+        Partitions.SelectMany(p => p.Elements)
+            .Any(e => e.CellX == cellX && e.CellY == cellY && e.CellZ == cellZ && e.CommonData.GfxId == gfxId);
     
     private void CleanupDuplicates()
     {
