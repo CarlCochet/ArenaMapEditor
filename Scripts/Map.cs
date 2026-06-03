@@ -2,6 +2,7 @@ using Godot;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ArenaMapEditor.Scripts;
 
 public partial class Map : Node2D
 {
@@ -15,6 +16,7 @@ public partial class Map : Node2D
     
     private MultiMeshMapRenderer _multiMeshRenderer;
     [Export] private TopologyRenderer _topology;
+    [Export] private EnvironmentRenderer _environmentRenderer;
     [Export] private Node2D _light;
     [Export] private Sprite2D _grid;
     [Export] private Sprite2D _grid2;
@@ -317,6 +319,10 @@ public partial class Map : Node2D
             case Enums.Mode.Light:
                 _light.Visible = true;
                 break;
+            case Enums.Mode.Environment:
+                _multiMeshRenderer.Visible = true;
+                _environmentRenderer.Visible = true;
+                break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(mode), mode, null);
         }
@@ -331,6 +337,7 @@ public partial class Map : Node2D
         LoadGfx();
         LoadTopology();
         LoadLight();
+        LoadEnvironment();
         UpdateDisplay(Enums.Mode.Gfx);
     }
 
@@ -410,6 +417,13 @@ public partial class Map : Node2D
         var centerPath = _mapData.Topology.GetPathData(centerX, centerY);
 
         _topology.LoadTopology(topology, centerX, centerY, centerPath, _mapData.Fight);
+    }
+
+    private void LoadEnvironment()
+    {
+        UnselectAll();
+        var environment = _mapData.Environment;
+        // _environmentRenderer.LoadEnvironment(environment);
     }
 
     private void LoadLight()

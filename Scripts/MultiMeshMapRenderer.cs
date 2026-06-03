@@ -91,7 +91,7 @@ public partial class MultiMeshMapRenderer : MultiMeshInstance2D
 		for (var i = _elementList.Count - 1; i >= 0; i--)
 		{
 			var (_, element) = _elementList[i];
-			if (ignoreIds.Contains(element.CommonData.GfxId))
+			if (Array.IndexOf(ignoreIds, element.CommonData.GfxId) >= ignoreIds.GetLowerBound(0))
 				continue;
 			if (!IsValidPixel(element, position))
 				continue;
