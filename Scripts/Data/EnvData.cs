@@ -94,6 +94,126 @@ public class EnvData
         }
     }
 
+    public List<Element> GetElementsAt(int globalX, int globalY)
+    {
+        var result = new List<Element>();
+        foreach (var partition in Partitions)
+        {
+            var partGlobalX = partition.X * Partition.ChunkSize;
+            var partGlobalY = partition.Y * Partition.ChunkSize;
+            var localX = (sbyte)(globalX - partGlobalX);
+            var localY = (sbyte)(globalY - partGlobalY);
+
+            if (partition.ParticleData != null)
+                result.AddRange(partition.ParticleData.Where(p => p.X == localX && p.Y == localY));
+            if (partition.Sounds != null)
+                result.AddRange(partition.Sounds.Where(s => s.X == localX && s.Y == localY));
+            if (partition.InteractiveElements != null)
+                result.AddRange(partition.InteractiveElements.Where(ie => ie.X == localX && ie.Y == localY));
+            if (partition.DynamicElements != null)
+                result.AddRange(partition.DynamicElements.Where(de => de.X == localX && de.Y == localY));
+        }
+        return result;
+    }
+
+    public void AddElement(int globalX, int globalY, Element element)
+    {
+        var partX = (int)Math.Floor((double)globalX / Partition.ChunkSize);
+        var partY = (int)Math.Floor((double)globalY / Partition.ChunkSize);
+        element.X = (sbyte)(globalX - partX * Partition.ChunkSize);
+        element.Y = (sbyte)(globalY - partY * Partition.ChunkSize);
+
+        var partition = GetOrCreatePartition(partX, partY);
+        switch (element)
+        {
+            case ParticleDef p:
+                partition.ParticleData = (partition.ParticleData ?? []).Append(p).ToArray();
+                break;
+            case Sound s:
+                partition.Sounds = (partition.Sounds ?? []).Append(s).ToArray();
+                break;
+            case InteractiveElement ie:
+                partition.InteractiveElements = (partition.InteractiveElements ?? []).Append(ie).ToArray();
+                break;
+            case DynamicElement de:
+                partition.DynamicElements = (partition.DynamicElements ?? []).Append(de).ToArray();
+                break;
+        }
+    }
+
+    public bool RemoveElement(int globalX, int globalY, Element element)
+    {
+        var partX = (int)Math.Floor((double)globalX / Partition.ChunkSize);
+        var partY = (int)Math.Floor((double)globalY / Partition.ChunkSize);
+
+        var partition = Partitions.FirstOrDefault(p => p.X == partX && p.Y == partY);
+        if (partition == null)
+            return false;
+
+        bool removed = false;
+        switch (element)
+        {
+            case ParticleDef p:
+                if (partition.ParticleData != null)
+                {
+                    var list = partition.ParticleData.ToList();
+                    removed = list.Remove(p);
+                    partition.ParticleData = list.ToArray();
+                }
+                break;
+            case Sound s:
+                if (partition.Sounds != null)
+                {
+                    var list = partition.Sounds.ToList();
+                    removed = list.Remove(s);
+                    partition.Sounds = list.ToArray();
+                }
+                break;
+            case InteractiveElement ie:
+                if (partition.InteractiveElements != null)
+                {
+                    var list = partition.InteractiveElements.ToList();
+                    removed = list.Remove(ie);
+                    partition.InteractiveElements = list.ToArray();
+                }
+                break;
+                case DynamicElement de:
+                if (partition.DynamicElements != null)
+                {
+                    var list = partition.DynamicElements.ToList();
+                    removed = list.Remove(de);
+                    partition.DynamicElements = list.ToArray();
+                }
+                break;
+        }
+
+        if (removed)
+            RemovePartitionIfEmpty(partition);
+
+        return removed;
+    }
+
+    private Partition GetOrCreatePartition(int partX, int partY)
+    {
+        var partition = Partitions.FirstOrDefault(p => p.X == partX && p.Y == partY);
+        if (partition != null)
+            return partition;
+
+        partition = new Partition(Id) { X = (short)partX, Y = (short)partY };
+        Partitions.Add(partition);
+        return partition;
+    }
+
+    private void RemovePartitionIfEmpty(Partition partition)
+    {
+        var hasElements = (partition.ParticleData != null && partition.ParticleData.Length > 0)
+            || (partition.Sounds != null && partition.Sounds.Length > 0)
+            || (partition.InteractiveElements != null && partition.InteractiveElements.Length > 0)
+            || (partition.DynamicElements != null && partition.DynamicElements.Length > 0);
+        if (!hasElements)
+            Partitions.Remove(partition);
+    }
+
     public class Partition(int id)
     {
         public int Id { get; set; } = id;
@@ -108,7 +228,7 @@ public class EnvData
         public InteractiveElement[] InteractiveElements { get; set; }
         public DynamicElement[] DynamicElements { get; set; }
         
-        private const int ChunkSize = 18;
+        public const int ChunkSize = 18;
 
         public void Load(ExtendedDataInputStream reader)
         {
@@ -402,14 +522,14 @@ public class EnvData
         {
             writer.WriteLong(Id);
             writer.WriteShort(Type);
-            writer.WriteByte(_viewCount);
+            writer.WriteByte((sbyte)Views.Length);
 
             foreach (var view in Views)
             {
                 writer.WriteInt(view);
             }
             
-            writer.WriteShort(_dataLength);
+            writer.WriteShort((short)Data.Length);
             writer.WriteBytes(Data);
             writer.WriteBooleanBit(ClientOnly);
             writer.WriteShort(LandmarkType);

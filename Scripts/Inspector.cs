@@ -1,5 +1,7 @@
 using Godot;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 public partial class Inspector : Control
 {
@@ -53,19 +55,23 @@ public partial class Inspector : Control
     [Export] private SpinBox _envX;
     [Export] private SpinBox _envY;
     [Export] private SpinBox _envZ;
+    [Export] private VBoxContainer _particleContainer;
     [Export] private SpinBox _particleSystemId;
     [Export] private SpinBox _particleLevel;
     [Export] private SpinBox _particleOffsetX;
     [Export] private SpinBox _particleOffsetY;
     [Export] private SpinBox _particleOffsetZ;
     [Export] private SpinBox _particleLoD;
+    [Export] private VBoxContainer _soundContainer;
     [Export] private SpinBox _soundSoundId;
+    [Export] private VBoxContainer _interactiveContainer;
     [Export] private SpinBox _interactiveId;
     [Export] private SpinBox _interactiveType;
     [Export] private LineEdit _interactiveViews;
     [Export] private LineEdit _interactiveData;
     [Export] private CheckBox _interactiveClientOnly;
     [Export] private SpinBox _interactiveLandmarkType;
+    [Export] private VBoxContainer _dynamicContainer;
     [Export] private SpinBox _dynamicId;
     [Export] private SpinBox _dynamicGfxId;
     [Export] private SpinBox _dynamicType;
@@ -75,6 +81,9 @@ public partial class Inspector : Control
     private TopologyData.CellPathData _pathData;
     private TopologyData.CellVisibilityData _visibilityData;
     private FightData _fightData;
+
+    private List<EnvData.Element> _envElements;
+    private int _currentEnvIndex;
     
     private bool _suppressSignals;
 
@@ -82,6 +91,7 @@ public partial class Inspector : Control
     public event EventHandler<TopologyUpdatedEventArgs> TopologyUpdated;
     public event EventHandler<FightUpdatedEventArgs> FightUpdated;
     public event EventHandler<bool> Topo2DToggled;
+    public event EventHandler<EnvElementUpdatedEventArgs> EnvElementUpdated;
 
     public override void _Ready()
     {
@@ -109,6 +119,28 @@ public partial class Inspector : Control
         _bonus.ItemSelected += _OnBonusChanged;
         _centerX.ValueChanged += _OnCenterXChanged;
         _centerY.ValueChanged += _OnCenterYChanged;
+        
+        _elements.ValueChanged += _OnElementsIndexChanged;
+        _addElement.Pressed += _OnEnvAddElement;
+        _removeElement.Pressed += _OnEnvRemoveElement;
+        _envZ.ValueChanged += _OnEnvZChanged;
+        _particleSystemId.ValueChanged += _OnParticleSystemIdChanged;
+        _particleLevel.ValueChanged += _OnParticleLevelChanged;
+        _particleOffsetX.ValueChanged += _OnParticleOffsetXChanged;
+        _particleOffsetY.ValueChanged += _OnParticleOffsetYChanged;
+        _particleOffsetZ.ValueChanged += _OnParticleOffsetZChanged;
+        _particleLoD.ValueChanged += _OnParticleLoDChanged;
+        _soundSoundId.ValueChanged += _OnSoundSoundIdChanged;
+        _interactiveId.ValueChanged += _OnInteractiveIdChanged;
+        _interactiveType.ValueChanged += _OnInteractiveTypeChanged;
+        _interactiveViews.TextChanged += _OnInteractiveViewsChanged;
+        _interactiveData.TextChanged += _OnInteractiveDataChanged;
+        _interactiveClientOnly.Toggled += _OnInteractiveClientOnlyToggled;
+        _interactiveLandmarkType.ValueChanged += _OnInteractiveLandmarkTypeChanged;
+        _dynamicId.ValueChanged += _OnDynamicIdChanged;
+        _dynamicGfxId.ValueChanged += _OnDynamicGfxIdChanged;
+        _dynamicType.ValueChanged += _OnDynamicTypeChanged;
+        _dynamicDirection.ValueChanged += _OnDynamicDirectionChanged;
     }
     
     public override void _Input(InputEvent @event)
@@ -276,10 +308,17 @@ public partial class Inspector : Control
             case Enums.Mode.Gfx:
                 _gfxContainer.Visible = true;
                 _topologyContainer.Visible = false;
+                _environmentContainer.Visible = false;
                 break;
             case Enums.Mode.Topology:
                 _gfxContainer.Visible = false;
                 _topologyContainer.Visible = true;
+                _environmentContainer.Visible = false;
+                break;
+            case Enums.Mode.Environment:
+                _gfxContainer.Visible = false;
+                _topologyContainer.Visible = false;
+                _environmentContainer.Visible = true;
                 break;
         }
     }
@@ -552,6 +591,493 @@ public partial class Inspector : Control
         _OnZChanged(short.MinValue);
     }
 
+    public void UpdateEnv(List<EnvData.Element> elements, int index)
+    {
+        _envElements = elements;
+        _suppressSignals = true;
+
+        if (elements.Count > 0)
+        {
+            _elements.MinValue = 0;
+            _elements.MaxValue = elements.Count - 1;
+            _elements.Value = index;
+        }
+
+        _currentEnvIndex = index;
+        DisplayEnvElement();
+        _suppressSignals = false;
+    }
+
+    private void DisplayEnvElement()
+    {
+        if (_envElements == null || _envElements.Count == 0 || _currentEnvIndex >= _envElements.Count)
+        {
+            ClearEnvDisplay();
+            return;
+        }
+
+        var element = _envElements[_currentEnvIndex];
+        _envX.Value = element.X;
+        _envY.Value = element.Y;
+        _envZ.Value = element.Z;
+
+        _particleContainer.Visible = false;
+        _soundContainer.Visible = false;
+        _interactiveContainer.Visible = false;
+        _dynamicContainer.Visible = false;
+
+        switch (element)
+        {
+            case EnvData.ParticleDef p:
+                _particleContainer.Visible = true;
+                _particleSystemId.Value = p.SystemId;
+                _particleLevel.Value = p.Level;
+                _particleOffsetX.Value = p.OffsetX;
+                _particleOffsetY.Value = p.OffsetY;
+                _particleOffsetZ.Value = p.OffsetZ;
+                _particleLoD.Value = p.LoD;
+                break;
+            case EnvData.Sound s:
+                _soundContainer.Visible = true;
+                _soundSoundId.Value = s.SoundId;
+                break;
+            case EnvData.InteractiveElement ie:
+                _interactiveContainer.Visible = true;
+                _interactiveId.Value = ie.Id;
+                _interactiveType.Value = ie.Type;
+                _interactiveViews.Text = string.Join(",", ie.Views ?? []);
+                _interactiveData.Text = string.Join(",", (ie.Data ?? []).Select(b => b.ToString()));
+                _interactiveClientOnly.ButtonPressed = ie.ClientOnly;
+                _interactiveLandmarkType.Value = ie.LandmarkType;
+                break;
+            case EnvData.DynamicElement de:
+                _dynamicContainer.Visible = true;
+                _dynamicId.Value = de.Id;
+                _dynamicGfxId.Value = de.GfxId;
+                _dynamicType.Value = de.Type;
+                _dynamicDirection.Value = de.Direction;
+                break;
+        }
+    }
+
+    private void ClearEnvDisplay()
+    {
+        _envX.Value = 0;
+        _envY.Value = 0;
+        _envZ.Value = 0;
+        _elements.MinValue = 0;
+        _elements.MaxValue = 0;
+        _elements.Value = 0;
+        _particleContainer.Visible = false;
+        _soundContainer.Visible = false;
+        _interactiveContainer.Visible = false;
+        _dynamicContainer.Visible = false;
+    }
+
+    private void FireEnvUpdate(EnvData.Element oldElement, EnvData.Element newElement)
+    {
+        EnvElementUpdated?.Invoke(this, new EnvElementUpdatedEventArgs(oldElement, newElement, _currentEnvIndex));
+    }
+
+    private EnvData.Element CopyEnvElement(EnvData.Element source)
+    {
+        switch (source)
+        {
+            case EnvData.ParticleDef p:
+                return new EnvData.ParticleDef
+                {
+                    X = p.X, Y = p.Y, Z = p.Z,
+                    SystemId = p.SystemId, Level = p.Level,
+                    OffsetX = p.OffsetX, OffsetY = p.OffsetY, OffsetZ = p.OffsetZ, LoD = p.LoD
+                };
+            case EnvData.Sound s:
+                return new EnvData.Sound { X = s.X, Y = s.Y, Z = s.Z, SoundId = s.SoundId };
+            case EnvData.InteractiveElement ie:
+                return new EnvData.InteractiveElement
+                {
+                    X = ie.X, Y = ie.Y, Z = ie.Z,
+                    Id = ie.Id, Type = ie.Type,
+                    Views = ie.Views != null ? (int[])ie.Views.Clone() : new int[0],
+                    Data = ie.Data != null ? (sbyte[])ie.Data.Clone() : new sbyte[0],
+                    ClientOnly = ie.ClientOnly, LandmarkType = ie.LandmarkType
+                };
+            case EnvData.DynamicElement de:
+                return new EnvData.DynamicElement
+                {
+                    X = de.X, Y = de.Y, Z = de.Z,
+                    Id = de.Id, GfxId = de.GfxId, Type = de.Type, Direction = de.Direction
+                };
+            default:
+                return null;
+        }
+    }
+
+    private void _OnElementsIndexChanged(double value)
+    {
+        if (_suppressSignals || _envElements == null)
+            return;
+        _currentEnvIndex = (int)value;
+        _suppressSignals = true;
+        DisplayEnvElement();
+        _suppressSignals = false;
+    }
+
+    private void _OnEnvAddElement()
+    {
+        EnvElementUpdated?.Invoke(this, new EnvElementUpdatedEventArgs(null, null, -1));
+    }
+
+    private void _OnEnvRemoveElement()
+    {
+        if (_envElements == null || _currentEnvIndex >= _envElements.Count)
+            return;
+        EnvElementUpdated?.Invoke(this, new EnvElementUpdatedEventArgs(
+            _envElements[_currentEnvIndex], null, _currentEnvIndex));
+    }
+
+    private void _OnEnvZChanged(double value)
+    {
+        if (_suppressSignals || _envElements == null || _currentEnvIndex >= _envElements.Count)
+            return;
+        var newElement = CopyEnvElement(_envElements[_currentEnvIndex]);
+        if (newElement == null) return;
+        newElement.Z = (short)value;
+        FireEnvUpdate(_envElements[_currentEnvIndex], newElement);
+    }
+
+    private void _OnParticleSystemIdChanged(double value)
+    {
+        if (_suppressSignals || _envElements == null || _currentEnvIndex >= _envElements.Count) return;
+        var current = _envElements[_currentEnvIndex];
+        EnvData.Element newElement;
+        if (current is EnvData.ParticleDef p)
+        {
+            newElement = new EnvData.ParticleDef
+            {
+                X = p.X, Y = p.Y, Z = p.Z, SystemId = (int)value,
+                Level = p.Level, OffsetX = p.OffsetX, OffsetY = p.OffsetY, OffsetZ = p.OffsetZ, LoD = p.LoD
+            };
+        }
+        else return;
+        FireEnvUpdate(current, newElement);
+    }
+
+    private void _OnParticleLevelChanged(double value)
+    {
+        if (_suppressSignals || _envElements == null || _currentEnvIndex >= _envElements.Count) return;
+        var current = _envElements[_currentEnvIndex];
+        if (current is not EnvData.ParticleDef p) return;
+        var newElement = new EnvData.ParticleDef
+        {
+            X = p.X, Y = p.Y, Z = p.Z, SystemId = p.SystemId,
+            Level = (sbyte)value, OffsetX = p.OffsetX, OffsetY = p.OffsetY, OffsetZ = p.OffsetZ, LoD = p.LoD
+        };
+        FireEnvUpdate(current, newElement);
+    }
+
+    private void _OnParticleOffsetXChanged(double value)
+    {
+        if (_suppressSignals || _envElements == null || _currentEnvIndex >= _envElements.Count) return;
+        var current = _envElements[_currentEnvIndex];
+        if (current is not EnvData.ParticleDef p) return;
+        var newElement = new EnvData.ParticleDef
+        {
+            X = p.X, Y = p.Y, Z = p.Z, SystemId = p.SystemId,
+            Level = p.Level, OffsetX = (sbyte)value, OffsetY = p.OffsetY, OffsetZ = p.OffsetZ, LoD = p.LoD
+        };
+        FireEnvUpdate(current, newElement);
+    }
+
+    private void _OnParticleOffsetYChanged(double value)
+    {
+        if (_suppressSignals || _envElements == null || _currentEnvIndex >= _envElements.Count) return;
+        var current = _envElements[_currentEnvIndex];
+        if (current is not EnvData.ParticleDef p) return;
+        var newElement = new EnvData.ParticleDef
+        {
+            X = p.X, Y = p.Y, Z = p.Z, SystemId = p.SystemId,
+            Level = p.Level, OffsetX = p.OffsetX, OffsetY = (sbyte)value, OffsetZ = p.OffsetZ, LoD = p.LoD
+        };
+        FireEnvUpdate(current, newElement);
+    }
+
+    private void _OnParticleOffsetZChanged(double value)
+    {
+        if (_suppressSignals || _envElements == null || _currentEnvIndex >= _envElements.Count) return;
+        var current = _envElements[_currentEnvIndex];
+        if (current is not EnvData.ParticleDef p) return;
+        var newElement = new EnvData.ParticleDef
+        {
+            X = p.X, Y = p.Y, Z = p.Z, SystemId = p.SystemId,
+            Level = p.Level, OffsetX = p.OffsetX, OffsetY = p.OffsetY, OffsetZ = (sbyte)value, LoD = p.LoD
+        };
+        FireEnvUpdate(current, newElement);
+    }
+
+    private void _OnParticleLoDChanged(double value)
+    {
+        if (_suppressSignals || _envElements == null || _currentEnvIndex >= _envElements.Count) return;
+        var current = _envElements[_currentEnvIndex];
+        if (current is not EnvData.ParticleDef p) return;
+        var newElement = new EnvData.ParticleDef
+        {
+            X = p.X, Y = p.Y, Z = p.Z, SystemId = p.SystemId,
+            Level = p.Level, OffsetX = p.OffsetX, OffsetY = p.OffsetY, OffsetZ = p.OffsetZ, LoD = (sbyte)value
+        };
+        FireEnvUpdate(current, newElement);
+    }
+
+    private void _OnSoundSoundIdChanged(double value)
+    {
+        if (_suppressSignals || _envElements == null || _currentEnvIndex >= _envElements.Count) return;
+        var current = _envElements[_currentEnvIndex];
+        EnvData.Element newElement;
+        if (current is EnvData.Sound s)
+        {
+            newElement = new EnvData.Sound { X = s.X, Y = s.Y, Z = s.Z, SoundId = (int)value };
+        }
+        else if (current is EnvData.ParticleDef)
+        {
+            newElement = new EnvData.Sound { X = current.X, Y = current.Y, Z = current.Z, SoundId = (int)value };
+        }
+        else return;
+        FireEnvUpdate(current, newElement);
+    }
+
+    private void _OnInteractiveIdChanged(double value)
+    {
+        if (_suppressSignals || _envElements == null || _currentEnvIndex >= _envElements.Count) return;
+        var current = _envElements[_currentEnvIndex];
+        EnvData.InteractiveElement newElement;
+        if (current is EnvData.InteractiveElement ie)
+        {
+            newElement = new EnvData.InteractiveElement
+            {
+                X = ie.X, Y = ie.Y, Z = ie.Z, Id = (long)value,
+                Type = ie.Type,
+                Views = ie.Views != null ? (int[])ie.Views.Clone() : new int[0],
+                Data = ie.Data != null ? (sbyte[])ie.Data.Clone() : new sbyte[0],
+                ClientOnly = ie.ClientOnly, LandmarkType = ie.LandmarkType
+            };
+        }
+        else
+        {
+            newElement = new EnvData.InteractiveElement
+                { X = current.X, Y = current.Y, Z = current.Z, Id = (long)value, Views = new int[0], Data = new sbyte[0] };
+        }
+        FireEnvUpdate(current, newElement);
+    }
+
+    private void _OnInteractiveTypeChanged(double value)
+    {
+        if (_suppressSignals || _envElements == null || _currentEnvIndex >= _envElements.Count) return;
+        var current = _envElements[_currentEnvIndex];
+        EnvData.InteractiveElement newElement;
+        if (current is EnvData.InteractiveElement ie)
+        {
+            newElement = new EnvData.InteractiveElement
+            {
+                X = ie.X, Y = ie.Y, Z = ie.Z, Id = ie.Id,
+                Type = (short)value,
+                Views = ie.Views != null ? (int[])ie.Views.Clone() : new int[0],
+                Data = ie.Data != null ? (sbyte[])ie.Data.Clone() : new sbyte[0],
+                ClientOnly = ie.ClientOnly, LandmarkType = ie.LandmarkType
+            };
+        }
+        else
+        {
+            newElement = new EnvData.InteractiveElement
+                { X = current.X, Y = current.Y, Z = current.Z, Type = (short)value, Views = new int[0], Data = new sbyte[0] };
+        }
+        FireEnvUpdate(current, newElement);
+    }
+
+    private void _OnInteractiveViewsChanged(string newText)
+    {
+        if (_suppressSignals || _envElements == null || _currentEnvIndex >= _envElements.Count) return;
+        var current = _envElements[_currentEnvIndex];
+        var parts = newText.Split(',', StringSplitOptions.RemoveEmptyEntries);
+        var views = new int[parts.Length];
+        for (var i = 0; i < parts.Length; i++)
+            int.TryParse(parts[i].Trim(), out views[i]);
+        EnvData.InteractiveElement newElement;
+        if (current is EnvData.InteractiveElement ie)
+        {
+            newElement = new EnvData.InteractiveElement
+            {
+                X = ie.X, Y = ie.Y, Z = ie.Z, Id = ie.Id,
+                Type = ie.Type, Views = views,
+                Data = ie.Data != null ? (sbyte[])ie.Data.Clone() : new sbyte[0],
+                ClientOnly = ie.ClientOnly, LandmarkType = ie.LandmarkType
+            };
+        }
+        else
+        {
+            newElement = new EnvData.InteractiveElement
+                { X = current.X, Y = current.Y, Z = current.Z, Views = views, Data = new sbyte[0] };
+        }
+        FireEnvUpdate(current, newElement);
+    }
+
+    private void _OnInteractiveDataChanged(string newText)
+    {
+        if (_suppressSignals || _envElements == null || _currentEnvIndex >= _envElements.Count) return;
+        var current = _envElements[_currentEnvIndex];
+        var parts = newText.Split(',', StringSplitOptions.RemoveEmptyEntries);
+        var data = new sbyte[parts.Length];
+        for (var i = 0; i < parts.Length; i++)
+            sbyte.TryParse(parts[i].Trim(), out data[i]);
+        EnvData.InteractiveElement newElement;
+        if (current is EnvData.InteractiveElement ie)
+        {
+            newElement = new EnvData.InteractiveElement
+            {
+                X = ie.X, Y = ie.Y, Z = ie.Z, Id = ie.Id,
+                Type = ie.Type,
+                Views = ie.Views != null ? (int[])ie.Views.Clone() : new int[0],
+                Data = data, ClientOnly = ie.ClientOnly, LandmarkType = ie.LandmarkType
+            };
+        }
+        else
+        {
+            newElement = new EnvData.InteractiveElement
+                { X = current.X, Y = current.Y, Z = current.Z, Views = new int[0], Data = data };
+        }
+        FireEnvUpdate(current, newElement);
+    }
+
+    private void _OnInteractiveClientOnlyToggled(bool toggledOn)
+    {
+        if (_suppressSignals || _envElements == null || _currentEnvIndex >= _envElements.Count) return;
+        var current = _envElements[_currentEnvIndex];
+        EnvData.InteractiveElement newElement;
+        if (current is EnvData.InteractiveElement ie)
+        {
+            newElement = new EnvData.InteractiveElement
+            {
+                X = ie.X, Y = ie.Y, Z = ie.Z, Id = ie.Id,
+                Type = ie.Type,
+                Views = ie.Views != null ? (int[])ie.Views.Clone() : new int[0],
+                Data = ie.Data != null ? (sbyte[])ie.Data.Clone() : new sbyte[0],
+                ClientOnly = toggledOn, LandmarkType = ie.LandmarkType
+            };
+        }
+        else
+        {
+            newElement = new EnvData.InteractiveElement
+                { X = current.X, Y = current.Y, Z = current.Z, Views = new int[0], Data = new sbyte[0], ClientOnly = toggledOn };
+        }
+        FireEnvUpdate(current, newElement);
+    }
+
+    private void _OnInteractiveLandmarkTypeChanged(double value)
+    {
+        if (_suppressSignals || _envElements == null || _currentEnvIndex >= _envElements.Count) return;
+        var current = _envElements[_currentEnvIndex];
+        EnvData.InteractiveElement newElement;
+        if (current is EnvData.InteractiveElement ie)
+        {
+            newElement = new EnvData.InteractiveElement
+            {
+                X = ie.X, Y = ie.Y, Z = ie.Z, Id = ie.Id,
+                Type = ie.Type,
+                Views = ie.Views != null ? (int[])ie.Views.Clone() : new int[0],
+                Data = ie.Data != null ? (sbyte[])ie.Data.Clone() : new sbyte[0],
+                ClientOnly = ie.ClientOnly, LandmarkType = (short)value
+            };
+        }
+        else
+        {
+            newElement = new EnvData.InteractiveElement
+                { X = current.X, Y = current.Y, Z = current.Z, Views = new int[0], Data = new sbyte[0], LandmarkType = (short)value };
+        }
+        FireEnvUpdate(current, newElement);
+    }
+
+    private void _OnDynamicIdChanged(double value)
+    {
+        if (_suppressSignals || _envElements == null || _currentEnvIndex >= _envElements.Count) return;
+        var current = _envElements[_currentEnvIndex];
+        EnvData.DynamicElement newElement;
+        if (current is EnvData.DynamicElement de)
+        {
+            newElement = new EnvData.DynamicElement
+            {
+                X = de.X, Y = de.Y, Z = de.Z, Id = (int)value,
+                GfxId = de.GfxId, Type = de.Type, Direction = de.Direction
+            };
+        }
+        else
+        {
+            newElement = new EnvData.DynamicElement
+                { X = current.X, Y = current.Y, Z = current.Z, Id = (int)value };
+        }
+        FireEnvUpdate(current, newElement);
+    }
+
+    private void _OnDynamicGfxIdChanged(double value)
+    {
+        if (_suppressSignals || _envElements == null || _currentEnvIndex >= _envElements.Count) return;
+        var current = _envElements[_currentEnvIndex];
+        EnvData.DynamicElement newElement;
+        if (current is EnvData.DynamicElement de)
+        {
+            newElement = new EnvData.DynamicElement
+            {
+                X = de.X, Y = de.Y, Z = de.Z, Id = de.Id,
+                GfxId = (int)value, Type = de.Type, Direction = de.Direction
+            };
+        }
+        else
+        {
+            newElement = new EnvData.DynamicElement
+                { X = current.X, Y = current.Y, Z = current.Z, GfxId = (int)value };
+        }
+        FireEnvUpdate(current, newElement);
+    }
+
+    private void _OnDynamicTypeChanged(double value)
+    {
+        if (_suppressSignals || _envElements == null || _currentEnvIndex >= _envElements.Count) return;
+        var current = _envElements[_currentEnvIndex];
+        EnvData.DynamicElement newElement;
+        if (current is EnvData.DynamicElement de)
+        {
+            newElement = new EnvData.DynamicElement
+            {
+                X = de.X, Y = de.Y, Z = de.Z, Id = de.Id,
+                GfxId = de.GfxId, Type = (short)value, Direction = de.Direction
+            };
+        }
+        else
+        {
+            newElement = new EnvData.DynamicElement
+                { X = current.X, Y = current.Y, Z = current.Z, Type = (short)value };
+        }
+        FireEnvUpdate(current, newElement);
+    }
+
+    private void _OnDynamicDirectionChanged(double value)
+    {
+        if (_suppressSignals || _envElements == null || _currentEnvIndex >= _envElements.Count) return;
+        var current = _envElements[_currentEnvIndex];
+        EnvData.DynamicElement newElement;
+        if (current is EnvData.DynamicElement de)
+        {
+            newElement = new EnvData.DynamicElement
+            {
+                X = de.X, Y = de.Y, Z = de.Z, Id = de.Id,
+                GfxId = de.GfxId, Type = de.Type, Direction = (sbyte)value
+            };
+        }
+        else
+        {
+            newElement = new EnvData.DynamicElement
+                { X = current.X, Y = current.Y, Z = current.Z, Direction = (sbyte)value };
+        }
+        FireEnvUpdate(current, newElement);
+    }
+
     public class ElementUpdatedEventArgs(GfxData.Element oldElement, GfxData.Element newElement) : EventArgs
     {
         public GfxData.Element OldElement => oldElement;
@@ -569,5 +1095,12 @@ public partial class Inspector : Control
     {
         public FightData OldFightData => oldFightData;
         public FightData NewFightData => newFightData;
+    }
+
+    public class EnvElementUpdatedEventArgs(EnvData.Element oldElement, EnvData.Element newElement, int index) : EventArgs
+    {
+        public EnvData.Element OldElement => oldElement;
+        public EnvData.Element NewElement => newElement;
+        public int Index => index;
     }
 }

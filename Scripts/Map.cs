@@ -16,7 +16,7 @@ public partial class Map : Node2D
     private MultiMeshMapRenderer _multiMeshRenderer;
     [Export] private TopologyRenderer _topology;
     [Export] private Node2D _light;
-    [Export] private Node2D _environment;
+    [Export] private EnvironmentRenderer _environment;
     [Export] private Sprite2D _grid;
     [Export] private Sprite2D _grid2;
     [Export] private PlacementPreview _placementPreview;
@@ -40,6 +40,11 @@ public partial class Map : Node2D
     
     public event EventHandler<GfxTileSelectedEventArgs> GfxTileSelected;
     public event EventHandler<TopologyTileSelectedEventArgs> TopologyTileSelected;
+    public event EventHandler<EnvTileSelectedEventArgs> EnvTileSelected;
+
+    private List<EnvData.Element> _selectedEnvElements;
+    private int _selectedEnvX;
+    private int _selectedEnvY;
 
     public Vector2 SelectedTileGlobalPosition
     {
@@ -67,6 +72,8 @@ public partial class Map : Node2D
         _multiMeshRenderer.Setup(material);
         AddChild(_multiMeshRenderer);
         MoveChild(_multiMeshRenderer, 3);
+
+        _environment.Setup(GD.Load<CompressedTexture2D>("res://Assets/Placement/3.tgam.png"));
     }
 
     public override void _Process(double delta)
@@ -120,6 +127,9 @@ public partial class Map : Node2D
                 return;
             if (coords.x == _lastCoords.x && coords.y == _lastCoords.y)
                 return;
+
+            if (_mode == Enums.Mode.Environment)
+                return;
             
             _lastCoords = coords;
             switch (GlobalData.Instance.SelectedTool)
@@ -136,8 +146,12 @@ public partial class Map : Node2D
         {
             var globalPosition = GetGlobalMousePosition();
             _pressed = true;
-            
-            switch (GlobalData.Instance.SelectedTool)
+
+            if (_mode == Enums.Mode.Environment)
+            {
+                SelectTile(globalPosition);
+            }
+            else switch (GlobalData.Instance.SelectedTool)
             {
                 case Enums.Tool.Select:
                     SelectTile(globalPosition);
@@ -345,6 +359,10 @@ public partial class Map : Node2D
             case Enums.Mode.Light:
                 _light.Visible = true;
                 break;
+            case Enums.Mode.Environment:
+                _multiMeshRenderer.Visible = true;
+                _environment.Visible = true;
+                break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(mode), mode, null);
         }
@@ -359,6 +377,7 @@ public partial class Map : Node2D
         LoadGfx();
         LoadTopology();
         LoadLight();
+        _environment.LoadElements(_mapData.Env);
         UpdateDisplay(Enums.Mode.Gfx);
     }
 
@@ -503,6 +522,11 @@ public partial class Map : Node2D
             var cellIndex = _topology.GetCellIndexAt(position);
             SelectTopologyTile(cellIndex ?? -1);
         }
+        if (_mode == Enums.Mode.Environment)
+        {
+            var (x, y) = PositionToCoord(position, 0);
+            SelectEnvTile(x, y);
+        }
     }
 
     private void EraseTile(Vector2 position)
@@ -553,12 +577,15 @@ public partial class Map : Node2D
         _multiMeshRenderer.Visible = false;
         _light.Visible = false;
         _topology.Visible = false;
+        _environment.Visible = false;
+        UnselectEnvTile();
     }
 
     private void UnselectAll()
     {
         UnselectGfxElement();
         UnselectTopologyTile();
+        UnselectEnvTile();
     }
 
     private void UnselectGfxElement()
@@ -573,6 +600,122 @@ public partial class Map : Node2D
         SelectedTile = null;
     }
     
+    private void SelectEnvTile(int x, int y)
+    {
+        _selectedEnvX = x;
+        _selectedEnvY = y;
+        _selectedEnvElements = _mapData.Env.GetElementsAt(x, y);
+        EnvTileSelected?.Invoke(this, new EnvTileSelectedEventArgs(_selectedEnvElements, x, y, 0));
+    }
+
+    private void UnselectEnvTile()
+    {
+        _selectedEnvElements = null;
+        _selectedEnvX = 0;
+        _selectedEnvY = 0;
+    }
+
+    private void AddEnvElement(int globalX, int globalY, EnvData.Element element)
+    {
+        _mapData.Env.AddElement(globalX, globalY, element);
+    }
+
+    private void RemoveEnvElement(int globalX, int globalY, EnvData.Element element)
+    {
+        _mapData.Env.RemoveElement(globalX, globalY, element);
+    }
+
+    public void RegisterUpdateEnvElement(EnvData.Element oldElement, EnvData.Element newElement, int index)
+    {
+        if (_mapData == null)
+            return;
+
+        _undos.Push(new ReversibleAction(
+            Do: () =>
+            {
+                RemoveEnvElement(_selectedEnvX, _selectedEnvY, oldElement);
+                AddEnvElement(_selectedEnvX, _selectedEnvY, newElement);
+                RefreshEnvSelection(newElement);
+            },
+            Undo: () =>
+            {
+                RemoveEnvElement(_selectedEnvX, _selectedEnvY, newElement);
+                AddEnvElement(_selectedEnvX, _selectedEnvY, oldElement);
+                RefreshEnvSelection(oldElement);
+            }));
+        _redos.Clear();
+
+        RemoveEnvElement(_selectedEnvX, _selectedEnvY, oldElement);
+        AddEnvElement(_selectedEnvX, _selectedEnvY, newElement);
+        RefreshEnvSelection(newElement);
+    }
+
+    public void RegisterAddEnvElement()
+    {
+        if (_mapData == null)
+            return;
+
+        var element = new EnvData.ParticleDef { X = 0, Y = 0, Z = 0 };
+        AddEnvElement(_selectedEnvX, _selectedEnvY, element);
+
+        _undos.Push(new ReversibleAction(
+            Do: () =>
+            {
+                AddEnvElement(_selectedEnvX, _selectedEnvY, element);
+                RefreshEnvSelection(element);
+            },
+            Undo: () =>
+            {
+                RemoveEnvElement(_selectedEnvX, _selectedEnvY, element);
+                _environment.LoadElements(_mapData.Env);
+                _selectedEnvElements = _mapData.Env.GetElementsAt(_selectedEnvX, _selectedEnvY);
+                var idx = Math.Min(_selectedEnvElements.Count - 1, 0);
+                EnvTileSelected?.Invoke(this, new EnvTileSelectedEventArgs(_selectedEnvElements, _selectedEnvX, _selectedEnvY, idx));
+            }));
+        _redos.Clear();
+        RefreshEnvSelection(element);
+    }
+
+    public void RegisterRemoveEnvElement(int elementIndex)
+    {
+        if (_mapData == null || _selectedEnvElements == null || elementIndex >= _selectedEnvElements.Count)
+            return;
+
+        var element = _selectedEnvElements[elementIndex];
+        RemoveEnvElement(_selectedEnvX, _selectedEnvY, element);
+
+        _undos.Push(new ReversibleAction(
+            Do: () =>
+            {
+                RemoveEnvElement(_selectedEnvX, _selectedEnvY, element);
+                _environment.LoadElements(_mapData.Env);
+                _selectedEnvElements = _mapData.Env.GetElementsAt(_selectedEnvX, _selectedEnvY);
+                var idx = Math.Min(elementIndex, _selectedEnvElements.Count - 1);
+                EnvTileSelected?.Invoke(this, new EnvTileSelectedEventArgs(_selectedEnvElements, _selectedEnvX, _selectedEnvY, idx));
+            },
+            Undo: () =>
+            {
+                AddEnvElement(_selectedEnvX, _selectedEnvY, element);
+                RefreshEnvSelection(element);
+            }));
+        _redos.Clear();
+
+        _environment.LoadElements(_mapData.Env);
+        _selectedEnvElements = _mapData.Env.GetElementsAt(_selectedEnvX, _selectedEnvY);
+        var newIndex = Math.Min(elementIndex, _selectedEnvElements.Count - 1);
+        EnvTileSelected?.Invoke(this, new EnvTileSelectedEventArgs(_selectedEnvElements, _selectedEnvX, _selectedEnvY, newIndex));
+    }
+
+    private void RefreshEnvSelection(EnvData.Element element)
+    {
+        _environment.LoadElements(_mapData.Env);
+        _selectedEnvElements = _mapData.Env.GetElementsAt(_selectedEnvX, _selectedEnvY);
+        var newIndex = _selectedEnvElements.IndexOf(element);
+        if (newIndex < 0)
+            newIndex = Math.Min(_selectedEnvElements.Count - 1, 0);
+        EnvTileSelected?.Invoke(this, new EnvTileSelectedEventArgs(_selectedEnvElements, _selectedEnvX, _selectedEnvY, newIndex));
+    }
+
     public class GfxTileSelectedEventArgs(GfxData.Element element) : EventArgs
     {
         public GfxData.Element Element => element;
@@ -584,5 +727,17 @@ public partial class Map : Node2D
     {
         public TopologyData.CellPathData PathData => pathData;
         public TopologyData.CellVisibilityData VisibilityData => visibilityData;
+    }
+
+    public class EnvTileSelectedEventArgs(
+        List<EnvData.Element> elements,
+        int x,
+        int y,
+        int currentIndex) : EventArgs
+    {
+        public List<EnvData.Element> Elements => elements;
+        public int X => x;
+        public int Y => y;
+        public int CurrentIndex => currentIndex;
     }
 }

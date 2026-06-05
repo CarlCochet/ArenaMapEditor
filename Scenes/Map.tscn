@@ -6,6 +6,7 @@
 [ext_resource type="Script" uid="uid://7ix0ufsd4aym" path="res://Scripts/Camera.cs" id="2_iuwis"]
 [ext_resource type="Shader" uid="uid://bquweumyyhoro" path="res://Shaders/IsoGrid.gdshader" id="5_blgyc"]
 [ext_resource type="Shader" uid="uid://do2pck4fldh5r" path="res://Shaders/IsoGrid2.gdshader" id="6_36b2w"]
+[ext_resource type="Script" path="res://Scripts/EnvironmentRenderer.cs" id="8_envrn"]
 [ext_resource type="PackedScene" uid="uid://b5qe708gouwpk" path="res://Scenes/PlacementPreview.tscn" id="7_5t7yc"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_wj3mp"]
@@ -31,12 +32,12 @@ shader_parameter/elevation = 0.0
 [sub_resource type="CompressedTexture2D" id="CompressedTexture2D_g5138"]
 load_path = "res://.godot/imported/blackBackground.png-e8eafb64790ac4dfa3e369ac4f67a5b5.ctex"
 
-[node name="Map" type="Node2D" unique_id=1261587688 node_paths=PackedStringArray("CustomCamera", "_topology", "_environmentRenderer", "_light", "_grid", "_grid2", "_placementPreview")]
+[node name="Map" type="Node2D" unique_id=1261587688 node_paths=PackedStringArray("CustomCamera", "_topology", "_light", "_environment", "_grid", "_grid2", "_placementPreview")]
 script = ExtResource("1_h4evd")
 CustomCamera = NodePath("Camera")
 _topology = NodePath("Topology")
-_environmentRenderer = NodePath("Environment")
 _light = NodePath("Light")
+_environment = NodePath("Environment")
 _grid = NodePath("Grid")
 _grid2 = NodePath("Grid2")
 _placementPreview = NodePath("PlacementPreview")
@@ -73,6 +74,8 @@ script = ExtResource("2_ee4q7")
 modulate = Color(1, 1, 1, 0.5019608)
 
 [node name="Environment" type="Node2D" parent="." unique_id=1964721301]
+z_index = 2
+script = ExtResource("8_envrn")
 
 [node name="PlacementPreview" parent="." unique_id=13078219 instance=ExtResource("7_5t7yc")]
 visible = false

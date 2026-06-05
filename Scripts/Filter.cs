@@ -24,6 +24,8 @@ public partial class Filter : Control
             _OnModeSelected(0);
         else if (@event.IsActionPressed("topology"))
             _OnModeSelected(1);
+        else if (@event.IsActionPressed("environment"))
+            _OnModeSelected(3);
     }
 
     private void _OnBiomeSelected(int index)

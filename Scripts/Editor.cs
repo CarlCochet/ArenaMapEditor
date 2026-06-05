@@ -62,6 +62,17 @@ public partial class Editor : Node2D
 		
 		_map.GfxTileSelected += OnGfxTileSelected;
 		_map.TopologyTileSelected += OnTopologyTileSelected;
+		_map.EnvTileSelected += OnEnvTileSelected;
+		
+		_inspector.EnvElementUpdated += (_, e) =>
+		{
+			if (e.OldElement == null && e.NewElement == null)
+				_map.RegisterAddEnvElement();
+			else if (e.NewElement == null)
+				_map.RegisterRemoveEnvElement(e.Index);
+			else
+				_map.RegisterUpdateEnvElement(e.OldElement, e.NewElement, e.Index);
+		};
 		
 		GlobalData.Instance.LoadAssets();
 		_assetsPreview.DisplayAssets(_filter.Biome, _filter.Category, _filter.Mode);
@@ -108,6 +119,11 @@ public partial class Editor : Node2D
 	{
 		_inspector.UpdateTopology(e.PathData, e.VisibilityData);
 		_z = e.PathData.Z;
+	}
+	
+	private void OnEnvTileSelected(object sender, Map.EnvTileSelectedEventArgs e)
+	{
+		_inspector.UpdateEnv(e.Elements, e.CurrentIndex);
 	}
 
 	private void OnHighlightHeightToggled(object sender, Overlay.HighlightHeightToggledEventArgs e)

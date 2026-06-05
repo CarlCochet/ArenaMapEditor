@@ -26,7 +26,7 @@ font_size = 12
 [sub_resource type="LabelSettings" id="LabelSettings_mnv65"]
 font_size = 12
 
-[node name="Inspector" type="Control" unique_id=1401068884 node_paths=PackedStringArray("_cellX", "_cellY", "_cellZ", "_offsetX", "_offsetY", "_height", "_gfxId", "_order", "_hashcode", "_groupId", "_layerIndex", "_groupLayer", "_properties", "_sound", "_slope", "_shader", "_mask", "_walkable", "_occluder", "_flip", "_animated", "_color", "_topo2D", "_topoX", "_topoY", "_topoZ", "_topoHeight", "_cost", "_canMoveThrough", "_canViewThrough", "_murFinInfo", "_miscProperties", "_placement", "_bonus", "_gfxContainer", "_topologyContainer", "_centerX", "_centerY", "_addElement", "_removeElement", "_elements", "_environmentContainer", "_envX", "_envY", "_envZ", "_particleSystemId", "_particleLevel", "_particleOffsetX", "_particleOffsetY", "_particleOffsetZ", "_particleLoD", "_soundSoundId", "_interactiveId", "_interactiveType", "_interactiveViews", "_interactiveData", "_interactiveClientOnly", "_interactiveLandmarkType", "_dynamicId", "_dynamicGfxId", "_dynamicType", "_dynamicDirection")]
+[node name="Inspector" type="Control" unique_id=1401068884 node_paths=PackedStringArray("_cellX", "_cellY", "_cellZ", "_offsetX", "_offsetY", "_height", "_gfxId", "_order", "_hashcode", "_groupId", "_layerIndex", "_groupLayer", "_properties", "_sound", "_slope", "_shader", "_mask", "_walkable", "_occluder", "_flip", "_animated", "_color", "_topo2D", "_topoX", "_topoY", "_topoZ", "_topoHeight", "_cost", "_canMoveThrough", "_canViewThrough", "_murFinInfo", "_miscProperties", "_placement", "_bonus", "_gfxContainer", "_topologyContainer", "_centerX", "_centerY", "_addElement", "_removeElement", "_elements", "_environmentContainer", "_envX", "_envY", "_envZ", "_particleContainer", "_particleSystemId", "_particleLevel", "_particleOffsetX", "_particleOffsetY", "_particleOffsetZ", "_particleLoD", "_soundContainer", "_soundSoundId", "_interactiveContainer", "_interactiveId", "_interactiveType", "_interactiveViews", "_interactiveData", "_interactiveClientOnly", "_interactiveLandmarkType", "_dynamicContainer", "_dynamicId", "_dynamicGfxId", "_dynamicType", "_dynamicDirection")]
 custom_minimum_size = Vector2(250, 550)
 layout_mode = 3
 anchors_preset = 15
@@ -97,6 +97,10 @@ _dynamicId = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/Dyna
 _dynamicGfxId = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/DynamicElementContainer/GfxId/SpinBox")
 _dynamicType = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/DynamicElementContainer/Type/SpinBox")
 _dynamicDirection = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/DynamicElementContainer/Direction/SpinBox")
+_particleContainer = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/ParticleContainer")
+_soundContainer = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/SoundContainer")
+_interactiveContainer = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/InteractiveElementContainer")
+_dynamicContainer = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/DynamicElementContainer")
 
 [node name="ScrollContainer" type="ScrollContainer" parent="." unique_id=547638557]
 layout_mode = 1

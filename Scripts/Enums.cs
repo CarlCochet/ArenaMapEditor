@@ -59,6 +59,7 @@ public static class Enums
         Gfx = 0,
         Topology = 1,
         Light = 2,
+        Environment = 3,
     }
 
     public enum Direction
