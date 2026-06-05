@@ -524,8 +524,7 @@ public partial class Map : Node2D
         }
         if (_mode == Enums.Mode.Environment)
         {
-            var (x, y) = PositionToCoord(position, 0);
-            SelectEnvTile(x, y);
+            SelectEnvTileAtPosition(position);
         }
     }
 
@@ -600,6 +599,37 @@ public partial class Map : Node2D
         SelectedTile = null;
     }
     
+    private void SelectEnvTileAtPosition(Vector2 position)
+    {
+        var children = _environment.GetChildren();
+        for (var i = children.Count - 1; i >= 0; i--)
+        {
+            if (children[i] is not EnvMarker marker || marker.Texture == null)
+                continue;
+
+            var tex = marker.Texture;
+            var texSize = tex.GetSize();
+            var left = marker.Position.X - texSize.X * 0.5f;
+            var top = marker.Position.Y - texSize.Y * 0.5f;
+
+            if (position.X < left || position.X > left + texSize.X ||
+                position.Y < top || position.Y > top + texSize.Y)
+                continue;
+
+            var localX = (int)(position.X - left);
+            var localY = (int)(position.Y - top);
+
+            if (localX < 0 || localX >= texSize.X || localY < 0 || localY >= texSize.Y)
+                continue;
+
+            if (tex.GetImage().GetPixel(localX, localY).A <= 0.1f)
+                continue;
+
+            SelectEnvTile(marker.CellX, marker.CellY);
+            return;
+        }
+    }
+
     private void SelectEnvTile(int x, int y)
     {
         _selectedEnvX = x;

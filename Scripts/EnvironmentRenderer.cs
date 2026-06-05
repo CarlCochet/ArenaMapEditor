@@ -39,14 +39,14 @@ public partial class EnvironmentRenderer : Node2D
 
         foreach (var (x, y, z) in coords)
         {
-            var sprite = new Sprite2D();
-            sprite.Texture = _texture;
-            sprite.Centered = false;
-            sprite.Position = CoordToIso(x - 1, y, z);
-            sprite.SetMeta("env_x", x);
-            sprite.SetMeta("env_y", y);
-            sprite.SetMeta("env_z", z);
-            AddChild(sprite);
+            var marker = new EnvMarker();
+            marker.Texture = _texture;
+            marker.Centered = true;
+            marker.Position = CoordToIso(x, y, z);
+            marker.CellX = x;
+            marker.CellY = y;
+            marker.CellZ = z;
+            AddChild(marker);
         }
     }
 

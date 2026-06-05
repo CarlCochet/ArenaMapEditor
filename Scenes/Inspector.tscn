@@ -80,27 +80,27 @@ _environmentContainer = NodePath("ScrollContainer/MarginContainer/EnvironmentCon
 _envX = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/X/SpinBox")
 _envY = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/Y/SpinBox")
 _envZ = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/Z/SpinBox")
+_particleContainer = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/ParticleContainer")
 _particleSystemId = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/ParticleContainer/SystemId/SpinBox")
 _particleLevel = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/ParticleContainer/Level/SpinBox")
 _particleOffsetX = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/ParticleContainer/OffsetX/SpinBox")
 _particleOffsetY = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/ParticleContainer/OffsetY/SpinBox")
 _particleOffsetZ = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/ParticleContainer/OffsetZ/SpinBox")
 _particleLoD = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/ParticleContainer/LoD/SpinBox")
+_soundContainer = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/SoundContainer")
 _soundSoundId = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/SoundContainer/SoundId/SpinBox")
+_interactiveContainer = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/InteractiveElementContainer")
 _interactiveId = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/InteractiveElementContainer/Id/SpinBox")
 _interactiveType = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/InteractiveElementContainer/Type/SpinBox")
 _interactiveViews = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/InteractiveElementContainer/Views/LineEdit")
 _interactiveData = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/InteractiveElementContainer/Data/LineEdit")
 _interactiveClientOnly = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/InteractiveElementContainer/ClientOnly/CheckBox")
 _interactiveLandmarkType = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/InteractiveElementContainer/Landmark/SpinBox")
+_dynamicContainer = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/DynamicElementContainer")
 _dynamicId = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/DynamicElementContainer/Id/SpinBox")
 _dynamicGfxId = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/DynamicElementContainer/GfxId/SpinBox")
 _dynamicType = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/DynamicElementContainer/Type/SpinBox")
 _dynamicDirection = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/DynamicElementContainer/Direction/SpinBox")
-_particleContainer = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/ParticleContainer")
-_soundContainer = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/SoundContainer")
-_interactiveContainer = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/InteractiveElementContainer")
-_dynamicContainer = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/DynamicElementContainer")
 
 [node name="ScrollContainer" type="ScrollContainer" parent="." unique_id=547638557]
 layout_mode = 1
@@ -904,6 +904,7 @@ label_settings = SubResource("LabelSettings_68wyj")
 horizontal_alignment = 1
 
 [node name="ParticleContainer" type="VBoxContainer" parent="ScrollContainer/MarginContainer/EnvironmentContainer" unique_id=72982294]
+visible = false
 layout_mode = 2
 theme_override_constants/separation = 1
 
@@ -1016,6 +1017,7 @@ label_settings = SubResource("LabelSettings_68wyj")
 horizontal_alignment = 1
 
 [node name="SoundContainer" type="VBoxContainer" parent="ScrollContainer/MarginContainer/EnvironmentContainer" unique_id=230766522]
+visible = false
 layout_mode = 2
 theme_override_constants/separation = 1
 
@@ -1043,6 +1045,7 @@ label_settings = SubResource("LabelSettings_68wyj")
 horizontal_alignment = 1
 
 [node name="InteractiveElementContainer" type="VBoxContainer" parent="ScrollContainer/MarginContainer/EnvironmentContainer" unique_id=253021435]
+visible = false
 layout_mode = 2
 theme_override_constants/separation = 1
 
@@ -1143,6 +1146,7 @@ label_settings = SubResource("LabelSettings_68wyj")
 horizontal_alignment = 1
 
 [node name="DynamicElementContainer" type="VBoxContainer" parent="ScrollContainer/MarginContainer/EnvironmentContainer" unique_id=1925620617]
+visible = false
 layout_mode = 2
 theme_override_constants/separation = 1
 
