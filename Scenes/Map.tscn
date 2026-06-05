@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://5k8sgg41ctpm"]
+[gd_scene format=3 uid="uid://5k8sgg41ctpm"]
 
 [ext_resource type="Script" uid="uid://dpdo4qdmoesph" path="res://Scripts/Map.cs" id="1_h4evd"]
 [ext_resource type="Script" uid="uid://cnq2wrf6py0fl" path="res://Scripts/TopologyRenderer.cs" id="2_ee4q7"]
@@ -31,7 +31,7 @@ shader_parameter/elevation = 0.0
 [sub_resource type="CompressedTexture2D" id="CompressedTexture2D_g5138"]
 load_path = "res://.godot/imported/blackBackground.png-e8eafb64790ac4dfa3e369ac4f67a5b5.ctex"
 
-[node name="Map" type="Node2D" node_paths=PackedStringArray("CustomCamera", "_topology", "_light", "_grid", "_grid2", "_placementPreview")]
+[node name="Map" type="Node2D" unique_id=1261587688 node_paths=PackedStringArray("CustomCamera", "_topology", "_light", "_grid", "_grid2", "_placementPreview")]
 script = ExtResource("1_h4evd")
 CustomCamera = NodePath("Camera")
 _topology = NodePath("Topology")
@@ -40,16 +40,16 @@ _grid = NodePath("Grid")
 _grid2 = NodePath("Grid2")
 _placementPreview = NodePath("PlacementPreview")
 
-[node name="Camera" type="Camera2D" parent="."]
+[node name="Camera" type="Camera2D" parent="." unique_id=798889194]
 script = ExtResource("2_iuwis")
 
-[node name="Background" type="Sprite2D" parent="Camera"]
+[node name="Background" type="Sprite2D" parent="Camera" unique_id=589329548]
 z_index = -4096
 position = Vector2(-6.10352e-05, 0)
 scale = Vector2(4700, 3300)
 texture = ExtResource("2_ftqb4")
 
-[node name="Grid" type="Sprite2D" parent="."]
+[node name="Grid" type="Sprite2D" parent="." unique_id=71632522]
 visible = false
 z_index = 1
 material = SubResource("ShaderMaterial_wj3mp")
@@ -57,7 +57,7 @@ position = Vector2(7.85589e-05, 3.15309e-05)
 scale = Vector2(4700, 3300)
 texture = ExtResource("2_ftqb4")
 
-[node name="Grid2" type="Sprite2D" parent="."]
+[node name="Grid2" type="Sprite2D" parent="." unique_id=625030687]
 visible = false
 z_index = 1
 material = SubResource("ShaderMaterial_38poy")
@@ -65,11 +65,13 @@ position = Vector2(7.85589e-05, 3.15309e-05)
 scale = Vector2(4700, 3300)
 texture = SubResource("CompressedTexture2D_g5138")
 
-[node name="Topology" type="Node2D" parent="."]
+[node name="Topology" type="Node2D" parent="." unique_id=680148187]
 script = ExtResource("2_ee4q7")
 
-[node name="Light" type="Node2D" parent="."]
+[node name="Light" type="Node2D" parent="." unique_id=319299377]
 modulate = Color(1, 1, 1, 0.5019608)
 
-[node name="PlacementPreview" parent="." instance=ExtResource("7_5t7yc")]
+[node name="Environment" type="Node2D" parent="." unique_id=1964721301]
+
+[node name="PlacementPreview" parent="." unique_id=13078219 instance=ExtResource("7_5t7yc")]
 visible = false

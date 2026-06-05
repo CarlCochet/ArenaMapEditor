@@ -92,6 +92,7 @@ theme_override_constants/margin_right = 20
 theme_override_constants/margin_bottom = 10
 
 [node name="GfxContainer" type="VBoxContainer" parent="ScrollContainer/MarginContainer" unique_id=2038959727]
+visible = false
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 theme_override_constants/separation = 10
@@ -779,4 +780,400 @@ layout_mode = 2
 mouse_filter = 1
 min_value = -2147483600.0
 max_value = 2147483647.0
+rounded = true
+
+[node name="EnvironmentContainer" type="VBoxContainer" parent="ScrollContainer/MarginContainer" unique_id=1667511925]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="X" type="HBoxContainer" parent="ScrollContainer/MarginContainer/EnvironmentContainer" unique_id=364490837]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/EnvironmentContainer/X" unique_id=743772700]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "X"
+label_settings = SubResource("LabelSettings_iqetc")
+
+[node name="SpinBox" type="SpinBox" parent="ScrollContainer/MarginContainer/EnvironmentContainer/X" unique_id=2123000751]
+layout_mode = 2
+mouse_filter = 1
+min_value = -2147483600.0
+max_value = 2147483647.0
+rounded = true
+editable = false
+
+[node name="Y" type="HBoxContainer" parent="ScrollContainer/MarginContainer/EnvironmentContainer" unique_id=1650534082]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/EnvironmentContainer/Y" unique_id=1166118698]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "Y"
+label_settings = SubResource("LabelSettings_i7sm1")
+
+[node name="SpinBox" type="SpinBox" parent="ScrollContainer/MarginContainer/EnvironmentContainer/Y" unique_id=992442913]
+layout_mode = 2
+mouse_filter = 1
+min_value = -2147483600.0
+max_value = 2147483647.0
+rounded = true
+editable = false
+
+[node name="Elements" type="HBoxContainer" parent="ScrollContainer/MarginContainer/EnvironmentContainer" unique_id=1072481992]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/EnvironmentContainer/Elements" unique_id=1687341713]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "Elements"
+label_settings = SubResource("LabelSettings_mnv65")
+
+[node name="SpinBox" type="SpinBox" parent="ScrollContainer/MarginContainer/EnvironmentContainer/Elements" unique_id=1100226690]
+layout_mode = 2
+mouse_filter = 1
+min_value = -128.0
+max_value = 127.0
+rounded = true
+
+[node name="Button" type="Button" parent="ScrollContainer/MarginContainer/EnvironmentContainer" unique_id=1753409957]
+layout_mode = 2
+text = "Add Element"
+
+[node name="Z" type="HBoxContainer" parent="ScrollContainer/MarginContainer/EnvironmentContainer" unique_id=734737754]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/EnvironmentContainer/Z" unique_id=1120248628]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "Z"
+label_settings = SubResource("LabelSettings_fojw4")
+
+[node name="SpinBox" type="SpinBox" parent="ScrollContainer/MarginContainer/EnvironmentContainer/Z" unique_id=2091594580]
+layout_mode = 2
+mouse_filter = 1
+min_value = -32768.0
+max_value = 32767.0
+rounded = true
+
+[node name="Particle" type="Label" parent="ScrollContainer/MarginContainer/EnvironmentContainer" unique_id=505518716]
+layout_mode = 2
+text = "Particle"
+label_settings = SubResource("LabelSettings_68wyj")
+horizontal_alignment = 1
+
+[node name="ParticleContainer" type="VBoxContainer" parent="ScrollContainer/MarginContainer/EnvironmentContainer" unique_id=72982294]
+layout_mode = 2
+theme_override_constants/separation = 1
+
+[node name="SystemId" type="HBoxContainer" parent="ScrollContainer/MarginContainer/EnvironmentContainer/ParticleContainer" unique_id=1333406449]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/EnvironmentContainer/ParticleContainer/SystemId" unique_id=824396804]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "SystemId"
+label_settings = SubResource("LabelSettings_mnv65")
+
+[node name="SpinBox" type="SpinBox" parent="ScrollContainer/MarginContainer/EnvironmentContainer/ParticleContainer/SystemId" unique_id=552172]
+layout_mode = 2
+mouse_filter = 1
+min_value = -128.0
+max_value = 127.0
+rounded = true
+
+[node name="Level" type="HBoxContainer" parent="ScrollContainer/MarginContainer/EnvironmentContainer/ParticleContainer" unique_id=1483014321]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/EnvironmentContainer/ParticleContainer/Level" unique_id=95214709]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "Level"
+label_settings = SubResource("LabelSettings_mnv65")
+
+[node name="SpinBox" type="SpinBox" parent="ScrollContainer/MarginContainer/EnvironmentContainer/ParticleContainer/Level" unique_id=1855233685]
+layout_mode = 2
+mouse_filter = 1
+min_value = -128.0
+max_value = 127.0
+rounded = true
+
+[node name="OffsetX" type="HBoxContainer" parent="ScrollContainer/MarginContainer/EnvironmentContainer/ParticleContainer" unique_id=2027839903]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/EnvironmentContainer/ParticleContainer/OffsetX" unique_id=1914550077]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "OffsetX"
+label_settings = SubResource("LabelSettings_mnv65")
+
+[node name="SpinBox" type="SpinBox" parent="ScrollContainer/MarginContainer/EnvironmentContainer/ParticleContainer/OffsetX" unique_id=661182189]
+layout_mode = 2
+mouse_filter = 1
+min_value = -128.0
+max_value = 127.0
+rounded = true
+
+[node name="OffsetY" type="HBoxContainer" parent="ScrollContainer/MarginContainer/EnvironmentContainer/ParticleContainer" unique_id=201470128]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/EnvironmentContainer/ParticleContainer/OffsetY" unique_id=308837019]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "OffsetY"
+label_settings = SubResource("LabelSettings_mnv65")
+
+[node name="SpinBox" type="SpinBox" parent="ScrollContainer/MarginContainer/EnvironmentContainer/ParticleContainer/OffsetY" unique_id=1917644467]
+layout_mode = 2
+mouse_filter = 1
+min_value = -128.0
+max_value = 127.0
+rounded = true
+
+[node name="OffsetZ" type="HBoxContainer" parent="ScrollContainer/MarginContainer/EnvironmentContainer/ParticleContainer" unique_id=1378732240]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/EnvironmentContainer/ParticleContainer/OffsetZ" unique_id=682152802]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "OffsetZ"
+label_settings = SubResource("LabelSettings_mnv65")
+
+[node name="SpinBox" type="SpinBox" parent="ScrollContainer/MarginContainer/EnvironmentContainer/ParticleContainer/OffsetZ" unique_id=1315970943]
+layout_mode = 2
+mouse_filter = 1
+min_value = -128.0
+max_value = 127.0
+rounded = true
+
+[node name="LoD" type="HBoxContainer" parent="ScrollContainer/MarginContainer/EnvironmentContainer/ParticleContainer" unique_id=604701152]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/EnvironmentContainer/ParticleContainer/LoD" unique_id=764793718]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "LoD"
+label_settings = SubResource("LabelSettings_mnv65")
+
+[node name="SpinBox" type="SpinBox" parent="ScrollContainer/MarginContainer/EnvironmentContainer/ParticleContainer/LoD" unique_id=1254342061]
+layout_mode = 2
+mouse_filter = 1
+min_value = -128.0
+max_value = 127.0
+rounded = true
+
+[node name="Sound" type="Label" parent="ScrollContainer/MarginContainer/EnvironmentContainer" unique_id=2037449365]
+layout_mode = 2
+text = "Sound"
+label_settings = SubResource("LabelSettings_68wyj")
+horizontal_alignment = 1
+
+[node name="SoundContainer" type="VBoxContainer" parent="ScrollContainer/MarginContainer/EnvironmentContainer" unique_id=230766522]
+layout_mode = 2
+theme_override_constants/separation = 1
+
+[node name="SoundId" type="HBoxContainer" parent="ScrollContainer/MarginContainer/EnvironmentContainer/SoundContainer" unique_id=2062862616]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/EnvironmentContainer/SoundContainer/SoundId" unique_id=1129133358]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "SoundId"
+label_settings = SubResource("LabelSettings_mnv65")
+
+[node name="SpinBox" type="SpinBox" parent="ScrollContainer/MarginContainer/EnvironmentContainer/SoundContainer/SoundId" unique_id=1665411995]
+layout_mode = 2
+mouse_filter = 1
+min_value = -128.0
+max_value = 127.0
+rounded = true
+
+[node name="InteractiveElement" type="Label" parent="ScrollContainer/MarginContainer/EnvironmentContainer" unique_id=1011468865]
+layout_mode = 2
+text = "Interactive Element"
+label_settings = SubResource("LabelSettings_68wyj")
+horizontal_alignment = 1
+
+[node name="InteractiveElementContainer" type="VBoxContainer" parent="ScrollContainer/MarginContainer/EnvironmentContainer" unique_id=253021435]
+layout_mode = 2
+theme_override_constants/separation = 1
+
+[node name="SoundId" type="HBoxContainer" parent="ScrollContainer/MarginContainer/EnvironmentContainer/InteractiveElementContainer" unique_id=1510521987]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/EnvironmentContainer/InteractiveElementContainer/SoundId" unique_id=501352245]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "SoundId"
+label_settings = SubResource("LabelSettings_mnv65")
+
+[node name="SpinBox" type="SpinBox" parent="ScrollContainer/MarginContainer/EnvironmentContainer/InteractiveElementContainer/SoundId" unique_id=356811454]
+layout_mode = 2
+mouse_filter = 1
+min_value = -128.0
+max_value = 127.0
+rounded = true
+
+[node name="Type" type="HBoxContainer" parent="ScrollContainer/MarginContainer/EnvironmentContainer/InteractiveElementContainer" unique_id=1249383375]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/EnvironmentContainer/InteractiveElementContainer/Type" unique_id=2129708227]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "Type"
+label_settings = SubResource("LabelSettings_mnv65")
+
+[node name="SpinBox" type="SpinBox" parent="ScrollContainer/MarginContainer/EnvironmentContainer/InteractiveElementContainer/Type" unique_id=338887302]
+layout_mode = 2
+mouse_filter = 1
+min_value = -128.0
+max_value = 127.0
+rounded = true
+
+[node name="Views" type="HBoxContainer" parent="ScrollContainer/MarginContainer/EnvironmentContainer/InteractiveElementContainer" unique_id=1694647238]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/EnvironmentContainer/InteractiveElementContainer/Views" unique_id=482960352]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "Views"
+label_settings = SubResource("LabelSettings_mnv65")
+
+[node name="LineEdit" type="LineEdit" parent="ScrollContainer/MarginContainer/EnvironmentContainer/InteractiveElementContainer/Views" unique_id=533575836]
+layout_mode = 2
+
+[node name="Data" type="HBoxContainer" parent="ScrollContainer/MarginContainer/EnvironmentContainer/InteractiveElementContainer" unique_id=144876787]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/EnvironmentContainer/InteractiveElementContainer/Data" unique_id=1844895650]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "Data"
+label_settings = SubResource("LabelSettings_mnv65")
+
+[node name="LineEdit" type="LineEdit" parent="ScrollContainer/MarginContainer/EnvironmentContainer/InteractiveElementContainer/Data" unique_id=1257335902]
+layout_mode = 2
+
+[node name="ClientOnly" type="HBoxContainer" parent="ScrollContainer/MarginContainer/EnvironmentContainer/InteractiveElementContainer" unique_id=205765457]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/EnvironmentContainer/InteractiveElementContainer/ClientOnly" unique_id=1095980498]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "Client Only"
+label_settings = SubResource("LabelSettings_mnv65")
+
+[node name="CheckBox" type="CheckBox" parent="ScrollContainer/MarginContainer/EnvironmentContainer/InteractiveElementContainer/ClientOnly" unique_id=1506302485]
+layout_mode = 2
+
+[node name="Landmark" type="HBoxContainer" parent="ScrollContainer/MarginContainer/EnvironmentContainer/InteractiveElementContainer" unique_id=1084587118]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/EnvironmentContainer/InteractiveElementContainer/Landmark" unique_id=548598888]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "Landmark"
+label_settings = SubResource("LabelSettings_mnv65")
+
+[node name="SpinBox" type="SpinBox" parent="ScrollContainer/MarginContainer/EnvironmentContainer/InteractiveElementContainer/Landmark" unique_id=455521477]
+layout_mode = 2
+mouse_filter = 1
+min_value = -128.0
+max_value = 127.0
+rounded = true
+
+[node name="DynamicElement" type="Label" parent="ScrollContainer/MarginContainer/EnvironmentContainer" unique_id=402941257]
+layout_mode = 2
+text = "Interactive Element"
+label_settings = SubResource("LabelSettings_68wyj")
+horizontal_alignment = 1
+
+[node name="DynamicElementContainer" type="VBoxContainer" parent="ScrollContainer/MarginContainer/EnvironmentContainer" unique_id=1925620617]
+layout_mode = 2
+theme_override_constants/separation = 1
+
+[node name="Id" type="HBoxContainer" parent="ScrollContainer/MarginContainer/EnvironmentContainer/DynamicElementContainer" unique_id=203679552]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/EnvironmentContainer/DynamicElementContainer/Id" unique_id=568682430]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "SoundId"
+label_settings = SubResource("LabelSettings_mnv65")
+
+[node name="SpinBox" type="SpinBox" parent="ScrollContainer/MarginContainer/EnvironmentContainer/DynamicElementContainer/Id" unique_id=1592145278]
+layout_mode = 2
+mouse_filter = 1
+min_value = -128.0
+max_value = 127.0
+rounded = true
+
+[node name="GfxId" type="HBoxContainer" parent="ScrollContainer/MarginContainer/EnvironmentContainer/DynamicElementContainer" unique_id=591569235]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/EnvironmentContainer/DynamicElementContainer/GfxId" unique_id=1038661450]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "Type"
+label_settings = SubResource("LabelSettings_mnv65")
+
+[node name="SpinBox" type="SpinBox" parent="ScrollContainer/MarginContainer/EnvironmentContainer/DynamicElementContainer/GfxId" unique_id=700008927]
+layout_mode = 2
+mouse_filter = 1
+min_value = -128.0
+max_value = 127.0
+rounded = true
+
+[node name="Type" type="HBoxContainer" parent="ScrollContainer/MarginContainer/EnvironmentContainer/DynamicElementContainer" unique_id=317752860]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/EnvironmentContainer/DynamicElementContainer/Type" unique_id=429296205]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "Landmark"
+label_settings = SubResource("LabelSettings_mnv65")
+
+[node name="SpinBox" type="SpinBox" parent="ScrollContainer/MarginContainer/EnvironmentContainer/DynamicElementContainer/Type" unique_id=595229731]
+layout_mode = 2
+mouse_filter = 1
+min_value = -128.0
+max_value = 127.0
+rounded = true
+
+[node name="Direction" type="HBoxContainer" parent="ScrollContainer/MarginContainer/EnvironmentContainer/DynamicElementContainer" unique_id=1947051029]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/EnvironmentContainer/DynamicElementContainer/Direction" unique_id=1578266117]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "Landmark"
+label_settings = SubResource("LabelSettings_mnv65")
+
+[node name="SpinBox" type="SpinBox" parent="ScrollContainer/MarginContainer/EnvironmentContainer/DynamicElementContainer/Direction" unique_id=1671735947]
+layout_mode = 2
+mouse_filter = 1
+min_value = -128.0
+max_value = 127.0
 rounded = true

@@ -113,13 +113,15 @@ layout_mode = 2
 [node name="ModeButton" type="OptionButton" parent="MarginContainer/GridContainer" unique_id=1847679291]
 layout_mode = 2
 selected = 0
-item_count = 3
+item_count = 4
 popup/item_0/text = "GFX"
 popup/item_0/id = 0
 popup/item_1/text = "Topologie"
 popup/item_1/id = 1
 popup/item_2/text = "Lumière"
 popup/item_2/id = 2
+popup/item_3/text = "Environement"
+popup/item_3/id = 3
 
 [node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/GridContainer" unique_id=668881276]
 layout_mode = 2
