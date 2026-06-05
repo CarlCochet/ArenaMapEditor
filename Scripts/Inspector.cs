@@ -3,6 +3,7 @@ using System;
 
 public partial class Inspector : Control
 {
+    [ExportGroup("GFX")]
     [Export] private SpinBox _cellX;
     [Export] private SpinBox _cellY;
     [Export] private SpinBox _cellZ;
@@ -25,6 +26,8 @@ public partial class Inspector : Control
     [Export] private CheckBox _flip;
     [Export] private CheckBox _animated;
     [Export] private ColorPickerButton _color;
+    
+    [ExportGroup("Topography")]
     [Export] private CheckBox _topo2D;
     [Export] private SpinBox _topoX;
     [Export] private SpinBox _topoY;
@@ -41,6 +44,32 @@ public partial class Inspector : Control
     [Export] private VBoxContainer _topologyContainer;
     [Export] private SpinBox _centerX;
     [Export] private SpinBox _centerY;
+
+    [ExportGroup("Environment")] 
+    [Export] private Button _addElement;
+    [Export] private Button _removeElement;
+    [Export] private SpinBox _elements;
+    [Export] private VBoxContainer _environmentContainer;
+    [Export] private SpinBox _envX;
+    [Export] private SpinBox _envY;
+    [Export] private SpinBox _envZ;
+    [Export] private SpinBox _particleSystemId;
+    [Export] private SpinBox _particleLevel;
+    [Export] private SpinBox _particleOffsetX;
+    [Export] private SpinBox _particleOffsetY;
+    [Export] private SpinBox _particleOffsetZ;
+    [Export] private SpinBox _particleLoD;
+    [Export] private SpinBox _soundSoundId;
+    [Export] private SpinBox _interactiveId;
+    [Export] private SpinBox _interactiveType;
+    [Export] private LineEdit _interactiveViews;
+    [Export] private LineEdit _interactiveData;
+    [Export] private CheckBox _interactiveClientOnly;
+    [Export] private SpinBox _interactiveLandmarkType;
+    [Export] private SpinBox _dynamicId;
+    [Export] private SpinBox _dynamicGfxId;
+    [Export] private SpinBox _dynamicType;
+    [Export] private SpinBox _dynamicDirection;
     
     private GfxData.Element _elementData;
     private TopologyData.CellPathData _pathData;

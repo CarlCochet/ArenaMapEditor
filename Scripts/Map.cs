@@ -16,6 +16,7 @@ public partial class Map : Node2D
     private MultiMeshMapRenderer _multiMeshRenderer;
     [Export] private TopologyRenderer _topology;
     [Export] private Node2D _light;
+    [Export] private Node2D _environment;
     [Export] private Sprite2D _grid;
     [Export] private Sprite2D _grid2;
     [Export] private PlacementPreview _placementPreview;

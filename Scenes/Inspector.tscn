@@ -26,7 +26,7 @@ font_size = 12
 [sub_resource type="LabelSettings" id="LabelSettings_mnv65"]
 font_size = 12
 
-[node name="Inspector" type="Control" unique_id=1401068884 node_paths=PackedStringArray("_cellX", "_cellY", "_cellZ", "_offsetX", "_offsetY", "_height", "_gfxId", "_order", "_hashcode", "_groupId", "_layerIndex", "_groupLayer", "_properties", "_sound", "_slope", "_shader", "_mask", "_walkable", "_occluder", "_flip", "_animated", "_color", "_topo2D", "_topoX", "_topoY", "_topoZ", "_topoHeight", "_cost", "_canMoveThrough", "_canViewThrough", "_murFinInfo", "_miscProperties", "_placement", "_bonus", "_gfxContainer", "_topologyContainer", "_centerX", "_centerY")]
+[node name="Inspector" type="Control" unique_id=1401068884 node_paths=PackedStringArray("_cellX", "_cellY", "_cellZ", "_offsetX", "_offsetY", "_height", "_gfxId", "_order", "_hashcode", "_groupId", "_layerIndex", "_groupLayer", "_properties", "_sound", "_slope", "_shader", "_mask", "_walkable", "_occluder", "_flip", "_animated", "_color", "_topo2D", "_topoX", "_topoY", "_topoZ", "_topoHeight", "_cost", "_canMoveThrough", "_canViewThrough", "_murFinInfo", "_miscProperties", "_placement", "_bonus", "_gfxContainer", "_topologyContainer", "_centerX", "_centerY", "_addElement", "_removeElement", "_elements", "_environmentContainer", "_envX", "_envY", "_envZ", "_particleSystemId", "_particleLevel", "_particleOffsetX", "_particleOffsetY", "_particleOffsetZ", "_particleLoD", "_soundSoundId", "_interactiveId", "_interactiveType", "_interactiveViews", "_interactiveData", "_interactiveClientOnly", "_interactiveLandmarkType", "_dynamicId", "_dynamicGfxId", "_dynamicType", "_dynamicDirection")]
 custom_minimum_size = Vector2(250, 550)
 layout_mode = 3
 anchors_preset = 15
@@ -73,6 +73,30 @@ _gfxContainer = NodePath("ScrollContainer/MarginContainer/GfxContainer")
 _topologyContainer = NodePath("ScrollContainer/MarginContainer/TopologyContainer")
 _centerX = NodePath("ScrollContainer/MarginContainer/TopologyContainer/CenterContainer/X/SpinBox")
 _centerY = NodePath("ScrollContainer/MarginContainer/TopologyContainer/CenterContainer/Y/SpinBox")
+_addElement = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/AddElement/Add")
+_removeElement = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/AddElement/Remove")
+_elements = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/Elements/SpinBox")
+_environmentContainer = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer")
+_envX = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/X/SpinBox")
+_envY = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/Y/SpinBox")
+_envZ = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/Z/SpinBox")
+_particleSystemId = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/ParticleContainer/SystemId/SpinBox")
+_particleLevel = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/ParticleContainer/Level/SpinBox")
+_particleOffsetX = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/ParticleContainer/OffsetX/SpinBox")
+_particleOffsetY = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/ParticleContainer/OffsetY/SpinBox")
+_particleOffsetZ = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/ParticleContainer/OffsetZ/SpinBox")
+_particleLoD = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/ParticleContainer/LoD/SpinBox")
+_soundSoundId = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/SoundContainer/SoundId/SpinBox")
+_interactiveId = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/InteractiveElementContainer/Id/SpinBox")
+_interactiveType = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/InteractiveElementContainer/Type/SpinBox")
+_interactiveViews = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/InteractiveElementContainer/Views/LineEdit")
+_interactiveData = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/InteractiveElementContainer/Data/LineEdit")
+_interactiveClientOnly = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/InteractiveElementContainer/ClientOnly/CheckBox")
+_interactiveLandmarkType = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/InteractiveElementContainer/Landmark/SpinBox")
+_dynamicId = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/DynamicElementContainer/Id/SpinBox")
+_dynamicGfxId = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/DynamicElementContainer/GfxId/SpinBox")
+_dynamicType = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/DynamicElementContainer/Type/SpinBox")
+_dynamicDirection = NodePath("ScrollContainer/MarginContainer/EnvironmentContainer/DynamicElementContainer/Direction/SpinBox")
 
 [node name="ScrollContainer" type="ScrollContainer" parent="." unique_id=547638557]
 layout_mode = 1
@@ -840,9 +864,17 @@ min_value = -128.0
 max_value = 127.0
 rounded = true
 
-[node name="Button" type="Button" parent="ScrollContainer/MarginContainer/EnvironmentContainer" unique_id=1753409957]
+[node name="AddElement" type="HBoxContainer" parent="ScrollContainer/MarginContainer/EnvironmentContainer" unique_id=1770969361]
 layout_mode = 2
-text = "Add Element"
+theme_override_constants/separation = 10
+
+[node name="Add" type="Button" parent="ScrollContainer/MarginContainer/EnvironmentContainer/AddElement" unique_id=1753409957]
+layout_mode = 2
+text = "Add"
+
+[node name="Remove" type="Button" parent="ScrollContainer/MarginContainer/EnvironmentContainer/AddElement" unique_id=995582457]
+layout_mode = 2
+text = "Remove"
 
 [node name="Z" type="HBoxContainer" parent="ScrollContainer/MarginContainer/EnvironmentContainer" unique_id=734737754]
 layout_mode = 2
@@ -1010,17 +1042,17 @@ horizontal_alignment = 1
 layout_mode = 2
 theme_override_constants/separation = 1
 
-[node name="SoundId" type="HBoxContainer" parent="ScrollContainer/MarginContainer/EnvironmentContainer/InteractiveElementContainer" unique_id=1510521987]
+[node name="Id" type="HBoxContainer" parent="ScrollContainer/MarginContainer/EnvironmentContainer/InteractiveElementContainer" unique_id=1510521987]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/EnvironmentContainer/InteractiveElementContainer/SoundId" unique_id=501352245]
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/EnvironmentContainer/InteractiveElementContainer/Id" unique_id=501352245]
 custom_minimum_size = Vector2(81, 18)
 layout_mode = 2
-text = "SoundId"
+text = "Id"
 label_settings = SubResource("LabelSettings_mnv65")
 
-[node name="SpinBox" type="SpinBox" parent="ScrollContainer/MarginContainer/EnvironmentContainer/InteractiveElementContainer/SoundId" unique_id=356811454]
+[node name="SpinBox" type="SpinBox" parent="ScrollContainer/MarginContainer/EnvironmentContainer/InteractiveElementContainer/Id" unique_id=356811454]
 layout_mode = 2
 mouse_filter = 1
 min_value = -128.0
@@ -1102,7 +1134,7 @@ rounded = true
 
 [node name="DynamicElement" type="Label" parent="ScrollContainer/MarginContainer/EnvironmentContainer" unique_id=402941257]
 layout_mode = 2
-text = "Interactive Element"
+text = "Dynamic Element"
 label_settings = SubResource("LabelSettings_68wyj")
 horizontal_alignment = 1
 
@@ -1117,7 +1149,7 @@ theme_override_constants/separation = 10
 [node name="Label" type="Label" parent="ScrollContainer/MarginContainer/EnvironmentContainer/DynamicElementContainer/Id" unique_id=568682430]
 custom_minimum_size = Vector2(81, 18)
 layout_mode = 2
-text = "SoundId"
+text = "Id"
 label_settings = SubResource("LabelSettings_mnv65")
 
 [node name="SpinBox" type="SpinBox" parent="ScrollContainer/MarginContainer/EnvironmentContainer/DynamicElementContainer/Id" unique_id=1592145278]
@@ -1134,7 +1166,7 @@ theme_override_constants/separation = 10
 [node name="Label" type="Label" parent="ScrollContainer/MarginContainer/EnvironmentContainer/DynamicElementContainer/GfxId" unique_id=1038661450]
 custom_minimum_size = Vector2(81, 18)
 layout_mode = 2
-text = "Type"
+text = "GfxId"
 label_settings = SubResource("LabelSettings_mnv65")
 
 [node name="SpinBox" type="SpinBox" parent="ScrollContainer/MarginContainer/EnvironmentContainer/DynamicElementContainer/GfxId" unique_id=700008927]
@@ -1151,7 +1183,7 @@ theme_override_constants/separation = 10
 [node name="Label" type="Label" parent="ScrollContainer/MarginContainer/EnvironmentContainer/DynamicElementContainer/Type" unique_id=429296205]
 custom_minimum_size = Vector2(81, 18)
 layout_mode = 2
-text = "Landmark"
+text = "Type"
 label_settings = SubResource("LabelSettings_mnv65")
 
 [node name="SpinBox" type="SpinBox" parent="ScrollContainer/MarginContainer/EnvironmentContainer/DynamicElementContainer/Type" unique_id=595229731]
@@ -1168,7 +1200,7 @@ theme_override_constants/separation = 10
 [node name="Label" type="Label" parent="ScrollContainer/MarginContainer/EnvironmentContainer/DynamicElementContainer/Direction" unique_id=1578266117]
 custom_minimum_size = Vector2(81, 18)
 layout_mode = 2
-text = "Landmark"
+text = "Direction"
 label_settings = SubResource("LabelSettings_mnv65")
 
 [node name="SpinBox" type="SpinBox" parent="ScrollContainer/MarginContainer/EnvironmentContainer/DynamicElementContainer/Direction" unique_id=1671735947]
