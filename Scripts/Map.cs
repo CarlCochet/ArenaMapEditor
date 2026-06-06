@@ -629,6 +629,10 @@ public partial class Map : Node2D
             SelectEnvTile(marker.CellX, marker.CellY);
             return;
         }
+
+        ResetEnvMarkerColors();
+        _selectedEnvElements = [];
+        EnvTileSelected?.Invoke(this, new EnvTileSelectedEventArgs(_selectedEnvElements, 0, 0, 0));
     }
 
     private void SelectEnvTile(int x, int y)
@@ -657,7 +661,7 @@ public partial class Map : Node2D
         {
             if (child is not EnvMarker marker || marker.CellX != x || marker.CellY != y)
                 continue;
-            marker.Modulate = Colors.Green;
+            marker.Modulate = Colors.Red;
             _selectedEnvMarkers.Add(marker);
         }
     }
