@@ -43,6 +43,7 @@ public partial class Map : Node2D
     public event EventHandler<EnvTileSelectedEventArgs> EnvTileSelected;
 
     private List<EnvData.Element> _selectedEnvElements;
+    private readonly List<EnvMarker> _selectedEnvMarkers = [];
     private int _selectedEnvX;
     private int _selectedEnvY;
 
@@ -635,14 +636,37 @@ public partial class Map : Node2D
         _selectedEnvX = x;
         _selectedEnvY = y;
         _selectedEnvElements = _mapData.Env.GetElementsAt(x, y);
+
+        HighlightEnvMarkers(x, y);
+
         EnvTileSelected?.Invoke(this, new EnvTileSelectedEventArgs(_selectedEnvElements, x, y, 0));
     }
 
     private void UnselectEnvTile()
     {
+        ResetEnvMarkerColors();
         _selectedEnvElements = null;
         _selectedEnvX = 0;
         _selectedEnvY = 0;
+    }
+
+    private void HighlightEnvMarkers(int x, int y)
+    {
+        ResetEnvMarkerColors();
+        foreach (var child in _environment.GetChildren())
+        {
+            if (child is not EnvMarker marker || marker.CellX != x || marker.CellY != y)
+                continue;
+            marker.Modulate = Colors.Green;
+            _selectedEnvMarkers.Add(marker);
+        }
+    }
+
+    private void ResetEnvMarkerColors()
+    {
+        foreach (var marker in _selectedEnvMarkers)
+            marker.Modulate = Colors.White;
+        _selectedEnvMarkers.Clear();
     }
 
     private void AddEnvElement(int globalX, int globalY, EnvData.Element element)
@@ -698,6 +722,7 @@ public partial class Map : Node2D
             {
                 RemoveEnvElement(_selectedEnvX, _selectedEnvY, element);
                 _environment.LoadElements(_mapData.Env);
+                HighlightEnvMarkers(_selectedEnvX, _selectedEnvY);
                 _selectedEnvElements = _mapData.Env.GetElementsAt(_selectedEnvX, _selectedEnvY);
                 var idx = Math.Min(_selectedEnvElements.Count - 1, 0);
                 EnvTileSelected?.Invoke(this, new EnvTileSelectedEventArgs(_selectedEnvElements, _selectedEnvX, _selectedEnvY, idx));
@@ -719,6 +744,7 @@ public partial class Map : Node2D
             {
                 RemoveEnvElement(_selectedEnvX, _selectedEnvY, element);
                 _environment.LoadElements(_mapData.Env);
+                HighlightEnvMarkers(_selectedEnvX, _selectedEnvY);
                 _selectedEnvElements = _mapData.Env.GetElementsAt(_selectedEnvX, _selectedEnvY);
                 var idx = Math.Min(elementIndex, _selectedEnvElements.Count - 1);
                 EnvTileSelected?.Invoke(this, new EnvTileSelectedEventArgs(_selectedEnvElements, _selectedEnvX, _selectedEnvY, idx));
@@ -731,6 +757,7 @@ public partial class Map : Node2D
         _redos.Clear();
 
         _environment.LoadElements(_mapData.Env);
+        HighlightEnvMarkers(_selectedEnvX, _selectedEnvY);
         _selectedEnvElements = _mapData.Env.GetElementsAt(_selectedEnvX, _selectedEnvY);
         var newIndex = Math.Min(elementIndex, _selectedEnvElements.Count - 1);
         EnvTileSelected?.Invoke(this, new EnvTileSelectedEventArgs(_selectedEnvElements, _selectedEnvX, _selectedEnvY, newIndex));
@@ -739,6 +766,7 @@ public partial class Map : Node2D
     private void RefreshEnvSelection(EnvData.Element element)
     {
         _environment.LoadElements(_mapData.Env);
+        HighlightEnvMarkers(_selectedEnvX, _selectedEnvY);
         _selectedEnvElements = _mapData.Env.GetElementsAt(_selectedEnvX, _selectedEnvY);
         var newIndex = _selectedEnvElements.IndexOf(element);
         if (newIndex < 0)
