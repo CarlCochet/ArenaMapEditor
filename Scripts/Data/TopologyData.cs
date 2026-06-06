@@ -867,7 +867,7 @@ public class TopologyData
         {
             base.Load(reader);
 
-            var indexSize = reader.ReadByte();
+            var indexSize = reader.ReadByte() & 0xFF;
             Costs = new sbyte[indexSize];
             MurFins = new sbyte[indexSize];
             Properties = new sbyte[indexSize];
@@ -891,7 +891,7 @@ public class TopologyData
             var indexSize = (sbyte)Costs.Length;
             writer.WriteByte(indexSize);
 
-            for (var i = 0; i < indexSize; ++i)
+            for (var i = 0; i < Costs.Length; ++i)
             {
                 writer.WriteByte(Costs[i]);
                 writer.WriteByte(MurFins[i]);
@@ -899,6 +899,10 @@ public class TopologyData
             }
             
             writer.WriteByte(unchecked((sbyte)Cells.Length));
+            foreach (var c in Cells)
+            {
+                writer.WriteInt(c);
+            }
         }
 
         public override void GetPathData(int x, int y, CellPathData[] cellPathData, int index)
@@ -1253,6 +1257,10 @@ public class TopologyData
             }
             
             writer.WriteByte(unchecked((sbyte)Cells.Length));
+            foreach (var c in Cells)
+            {
+                writer.WriteLong(c);
+            }
         }
         
         public override void GetPathData(int x, int y, CellPathData[] cellPathData, int index)
@@ -1430,6 +1438,10 @@ public class TopologyData
             }
             
             writer.WriteByte(unchecked((sbyte)Cells.Length));
+            foreach (var c in Cells)
+            {
+                writer.WriteLong(c);
+            }
             writer.WriteShort(unchecked((short)CellsWithMultiZ.Length));
 
             foreach (var c in CellsWithMultiZ)

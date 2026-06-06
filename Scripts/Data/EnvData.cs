@@ -371,20 +371,17 @@ public class EnvData
         private void SaveAmbianceData(OutputBitStream writer)
         {
             writer.WriteByte((sbyte)(AmbiancesId?.Length ?? 0));
-            if (AmbiancesId != null)
+            if (AmbiancesId == null)
+                return;
+            
+            foreach (var id in AmbiancesId)
             {
-                foreach (var id in AmbiancesId)
-                {
-                    writer.WriteInt(id);
-                }
-                writer.WriteByte((sbyte)(Ambiances?.Length ?? 0));
-                if (Ambiances != null) 
-                    writer.WriteBytes(Ambiances);
+                writer.WriteInt(id);
             }
-            else
-            {
-                writer.WriteByte(0);
-            }
+            writer.WriteByte((sbyte)(Ambiances?.Length ?? 0));
+            
+            if (Ambiances != null) 
+                writer.WriteBytes(Ambiances);
         }
 
         private void SaveInteractiveElements(OutputBitStream writer)
