@@ -66,7 +66,9 @@ public partial class Editor : Node2D
 		
 		_inspector.EnvElementUpdated += (_, e) =>
 		{
-			if (e.OldElement == null && e.NewElement == null)
+			if (e.MoveToGlobalX.HasValue)
+				_map.RegisterMoveEnvElement(e.OldElement, e.MoveToGlobalX.Value, e.MoveToGlobalY!.Value, e.Index);
+			else if (e.OldElement == null && e.NewElement == null)
 				_map.RegisterAddEnvElement();
 			else if (e.NewElement == null)
 				_map.RegisterRemoveEnvElement(e.Index);
@@ -123,7 +125,7 @@ public partial class Editor : Node2D
 	
 	private void OnEnvTileSelected(object sender, Map.EnvTileSelectedEventArgs e)
 	{
-		_inspector.UpdateEnv(e.Elements, e.CurrentIndex);
+		_inspector.UpdateEnv(e.Elements, e.X, e.Y, e.CurrentIndex);
 	}
 
 	private void OnHighlightHeightToggled(object sender, Overlay.HighlightHeightToggledEventArgs e)

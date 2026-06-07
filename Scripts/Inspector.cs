@@ -84,6 +84,8 @@ public partial class Inspector : Control
 
     private List<EnvData.Element> _envElements;
     private int _currentEnvIndex;
+    private int _selectedGlobalX;
+    private int _selectedGlobalY;
     
     private bool _suppressSignals;
 
@@ -123,6 +125,8 @@ public partial class Inspector : Control
         _elements.ValueChanged += _OnElementsIndexChanged;
         _addElement.Pressed += _OnEnvAddElement;
         _removeElement.Pressed += _OnEnvRemoveElement;
+        _envX.ValueChanged += _OnEnvXChanged;
+        _envY.ValueChanged += _OnEnvYChanged;
         _envZ.ValueChanged += _OnEnvZChanged;
         _particleSystemId.ValueChanged += _OnParticleSystemIdChanged;
         _particleLevel.ValueChanged += _OnParticleLevelChanged;
@@ -591,9 +595,11 @@ public partial class Inspector : Control
         _OnZChanged(short.MinValue);
     }
 
-    public void UpdateEnv(List<EnvData.Element> elements, int index)
+    public void UpdateEnv(List<EnvData.Element> elements, int globalX, int globalY, int index)
     {
         _envElements = elements;
+        _selectedGlobalX = globalX;
+        _selectedGlobalY = globalY;
         _suppressSignals = true;
 
         if (elements.Count > 0)
@@ -617,8 +623,8 @@ public partial class Inspector : Control
         }
 
         var element = _envElements[_currentEnvIndex];
-        _envX.Value = element.X;
-        _envY.Value = element.Y;
+        _envX.Value = _selectedGlobalX;
+        _envY.Value = _selectedGlobalY;
         _envZ.Value = element.Z;
 
         _particleContainer.Visible = false;
@@ -662,6 +668,8 @@ public partial class Inspector : Control
 
     private void ClearEnvDisplay()
     {
+        _selectedGlobalX = 0;
+        _selectedGlobalY = 0;
         _envX.Value = 0;
         _envY.Value = 0;
         _envZ.Value = 0;
@@ -733,6 +741,24 @@ public partial class Inspector : Control
             return;
         EnvElementUpdated?.Invoke(this, new EnvElementUpdatedEventArgs(
             _envElements[_currentEnvIndex], null, _currentEnvIndex));
+    }
+
+    private void _OnEnvXChanged(double value)
+    {
+        if (_suppressSignals || _envElements == null || _currentEnvIndex >= _envElements.Count)
+            return;
+        var element = _envElements[_currentEnvIndex];
+        EnvElementUpdated?.Invoke(this, new EnvElementUpdatedEventArgs(
+            element, null, _currentEnvIndex, moveToGlobalX: (int)value, moveToGlobalY: _selectedGlobalY));
+    }
+
+    private void _OnEnvYChanged(double value)
+    {
+        if (_suppressSignals || _envElements == null || _currentEnvIndex >= _envElements.Count)
+            return;
+        var element = _envElements[_currentEnvIndex];
+        EnvElementUpdated?.Invoke(this, new EnvElementUpdatedEventArgs(
+            element, null, _currentEnvIndex, moveToGlobalX: _selectedGlobalX, moveToGlobalY: (int)value));
     }
 
     private void _OnEnvZChanged(double value)
@@ -1097,10 +1123,13 @@ public partial class Inspector : Control
         public FightData NewFightData => newFightData;
     }
 
-    public class EnvElementUpdatedEventArgs(EnvData.Element oldElement, EnvData.Element newElement, int index) : EventArgs
+    public class EnvElementUpdatedEventArgs(EnvData.Element oldElement, EnvData.Element newElement, int index,
+        int? moveToGlobalX = null, int? moveToGlobalY = null) : EventArgs
     {
         public EnvData.Element OldElement => oldElement;
         public EnvData.Element NewElement => newElement;
         public int Index => index;
+        public int? MoveToGlobalX => moveToGlobalX;
+        public int? MoveToGlobalY => moveToGlobalY;
     }
 }

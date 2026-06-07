@@ -378,7 +378,7 @@ public partial class Map : Node2D
         LoadGfx();
         LoadTopology();
         LoadLight();
-        _environment.LoadElements(_mapData.Env);
+        ReloadEnvSprites();
         UpdateDisplay(Enums.Mode.Gfx);
     }
 
@@ -669,8 +669,17 @@ public partial class Map : Node2D
     private void ResetEnvMarkerColors()
     {
         foreach (var marker in _selectedEnvMarkers)
-            marker.Modulate = Colors.White;
+        {
+            if (GodotObject.IsInstanceValid(marker))
+                marker.Modulate = Colors.White;
+        }
         _selectedEnvMarkers.Clear();
+    }
+
+    private void ReloadEnvSprites()
+    {
+        _selectedEnvMarkers.Clear();
+        _environment.LoadElements(_mapData.Env);
     }
 
     private void AddEnvElement(int globalX, int globalY, EnvData.Element element)
@@ -688,24 +697,73 @@ public partial class Map : Node2D
         if (_mapData == null)
             return;
 
+        var partX = (int)Math.Floor((double)_selectedEnvX / EnvData.Partition.ChunkSize);
+        var partY = (int)Math.Floor((double)_selectedEnvY / EnvData.Partition.ChunkSize);
+        var newGlobalX = partX * EnvData.Partition.ChunkSize + newElement.X;
+        var newGlobalY = partY * EnvData.Partition.ChunkSize + newElement.Y;
+        var oldGlobalX = _selectedEnvX;
+        var oldGlobalY = _selectedEnvY;
+
+        _selectedEnvX = newGlobalX;
+        _selectedEnvY = newGlobalY;
+
         _undos.Push(new ReversibleAction(
             Do: () =>
             {
-                RemoveEnvElement(_selectedEnvX, _selectedEnvY, oldElement);
-                AddEnvElement(_selectedEnvX, _selectedEnvY, newElement);
+                RemoveEnvElement(oldGlobalX, oldGlobalY, oldElement);
+                _mapData.Env.AddElement(newGlobalX, newGlobalY, newElement);
+                _selectedEnvX = newGlobalX;
+                _selectedEnvY = newGlobalY;
                 RefreshEnvSelection(newElement);
             },
             Undo: () =>
             {
-                RemoveEnvElement(_selectedEnvX, _selectedEnvY, newElement);
-                AddEnvElement(_selectedEnvX, _selectedEnvY, oldElement);
+                RemoveEnvElement(newGlobalX, newGlobalY, newElement);
+                _mapData.Env.AddElement(oldGlobalX, oldGlobalY, oldElement);
+                _selectedEnvX = oldGlobalX;
+                _selectedEnvY = oldGlobalY;
                 RefreshEnvSelection(oldElement);
             }));
         _redos.Clear();
 
-        RemoveEnvElement(_selectedEnvX, _selectedEnvY, oldElement);
-        AddEnvElement(_selectedEnvX, _selectedEnvY, newElement);
+        RemoveEnvElement(oldGlobalX, oldGlobalY, oldElement);
+        _mapData.Env.AddElement(newGlobalX, newGlobalY, newElement);
         RefreshEnvSelection(newElement);
+    }
+
+    public void RegisterMoveEnvElement(EnvData.Element element, int newGlobalX, int newGlobalY, int index)
+    {
+        if (_mapData == null)
+            return;
+
+        var oldGlobalX = _selectedEnvX;
+        var oldGlobalY = _selectedEnvY;
+
+        RemoveEnvElement(oldGlobalX, oldGlobalY, element);
+        AddEnvElement(newGlobalX, newGlobalY, element);
+        _selectedEnvX = newGlobalX;
+        _selectedEnvY = newGlobalY;
+
+        _undos.Push(new ReversibleAction(
+            Do: () =>
+            {
+                RemoveEnvElement(oldGlobalX, oldGlobalY, element);
+                AddEnvElement(newGlobalX, newGlobalY, element);
+                _selectedEnvX = newGlobalX;
+                _selectedEnvY = newGlobalY;
+                RefreshEnvSelection(element);
+            },
+            Undo: () =>
+            {
+                RemoveEnvElement(newGlobalX, newGlobalY, element);
+                AddEnvElement(oldGlobalX, oldGlobalY, element);
+                _selectedEnvX = oldGlobalX;
+                _selectedEnvY = oldGlobalY;
+                RefreshEnvSelection(element);
+            }));
+        _redos.Clear();
+
+        RefreshEnvSelection(element);
     }
 
     public void RegisterAddEnvElement()
@@ -725,7 +783,7 @@ public partial class Map : Node2D
             Undo: () =>
             {
                 RemoveEnvElement(_selectedEnvX, _selectedEnvY, element);
-                _environment.LoadElements(_mapData.Env);
+                ReloadEnvSprites();
                 HighlightEnvMarkers(_selectedEnvX, _selectedEnvY);
                 _selectedEnvElements = _mapData.Env.GetElementsAt(_selectedEnvX, _selectedEnvY);
                 var idx = Math.Min(_selectedEnvElements.Count - 1, 0);
@@ -747,7 +805,7 @@ public partial class Map : Node2D
             Do: () =>
             {
                 RemoveEnvElement(_selectedEnvX, _selectedEnvY, element);
-                _environment.LoadElements(_mapData.Env);
+                ReloadEnvSprites();
                 HighlightEnvMarkers(_selectedEnvX, _selectedEnvY);
                 _selectedEnvElements = _mapData.Env.GetElementsAt(_selectedEnvX, _selectedEnvY);
                 var idx = Math.Min(elementIndex, _selectedEnvElements.Count - 1);
@@ -760,7 +818,7 @@ public partial class Map : Node2D
             }));
         _redos.Clear();
 
-        _environment.LoadElements(_mapData.Env);
+        ReloadEnvSprites();
         HighlightEnvMarkers(_selectedEnvX, _selectedEnvY);
         _selectedEnvElements = _mapData.Env.GetElementsAt(_selectedEnvX, _selectedEnvY);
         var newIndex = Math.Min(elementIndex, _selectedEnvElements.Count - 1);
@@ -769,7 +827,7 @@ public partial class Map : Node2D
 
     private void RefreshEnvSelection(EnvData.Element element)
     {
-        _environment.LoadElements(_mapData.Env);
+        ReloadEnvSprites();
         HighlightEnvMarkers(_selectedEnvX, _selectedEnvY);
         _selectedEnvElements = _mapData.Env.GetElementsAt(_selectedEnvX, _selectedEnvY);
         var newIndex = _selectedEnvElements.IndexOf(element);
