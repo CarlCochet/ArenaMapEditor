@@ -1093,6 +1093,7 @@ label_settings = SubResource("LabelSettings_mnv65")
 
 [node name="LineEdit" type="LineEdit" parent="ScrollContainer/MarginContainer/EnvironmentContainer/InteractiveElementContainer/Views" unique_id=533575836]
 layout_mode = 2
+mouse_filter = 1
 
 [node name="Data" type="HBoxContainer" parent="ScrollContainer/MarginContainer/EnvironmentContainer/InteractiveElementContainer" unique_id=144876787]
 layout_mode = 2
@@ -1106,6 +1107,7 @@ label_settings = SubResource("LabelSettings_mnv65")
 
 [node name="LineEdit" type="LineEdit" parent="ScrollContainer/MarginContainer/EnvironmentContainer/InteractiveElementContainer/Data" unique_id=1257335902]
 layout_mode = 2
+mouse_filter = 1
 
 [node name="ClientOnly" type="HBoxContainer" parent="ScrollContainer/MarginContainer/EnvironmentContainer/InteractiveElementContainer" unique_id=205765457]
 layout_mode = 2
