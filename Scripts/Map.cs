@@ -565,8 +565,8 @@ public partial class Map : Node2D
             Top = _placementPreview.ElementData.OriginY - (int)_placementPreview.GlobalPosition.Y,
             Occluder = true,
             CommonData = _placementPreview.ElementData,
-            Color = Colors.White,
-            Colors = [1f, 1f, 1f]
+            Color = GlobalData.Instance.SelectedColor,
+            Colors = [GlobalData.Instance.SelectedColor.R, GlobalData.Instance.SelectedColor.G, GlobalData.Instance.SelectedColor.B]
         };
         if (_mapData.Gfx.HasElement(element.CellX, element.CellY, element.CellZ, element.CommonData.GfxId))
             return;

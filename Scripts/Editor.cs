@@ -45,6 +45,7 @@ public partial class Editor : Node2D
 		_tools.UndoPressed += _map.Undo;
 		_tools.RedoPressed += _map.Redo;
 		_tools.NewMapPressed += _OnNewMapPressed;
+		_tools.ColorChanged += (_, e) => GlobalData.Instance.SelectedColor = e.Color;
 
 		_overlay.InterfaceEntered += (_, _) => _map.UpdateFocus(false);
 		_overlay.InterfaceExited += (_, _) => _map.UpdateFocus(true);

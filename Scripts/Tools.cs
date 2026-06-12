@@ -84,6 +84,7 @@ public partial class Tools : Control
 	public void Update(GfxData.Element element)
 	{
 		_colorPickerButton.Color = element.Color;
+		GlobalData.Instance.SelectedColor = element.Color;
 	}
 	
 	private void _OnSelectPressed()

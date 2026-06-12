@@ -414,6 +414,7 @@ public partial class Inspector : Control
 
         var newElement = _elementData.Copy();
         newElement.Color = newColor;
+        newElement.Colors = [newColor.R, newColor.G, newColor.B];
         ElementUpdated?.Invoke(this, new ElementUpdatedEventArgs(_elementData, newElement));
     }
 
