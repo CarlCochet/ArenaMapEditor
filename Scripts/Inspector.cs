@@ -90,6 +90,7 @@ public partial class Inspector : Control
     private bool _suppressSignals;
 
     public event EventHandler<ElementUpdatedEventArgs> ElementUpdated;
+    public event EventHandler<ElementUpdatedEventArgs> ElementColorUpdated;
     public event EventHandler<TopologyUpdatedEventArgs> TopologyUpdated;
     public event EventHandler<FightUpdatedEventArgs> FightUpdated;
     public event EventHandler<bool> Topo2DToggled;
@@ -415,7 +416,8 @@ public partial class Inspector : Control
         var newElement = _elementData.Copy();
         newElement.Color = newColor;
         newElement.Colors = [newColor.R, newColor.G, newColor.B];
-        ElementUpdated?.Invoke(this, new ElementUpdatedEventArgs(_elementData, newElement));
+        newElement.TypeMask = GfxData.Element.GetColorType(newElement.Colors);
+        ElementColorUpdated?.Invoke(this, new ElementUpdatedEventArgs(_elementData, newElement));
     }
 
     private void _OnWalkableToggled(bool toggledOn)

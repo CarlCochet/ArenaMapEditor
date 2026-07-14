@@ -240,6 +240,23 @@ public partial class Map : Node2D
         UpdateElement(oldElement, newElement);
     }
 
+    public void RegisterUpdateElementColor(GfxData.Element element, GfxData.Element newElement)
+    {
+        if (_mapData == null)
+            return;
+
+        var oldColor = element.Color;
+        var oldColors = element.Colors.ToArray();
+        var oldTypeMask = element.TypeMask;
+        var newColors = newElement.Colors.ToArray();
+
+        _undos.Push(new ReversibleAction(
+            Do: () => UpdateElementColor(element, newElement.Color, newColors, newElement.TypeMask, true),
+            Undo: () => UpdateElementColor(element, oldColor, oldColors, oldTypeMask, true)));
+        _redos.Clear();
+        UpdateElementColor(element, newElement.Color, newColors, newElement.TypeMask);
+    }
+
     public void RegisterUpdateTopologyCell(TopologyData.CellPathData path, TopologyData.CellVisibilityData visibility)
     {
         if (_mapData == null)
@@ -290,6 +307,17 @@ public partial class Map : Node2D
         RemoveElement(oldElement);
         AddElement(newElement);
         SelectGfxElement(newElement);
+    }
+
+    private void UpdateElementColor(GfxData.Element element, Color color, float[] colors, sbyte typeMask,
+        bool refreshInspector = false)
+    {
+        element.Color = color;
+        element.Colors = colors.ToArray();
+        element.TypeMask = typeMask;
+        _multiMeshRenderer.UpdateElementColor(element);
+        if (refreshInspector)
+            GfxTileSelected?.Invoke(this, new GfxTileSelectedEventArgs(element));
     }
 
     public void UpdateTopologyCell(TopologyData.CellPathData path, TopologyData.CellVisibilityData visibility)

@@ -55,6 +55,7 @@ public partial class Editor : Node2D
 		_assetsPreview.AssetSelected += (_, e) => _map.UpdatePreview(e.Element);
 
 		_inspector.ElementUpdated += (_, e) => _map.RegisterUpdateElement(e.OldElement, e.NewElement);
+		_inspector.ElementColorUpdated += (_, e) => _map.RegisterUpdateElementColor(e.OldElement, e.NewElement);
 		_inspector.TopologyUpdated += (_, e) => _map.RegisterUpdateTopologyCell(e.Path, e.Visibility);
 		_inspector.FightUpdated += (_, e) => _map.RegisterUpdateFight(e.OldFightData, e.NewFightData);
 		_inspector.MouseEntered += () => _map.UpdateFocus(false);

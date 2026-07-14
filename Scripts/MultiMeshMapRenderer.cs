@@ -86,6 +86,14 @@ public partial class MultiMeshMapRenderer : MultiMeshInstance2D
 		return _hashToIndex.ContainsKey(element.HashCode);
 	}
 
+	public void UpdateElementColor(GfxData.Element element)
+	{
+		if (!_hashToIndex.TryGetValue(element.HashCode, out var idx))
+			return;
+
+		_multiMesh.SetInstanceColor(idx, ComputeInstanceColor(element));
+	}
+
 	public GfxData.Element GetTopElementAt(Vector2 position, int[] ignoreIds)
 	{
 		for (var i = _elementList.Count - 1; i >= 0; i--)
