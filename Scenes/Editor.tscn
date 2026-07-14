@@ -45,6 +45,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 dragging_enabled = false
 dragger_visibility = 2
 
@@ -77,6 +78,7 @@ size_flags_vertical = 3
 [node name="SplitContainer2" type="SplitContainer" parent="CanvasLayer/SplitContainer" unique_id=1280076723]
 custom_minimum_size = Vector2(900, 600)
 layout_mode = 2
+mouse_filter = 2
 dragging_enabled = false
 dragger_visibility = 2
 vertical = true
@@ -93,6 +95,7 @@ layout_mode = 1
 [node name="SplitContainer" type="SplitContainer" parent="CanvasLayer/SplitContainer/SplitContainer2" unique_id=2059926967]
 custom_minimum_size = Vector2(900, 550)
 layout_mode = 2
+mouse_filter = 2
 dragging_enabled = false
 dragger_visibility = 2
 
@@ -100,6 +103,7 @@ dragger_visibility = 2
 custom_minimum_size = Vector2(650, 550)
 layout_mode = 2
 size_flags_horizontal = 3
+mouse_filter = 2
 color = Color(0.341176, 0.341176, 0.341176, 0)
 
 [node name="Overlay" parent="CanvasLayer/SplitContainer/SplitContainer2/SplitContainer/ColorRect2" unique_id=1783884822 instance=ExtResource("6_ehtoy")]

@@ -31,6 +31,7 @@ offset_top = -2.0
 offset_bottom = -2.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 script = ExtResource("1_ic50a")
 _preview = NodePath("SelectorPreview/HBoxContainer/Background/Background2/Preview")
 _position = NodePath("Position/Label")

@@ -115,6 +115,15 @@ public partial class Map : Node2D
 
     public override void _Input(InputEvent @event)
     {
+        if (@event is InputEventMouseButton { Pressed: false, ButtonIndex: MouseButton.Left })
+        {
+            _pressed = false;
+            _lastCoords = (int.MinValue, int.MinValue);
+        }
+    }
+
+    public override void _UnhandledInput(InputEvent @event)
+    {
         if (@event is InputEventMouseMotion)
         {
             var globalPosition = GetGlobalMousePosition();
@@ -168,11 +177,6 @@ public partial class Map : Node2D
             }
         }
 
-        if (@event is InputEventMouseButton { Pressed: false, ButtonIndex: MouseButton.Left } eventMouseButton2)
-        {
-            _pressed = false;
-            _lastCoords = (int.MinValue, int.MinValue);
-        }
     }
 
     public void CreateNewMap(int id)

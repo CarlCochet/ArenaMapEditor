@@ -24,7 +24,7 @@ public partial class Camera : Camera2D
 		Zoom = new Vector2(_zoom, _zoom);
 	}
 
-	public override void _Input(InputEvent @event)
+	public override void _UnhandledInput(InputEvent @event)
 	{
 		if (!HasFocus)
 			return;
