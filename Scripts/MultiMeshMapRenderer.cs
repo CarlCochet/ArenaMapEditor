@@ -5,10 +5,10 @@ using System.Collections.Generic;
 public partial class MultiMeshMapRenderer : MultiMeshInstance2D
 {
 	private readonly List<(long hashCode, GfxData.Element element)> _elementList = [];
-	private readonly Dictionary<long, int> _hashToIndex = new();
+	private readonly Dictionary<GfxData.Element, int> _elementToIndex = new();
 	private MultiMesh _multiMesh;
 	private int _selectedIndex = -1;
-	private long _selectedHashCode;
+	private GfxData.Element _selectedElement;
 	private static readonly Color SelectedColor = Colors.Green;
 	private const float DimFactor = 0.25f;
 	private bool _isHeightHighlightActive;
@@ -44,12 +44,13 @@ public partial class MultiMeshMapRenderer : MultiMeshInstance2D
 	public void LoadElements(List<GfxData.Element> sortedElements)
 	{
 		_selectedIndex = -1;
+		_selectedElement = null;
 		_elementList.Clear();
-		_hashToIndex.Clear();
+		_elementToIndex.Clear();
 		foreach (var el in sortedElements)
 		{
 			_elementList.Add((el.HashCode, el));
-			_hashToIndex[el.HashCode] = _elementList.Count - 1;
+			_elementToIndex[el] = _elementList.Count - 1;
 		}
 
 		RebuildAllInstances();
@@ -59,36 +60,36 @@ public partial class MultiMeshMapRenderer : MultiMeshInstance2D
 	{
 		var insertIdx = FindInsertIndex(element.HashCode);
 		_elementList.Insert(insertIdx, (element.HashCode, element));
-		_hashToIndex[element.HashCode] = insertIdx;
+		_elementToIndex[element] = insertIdx;
 		FixIndicesFrom(insertIdx + 1);
 		RebuildAllInstances();
 	}
 
 	public void RemoveElement(GfxData.Element element)
 	{
-		if (!_hashToIndex.TryGetValue(element.HashCode, out var idx))
+		if (!_elementToIndex.TryGetValue(element, out var idx))
 			return;
 
-		if (_selectedHashCode == element.HashCode)
+		if (ReferenceEquals(_selectedElement, element))
 		{
 			_selectedIndex = -1;
-			_selectedHashCode = 0;
+			_selectedElement = null;
 		}
 
 		_elementList.RemoveAt(idx);
-		_hashToIndex.Remove(element.HashCode);
+		_elementToIndex.Remove(element);
 		FixIndicesFrom(idx);
 		RebuildAllInstances();
 	}
 
 	public bool ElementExists(GfxData.Element element)
 	{
-		return _hashToIndex.ContainsKey(element.HashCode);
+		return _elementToIndex.ContainsKey(element);
 	}
 
 	public void UpdateElementColor(GfxData.Element element)
 	{
-		if (!_hashToIndex.TryGetValue(element.HashCode, out var idx))
+		if (!_elementToIndex.TryGetValue(element, out var idx))
 			return;
 
 		_multiMesh.SetInstanceColor(idx, ComputeInstanceColor(element));
@@ -116,16 +117,13 @@ public partial class MultiMeshMapRenderer : MultiMeshInstance2D
 		return transform.Origin;
 	}
 
-	public long GetSelectedHashCode() => _selectedHashCode;
-
-	public void SelectElement(long hashCode)
+	public void SelectElement(GfxData.Element element)
 	{
-		if (!_hashToIndex.TryGetValue(hashCode, out var idx))
+		if (!_elementToIndex.TryGetValue(element, out var idx))
 			return;
 		_selectedIndex = idx;
-		_selectedHashCode = hashCode;
+		_selectedElement = element;
 
-		var (_, element) = _elementList[idx];
 		var vSpan = GetVSpan(element);
 		_multiMesh.SetInstanceColor(idx, new Color(SelectedColor.R, SelectedColor.G, SelectedColor.B, vSpan));
 
@@ -141,7 +139,7 @@ public partial class MultiMeshMapRenderer : MultiMeshInstance2D
 			_multiMesh.SetInstanceColor(_selectedIndex, ComputeInstanceColor(element));
 		}
 		_selectedIndex = -1;
-		_selectedHashCode = 0;
+		_selectedElement = null;
 	}
 
 	public void SetHeightHighlight(int z)
@@ -291,8 +289,8 @@ public partial class MultiMeshMapRenderer : MultiMeshInstance2D
 	{
 		for (var i = start; i < _elementList.Count; i++)
 		{
-			var (hashCode, _) = _elementList[i];
-			_hashToIndex[hashCode] = i;
+			var (_, element) = _elementList[i];
+			_elementToIndex[element] = i;
 		}
 	}
 }

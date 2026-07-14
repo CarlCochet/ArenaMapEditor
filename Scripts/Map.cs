@@ -304,8 +304,20 @@ public partial class Map : Node2D
 
     public void UpdateElement(GfxData.Element oldElement, GfxData.Element newElement)
     {
-        RemoveElement(oldElement);
-        AddElement(newElement);
+        UnselectAll();
+        var oldCellHasOtherElement = _mapData.Gfx.Partitions
+            .SelectMany(p => p.Elements)
+            .Any(e => !ReferenceEquals(e, oldElement) &&
+                      e.CellX == oldElement.CellX && e.CellY == oldElement.CellY);
+
+        _mapData.Gfx.UpdateElement(oldElement, newElement);
+        if (!oldCellHasOtherElement)
+        {
+            var (path, visibility) = _mapData.Topology.ResetTile(oldElement.CellX, oldElement.CellY);
+            _topology.UpdateCell(path, visibility);
+        }
+        UpdateTopologyFromElement(newElement);
+        ReloadGfxRenderer();
         SelectGfxElement(newElement);
     }
 
@@ -342,7 +354,7 @@ public partial class Map : Node2D
         UpdateTopologyFromElement(element);
         
         _mapData.Gfx.AddElement(element);
-        _multiMeshRenderer.AddElement(element);
+        ReloadGfxRenderer();
     }
 
     public void UpdateTopologyFromElement(GfxData.Element element)
@@ -366,8 +378,8 @@ public partial class Map : Node2D
             return;
         
         UnselectAll();
-        _multiMeshRenderer.RemoveElement(element);
         _mapData.Gfx.RemoveElement(element);
+        ReloadGfxRenderer();
         if (!_mapData.Gfx.HasElementAt(element.CellX, element.CellY))
         {
             var (path, visibility) = _mapData.Topology.ResetTile(element.CellX, element.CellY);
@@ -471,6 +483,11 @@ public partial class Map : Node2D
             mat.SetShaderParameter("total_layers", (float)GlobalData.Instance.TotalAtlasLayers);
         }
 
+        ReloadGfxRenderer();
+    }
+
+    private void ReloadGfxRenderer()
+    {
         var sortedElements = _mapData.Gfx.Partitions
             .SelectMany(p => p.Elements)
             .OrderBy(t => t.HashCode)
@@ -508,7 +525,7 @@ public partial class Map : Node2D
         
         SelectedElement = element;
         SelectedTile = null;
-        _multiMeshRenderer.SelectElement(element.HashCode);
+        _multiMeshRenderer.SelectElement(element);
         
         _gridMaterial.SetShaderParameter("elevation", (float)(element.CellZ * GlobalData.ElevationStep));
         _grid2Material.SetShaderParameter("elevation", (float)(element.CellZ * GlobalData.ElevationStep));

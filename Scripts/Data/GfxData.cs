@@ -157,6 +157,8 @@ public class GfxData
 
         element.ComputeHashCode();
         partition?.AddElement(element);
+        foreach (var affectedPartition in Partitions)
+            affectedPartition.SortElements();
     }
 
     public void RemoveElement(Element element)
@@ -175,7 +177,88 @@ public class GfxData
             elements[i].AltitudeOrder = (sbyte)i;
             elements[i].ComputeHashCode();
         }
-        partition?.SortElements();
+        foreach (var affectedPartition in Partitions)
+        {
+            affectedPartition.SortElements();
+            affectedPartition.RecomputeBounds();
+        }
+    }
+
+    public void UpdateElement(Element oldElement, Element newElement)
+    {
+        var oldPartition = Partitions.FirstOrDefault(p => p.Elements.Contains(oldElement));
+        if (oldPartition == null)
+            return;
+
+        var oldX = oldElement.CellX;
+        var oldY = oldElement.CellY;
+        var remainsInCell = oldX == newElement.CellX && oldY == newElement.CellY;
+        oldPartition.Elements.Remove(oldElement);
+
+        if (!remainsInCell)
+            ReorderCell(oldX, oldY);
+
+        var cellElements = Partitions
+            .SelectMany(p => p.Elements)
+            .Where(e => e.CellX == newElement.CellX && e.CellY == newElement.CellY)
+            .OrderBy(e => e.AltitudeOrder)
+            .ToList();
+
+        int insertionIndex;
+        if (remainsInCell && newElement.AltitudeOrder != oldElement.AltitudeOrder)
+        {
+            insertionIndex = Math.Clamp(newElement.AltitudeOrder, 0, cellElements.Count);
+        }
+        else if (remainsInCell && newElement.CellZ == oldElement.CellZ)
+        {
+            insertionIndex = Math.Clamp(oldElement.AltitudeOrder, 0, cellElements.Count);
+        }
+        else
+        {
+            insertionIndex = cellElements.FindIndex(e => e.CellZ > newElement.CellZ);
+            if (insertionIndex < 0)
+                insertionIndex = cellElements.Count;
+        }
+
+        cellElements.Insert(insertionIndex, newElement);
+        ReorderElements(cellElements);
+
+        var newPartition = remainsInCell
+            ? oldPartition
+            : Partitions.OrderBy(p => p.DistanceToCenter(newElement.CellX, newElement.CellY)).FirstOrDefault();
+        if (newPartition == null)
+        {
+            var mapX = (short)((int)Math.Floor((float)newElement.CellX / MapConstants.MapWidth) * MapConstants.MapWidth);
+            var mapY = (short)((int)Math.Floor((float)newElement.CellY / MapConstants.MapLength) * MapConstants.MapLength);
+            newPartition = new Partition(mapX, mapY);
+            Partitions.Add(newPartition);
+        }
+        newPartition.Elements.Add(newElement);
+
+        foreach (var partition in Partitions)
+        {
+            partition.SortElements();
+            partition.RecomputeBounds();
+        }
+    }
+
+    private void ReorderCell(int x, int y)
+    {
+        var elements = Partitions
+            .SelectMany(p => p.Elements)
+            .Where(e => e.CellX == x && e.CellY == y)
+            .OrderBy(e => e.AltitudeOrder)
+            .ToList();
+        ReorderElements(elements);
+    }
+
+    private static void ReorderElements(List<Element> elements)
+    {
+        for (var i = 0; i < elements.Count; i++)
+        {
+            elements[i].AltitudeOrder = (sbyte)i;
+            elements[i].ComputeHashCode();
+        }
     }
     
     public bool ElementExists(Element element) => Partitions.Any(p => p.Elements.Contains(element));
@@ -695,6 +778,7 @@ public class GfxData
                 GroupKey = GroupKey,
                 Occluder = Occluder,
                 TypeMask = TypeMask,
+                Walkable = Walkable,
                 Colors = Colors.ToArray(),
                 Color = Color,
                 CommonData = CommonData
