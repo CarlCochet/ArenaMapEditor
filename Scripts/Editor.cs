@@ -28,13 +28,9 @@ public partial class Editor : Node2D
 	{
 		DisplayServer.WindowSetMinSize(new Vector2I(1200, 600));
 
-		_map.SetUiHitTest(IsPointOverUi);
-
 		_filter.FilterUpdated += (_, _) => _assetsPreview.DisplayAssets(_filter.Biome, _filter.Category, _filter.Mode);
 		_filter.ModeUpdated += _OnModeUpdated;
-		_filter.MouseEntered += () => _map.UpdateFocus(false);
-		_filter.MouseExited += () => _map.UpdateFocus(true);
-
+	
 		_tools.MouseEntered += () => _map.UpdateFocus(false);
 		_tools.MouseExited += () => _map.UpdateFocus(true);
 		_tools.MapSelected += _OnMapSelected;
@@ -272,17 +268,5 @@ public partial class Editor : Node2D
 		// GlobalData.Instance.SavePlaylists($"{dir}/maps_sounds");
 		File.WriteAllText($"{dir}/fight_map_info.json", JsonSerializer.Serialize(allMapsData, _jsonOptions));
 		_lastDir = dir;
-	}
-
-	private bool IsPointOverUi(Vector2 globalPosition)
-	{
-		if (_filter.GetGlobalRect().HasPoint(globalPosition))
-			return true;
-		if (_filter.GetParent() is Control filterParent && filterParent.GetGlobalRect().HasPoint(globalPosition))
-			return true;
-		return _tools.GetGlobalRect().HasPoint(globalPosition)
-		       || _inspector.GetGlobalRect().HasPoint(globalPosition)
-		       || _assetsPreview.GetGlobalRect().HasPoint(globalPosition)
-		       || _overlay.GetGlobalRect().HasPoint(globalPosition);
 	}
 }

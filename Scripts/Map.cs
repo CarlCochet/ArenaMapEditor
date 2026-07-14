@@ -30,7 +30,6 @@ public partial class Map : Node2D
     private Enums.Mode _mode;
     private bool _isHighlightActivated;
     private int _z;
-    private Func<Vector2, bool> _isPointOverUi;
     private bool _pressed;
     private (int x, int y) _lastCoords = (int.MinValue, int.MinValue);
     
@@ -147,8 +146,6 @@ public partial class Map : Node2D
         if (@event is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } eventMouseButton)
         {
             var globalPosition = GetGlobalMousePosition();
-            if (_isPointOverUi != null && _isPointOverUi(globalPosition))
-                return;
             _pressed = true;
 
             if (_mode == Enums.Mode.Environment)
@@ -185,11 +182,6 @@ public partial class Map : Node2D
         newMap.CreateEmpty();
         GlobalData.Instance.Maps[mapId] = newMap;
         Load(newMap);
-    }
-
-    public void SetUiHitTest(Func<Vector2, bool> hitTest)
-    {
-        _isPointOverUi = hitTest;
     }
 
     public void UpdateFocus(bool hasFocus)
