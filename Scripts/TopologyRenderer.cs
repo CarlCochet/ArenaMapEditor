@@ -160,7 +160,9 @@ public partial class TopologyRenderer : Node2D
     {
         var height = visData.Height;
         var z = visData.Z;
-        var pos = IsoFromGrid(visData.X, visData.Y, z - height, -height);
+        var pos = _is2D
+            ? IsoFromGrid(visData.X, visData.Y, 0, 0)
+            : IsoFromGrid(visData.X, visData.Y, z - height, -height);
 
         _cells.Add(new CellData
         {
@@ -597,6 +599,7 @@ public partial class TopologyRenderer : Node2D
             sel.IsSelected = true;
             _cells[index] = sel;
         }
+        _needsMeshRebuild = true;
         QueueRedraw();
     }
 
@@ -628,7 +631,9 @@ public partial class TopologyRenderer : Node2D
             if (cell.X != visData.X || cell.Y != visData.Y)
                 continue;
 
-            var pos = IsoFromGrid(visData.X, visData.Y, visData.Z - visData.Height, -visData.Height);
+            var pos = _is2D
+                ? IsoFromGrid(visData.X, visData.Y, 0, 0)
+                : IsoFromGrid(visData.X, visData.Y, visData.Z - visData.Height, -visData.Height);
             cell.PathData = pathData;
             cell.VisibilityData = visData;
             cell.Z = visData.Z;
@@ -642,14 +647,6 @@ public partial class TopologyRenderer : Node2D
             return;
         }
 
-        AddCell(pathData, visData, false);
-        _cells.Sort(CellSort);
-        _needsMeshRebuild = true;
-        QueueRedraw();
-    }
-
-    public void AddCellFromElement(TopologyData.CellPathData pathData, TopologyData.CellVisibilityData visData)
-    {
         AddCell(pathData, visData, false);
         _cells.Sort(CellSort);
         _needsMeshRebuild = true;

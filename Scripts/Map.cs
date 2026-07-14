@@ -329,7 +329,7 @@ public partial class Map : Node2D
         _mapData.Topology.AddFromElement(element);
         pathData = _mapData.Topology.GetPathData(element.CellX, element.CellY);
         var visibilityData = _mapData.Topology.GetVisibilityData(element.CellX, element.CellY);
-        _topology.AddCellFromElement(pathData, visibilityData);
+        _topology.UpdateCell(pathData, visibilityData);
     }
 
     public void RemoveElement(GfxData.Element element)
