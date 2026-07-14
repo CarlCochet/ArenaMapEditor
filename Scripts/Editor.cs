@@ -65,6 +65,7 @@ public partial class Editor : Node2D
 		_map.GfxTileSelected += OnGfxTileSelected;
 		_map.TopologyTileSelected += OnTopologyTileSelected;
 		_map.EnvTileSelected += OnEnvTileSelected;
+		_map.FightDataUpdated += (_, e) => _inspector.UpdateFight(e.FightData);
 		
 		_inspector.EnvElementUpdated += (_, e) =>
 		{

@@ -1686,6 +1686,7 @@ public class TopologyData
             Cost = data.Cost;
             Height = data.Height;
             MurFinInfo = data.MurFinInfo;
+            MiscProperties = data.MiscProperties;
         }
 
         public static CellPathData[] CreateCellPathData()

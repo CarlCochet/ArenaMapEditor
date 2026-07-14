@@ -60,8 +60,8 @@ public class FightData
             StartPoints[1].Add(reader.ReadInt());
         }
         
-        StartPoints[0].Sort();
-        StartPoints[1].Sort();
+        StartPoints[0] = StartPoints[0].Distinct().OrderBy(coord => coord).ToList();
+        StartPoints[1] = StartPoints[1].Distinct().OrderBy(coord => coord).ToList();
         
         var bonusCount = reader.ReadByte() & 0xFF;
         for (var i = 0; i < bonusCount; i++)
@@ -163,6 +163,7 @@ public class FightData
 
     public void AddCoach(int x, int y, int z)
     {
+        RemovePlacement(x, y, z);
         var coord = GetCoord(x, y, z);
         for (var i = 0; i < CoachPoints.Length; i++)
         {
@@ -183,7 +184,7 @@ public class FightData
         var coord = GetCoord(x, y, z);
         foreach (var start in StartPoints)
         {
-            start.Remove(coord);
+            start.RemoveAll(value => value == coord);
         }
 
         for (var i = 0; i < CoachPoints.Length; i++)
@@ -205,12 +206,34 @@ public class FightData
         Bonus.Remove(coord);
     }
 
+    public void RemoveInvalidPositions(TopologyData topology)
+    {
+        bool IsValid(int coord)
+        {
+            var (x, y, z) = GetCoords(coord);
+            var path = topology.GetPathData(x, y);
+            return path != null && path.Z != short.MinValue && path.Z == z;
+        }
+
+        foreach (var start in StartPoints)
+            start.RemoveAll(coord => !IsValid(coord));
+
+        for (var i = 0; i < CoachPoints.Length; i++)
+        {
+            if (CoachPoints[i] != 0 && !IsValid(CoachPoints[i]))
+                CoachPoints[i] = 0;
+        }
+
+        foreach (var coord in Bonus.Keys.Where(coord => !IsValid(coord)).ToArray())
+            Bonus.Remove(coord);
+    }
+
     public FightData Copy()
     {
         return new FightData($"{Id}")
         {
             CoachPoints = (int[])CoachPoints.Clone(),
-            StartPoints = StartPoints = [[..StartPoints[0]], [..StartPoints[1]]],
+            StartPoints = [[..StartPoints[0]], [..StartPoints[1]]],
             Bonus = new Dictionary<int, int>(Bonus),
             MapCenter = (MapCenter.x, MapCenter.y)
         };

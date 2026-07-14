@@ -41,6 +41,7 @@ public partial class Map : Node2D
     public event EventHandler<GfxTileSelectedEventArgs> GfxTileSelected;
     public event EventHandler<TopologyTileSelectedEventArgs> TopologyTileSelected;
     public event EventHandler<EnvTileSelectedEventArgs> EnvTileSelected;
+    public event EventHandler<FightDataUpdatedEventArgs> FightDataUpdated;
 
     private List<EnvData.Element> _selectedEnvElements;
     private readonly List<EnvMarker> _selectedEnvMarkers = [];
@@ -264,10 +265,22 @@ public partial class Map : Node2D
         
         var oldPath = _mapData.Topology.GetPathData(path.X, path.Y);
         var oldVisibility = _mapData.Topology.GetVisibilityData(path.X, path.Y);
-        _undos.Push(new ReversibleAction(Do: () => UpdateTopologyCell(path, visibility),
-            Undo: () => UpdateTopologyCell(oldPath, oldVisibility)));
+        var oldFight = _mapData.Fight;
+        var newFight = oldFight;
+        if (oldFight != null &&
+            (oldPath.X != path.X || oldPath.Y != path.Y || oldPath.Z != path.Z))
+        {
+            newFight = oldFight.Copy();
+            newFight.RemovePlacement(oldPath.X, oldPath.Y, oldPath.Z);
+            newFight.RemoveBonus(oldPath.X, oldPath.Y, oldPath.Z);
+        }
+
+        var updatedFight = newFight;
+        _undos.Push(new ReversibleAction(
+            Do: () => UpdateTopologyAndFight(path, visibility, updatedFight),
+            Undo: () => UpdateTopologyAndFight(oldPath, oldVisibility, oldFight)));
         _redos.Clear();
-        UpdateTopologyCell(path, visibility);
+        UpdateTopologyAndFight(path, visibility, updatedFight);
     }
 
     public void RegisterUpdateFight(FightData oldFightData, FightData newFightData)
@@ -336,6 +349,15 @@ public partial class Map : Node2D
     {
         _mapData.Topology.Update(path, visibility);
         _topology.UpdateCell(path, visibility);
+        TopologyTileSelected?.Invoke(this, new TopologyTileSelectedEventArgs(path, visibility));
+    }
+
+    private void UpdateTopologyAndFight(TopologyData.CellPathData path,
+        TopologyData.CellVisibilityData visibility, FightData fight)
+    {
+        UpdateTopologyCell(path, visibility);
+        if (!ReferenceEquals(_mapData.Fight, fight))
+            UpdateFight(_mapData.Fight, fight);
     }
 
     public void UpdateFight(FightData oldFight, FightData newFight)
@@ -343,6 +365,7 @@ public partial class Map : Node2D
         _mapData.Fight = newFight;
         _topology.SetCenter(newFight.MapCenter.x, newFight.MapCenter.y);
         _topology.SetFightData(newFight);
+        FightDataUpdated?.Invoke(this, new FightDataUpdatedEventArgs(newFight));
     }
 
     public void AddElement(GfxData.Element element)
@@ -908,5 +931,10 @@ public partial class Map : Node2D
         public int X => x;
         public int Y => y;
         public int CurrentIndex => currentIndex;
+    }
+
+    public class FightDataUpdatedEventArgs(FightData fightData) : EventArgs
+    {
+        public FightData FightData => fightData;
     }
 }

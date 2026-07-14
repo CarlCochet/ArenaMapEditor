@@ -104,6 +104,8 @@ public class MapData
 
     public void Save(string path)
     {
+        Fight?.RemoveInvalidPositions(Topology);
+
         var dirAccess = DirAccess.Open(path);
         dirAccess.MakeDirRecursive($"maps/tplg/{Id}");
         dirAccess.MakeDirRecursive($"maps/light/{Id}");

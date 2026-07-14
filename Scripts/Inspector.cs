@@ -469,10 +469,20 @@ public partial class Inspector : Control
     {
         if (_suppressSignals || _pathData == null || _visibilityData == null)
             return;
-        
-        _pathData.Z = (short) value;
-        _visibilityData.Z = (short) value;
-        TopologyUpdated?.Invoke(this, new TopologyUpdatedEventArgs(_pathData, _visibilityData));
+
+        var newPathData = new TopologyData.CellPathData(_pathData)
+        {
+            Z = (short)value
+        };
+        var newVisibilityData = new TopologyData.CellVisibilityData
+        {
+            X = _visibilityData.X,
+            Y = _visibilityData.Y,
+            Z = (short)value,
+            Height = _visibilityData.Height,
+            CanViewThrough = _visibilityData.CanViewThrough
+        };
+        TopologyUpdated?.Invoke(this, new TopologyUpdatedEventArgs(newPathData, newVisibilityData));
     }
     
     private void _OnTopoHeightChanged(double value)
@@ -535,20 +545,21 @@ public partial class Inspector : Control
         if (_suppressSignals || _fightData == null || _pathData == null)
             return;
         
-        var oldFightData = _fightData.Copy();
+        var oldFightData = _fightData;
+        var newFightData = _fightData.Copy();
         switch (id)
         {
             case 0:
-                _fightData.RemovePlacement(_pathData.X, _pathData.Y, _pathData.Z);
+                newFightData.RemovePlacement(_pathData.X, _pathData.Y, _pathData.Z);
                 break;
             case 3:
-                _fightData.AddCoach(_pathData.X, _pathData.Y, _pathData.Z);
+                newFightData.AddCoach(_pathData.X, _pathData.Y, _pathData.Z);
                 break;
             default:
-                _fightData.AddStart(_pathData.X, _pathData.Y, _pathData.Z, (int) id - 1);
+                newFightData.AddStart(_pathData.X, _pathData.Y, _pathData.Z, (int) id - 1);
                 break;
         }
-        FightUpdated?.Invoke(this, new FightUpdatedEventArgs(oldFightData, _fightData));
+        FightUpdated?.Invoke(this, new FightUpdatedEventArgs(oldFightData, newFightData));
     }
 
     private void _OnBonusChanged(long id)
@@ -556,12 +567,13 @@ public partial class Inspector : Control
         if (_suppressSignals || _fightData == null || _pathData == null)
             return;
         
-        var oldFightData = _fightData.Copy();
+        var oldFightData = _fightData;
+        var newFightData = _fightData.Copy();
         if (id == 0)
-            _fightData.RemoveBonus(_pathData.X, _pathData.Y, _pathData.Z);
+            newFightData.RemoveBonus(_pathData.X, _pathData.Y, _pathData.Z);
         else
-            _fightData.AddBonus(_pathData.X, _pathData.Y, _pathData.Z, (int) id + 1001);
-        FightUpdated?.Invoke(this, new FightUpdatedEventArgs(oldFightData, _fightData));
+            newFightData.AddBonus(_pathData.X, _pathData.Y, _pathData.Z, (int) id + 1001);
+        FightUpdated?.Invoke(this, new FightUpdatedEventArgs(oldFightData, newFightData));
     }
 
     private void _OnCenterXChanged(double value)
@@ -569,9 +581,10 @@ public partial class Inspector : Control
         if (_suppressSignals || _fightData == null)
             return;
         
-        var oldFightData = _fightData.Copy();
-        _fightData.MapCenter.x = (int)value;
-        FightUpdated?.Invoke(this, new FightUpdatedEventArgs(oldFightData, _fightData));
+        var oldFightData = _fightData;
+        var newFightData = _fightData.Copy();
+        newFightData.MapCenter.x = (int)value;
+        FightUpdated?.Invoke(this, new FightUpdatedEventArgs(oldFightData, newFightData));
     }
 
     private void _OnCenterYChanged(double value)
@@ -579,9 +592,10 @@ public partial class Inspector : Control
         if (_suppressSignals || _fightData == null)
             return;
 
-        var oldFightData = _fightData.Copy();
-        _fightData.MapCenter.y = (int)value;
-        FightUpdated?.Invoke(this, new FightUpdatedEventArgs(oldFightData, _fightData));
+        var oldFightData = _fightData;
+        var newFightData = _fightData.Copy();
+        newFightData.MapCenter.y = (int)value;
+        FightUpdated?.Invoke(this, new FightUpdatedEventArgs(oldFightData, newFightData));
     }
 
     private void SwitchCost()
