@@ -28,7 +28,7 @@ public partial class Editor : Node2D
 	{
 		DisplayServer.WindowSetMinSize(new Vector2I(1200, 600));
 
-		_filter.FilterUpdated += (_, _) => _assetsPreview.DisplayAssets(_filter.Biome, _filter.Category, _filter.Mode);
+		_filter.FilterUpdated += (_, _) => RefreshAssetsPreview();
 		_filter.ModeUpdated += _OnModeUpdated;
 	
 		_tools.MouseEntered += () => _map.UpdateFocus(false);
@@ -66,6 +66,11 @@ public partial class Editor : Node2D
 		_map.TopologyTileSelected += OnTopologyTileSelected;
 		_map.EnvTileSelected += OnEnvTileSelected;
 		_map.FightDataUpdated += (_, e) => _inspector.UpdateFight(e.FightData);
+		_map.GfxDataUpdated += (_, _) =>
+		{
+			if (_filter.UsedOnly)
+				RefreshAssetsPreview();
+		};
 		
 		_inspector.EnvElementUpdated += (_, e) =>
 		{
@@ -80,7 +85,7 @@ public partial class Editor : Node2D
 		};
 		
 		GlobalData.Instance.LoadAssets();
-		_assetsPreview.DisplayAssets(_filter.Biome, _filter.Category, _filter.Mode);
+		RefreshAssetsPreview();
 		
 		GlobalData.Instance.LoadSettings();
 		if (GlobalData.Instance.Settings != null)
@@ -118,6 +123,12 @@ public partial class Editor : Node2D
 		_tools.Update(e.Element);
 		_overlay.Update(e.Element);
 		_z = e.Element.CellZ;
+	}
+
+	private void RefreshAssetsPreview()
+	{
+		var usedIds = _filter.UsedOnly ? _map.GetUsedGfxIds() : null;
+		_assetsPreview.DisplayAssets(_filter.Biome, _filter.Category, _filter.Mode, usedIds);
 	}
 	
 	private void OnTopologyTileSelected(object sender, Map.TopologyTileSelectedEventArgs e)

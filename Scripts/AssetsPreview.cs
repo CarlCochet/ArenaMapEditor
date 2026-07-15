@@ -16,6 +16,8 @@ public partial class AssetsPreview : Control
 	private Enums.Category _category;
 	private Enums.Mode _mode;
 	private int _pageSize;
+	private HashSet<int> _usedAssetIds;
+	private int[] _filteredAssetIds = [];
 	
 	private const int HeaderHeight = 180;
 	private const int AssetSize = 50;
@@ -33,29 +35,36 @@ public partial class AssetsPreview : Control
 	private void OnSizeChanged()
 	{
 		var newPageSize = (GetWindow().Size.Y - HeaderHeight) / AssetSize * ColumnCount;
-		if (_pageSize == newPageSize)
+		if (_pageSize == newPageSize || newPageSize <= 0)
 			return;
-		
-		var currentPageCount = _totalElements / _pageSize;
-		var newPageCount = _totalElements / newPageSize;
-		var ratio = (float) currentPageCount / newPageCount;
-		
+
+		var firstVisibleIndex = _currentPage * _pageSize;
 		_pageSize = newPageSize;
-		_currentPage = (int) Math.Floor(_currentPage / ratio);
-		_currentPage = Math.Max(0, Math.Min(_currentPage, _totalElements / _pageSize));
+		_currentPage = firstVisibleIndex / _pageSize;
 		
-		DisplayAssets(_biome, _category, _mode);
+		DisplayAssets(_biome, _category, _mode, _usedAssetIds);
 	}
 
-	public void DisplayAssets(Enums.Biome biome, Enums.Category category, Enums.Mode mode)
+	public void DisplayAssets(Enums.Biome biome, Enums.Category category, Enums.Mode mode,
+		IReadOnlySet<int> usedAssetIds = null)
 	{
-		if (_biome != biome || _category != category || _mode != mode)
+		var usedFilterChanged = usedAssetIds == null != (_usedAssetIds == null) ||
+		                        usedAssetIds != null && (_usedAssetIds == null || !_usedAssetIds.SetEquals(usedAssetIds));
+		if (_biome != biome || _category != category || _mode != mode || usedFilterChanged)
 			_currentPage = 0;
-		
-		_totalElements = GlobalData.Instance.AssetIds.Length;
+
+		_usedAssetIds = usedAssetIds == null ? null : [..usedAssetIds];
+		_filteredAssetIds = GlobalData.Instance.AssetIds
+			.Where(id => GlobalData.Instance.ValidAssets.TryGetValue(id, out var asset) &&
+			             (biome == Enums.Biome.Global || asset.Biome == biome) &&
+			             (category == Enums.Category.Global || asset.Category == category) &&
+			             (_usedAssetIds == null || _usedAssetIds.Contains(id)))
+			.ToArray();
+		_totalElements = _filteredAssetIds.Length;
+		var pageCount = Math.Max(1, Mathf.CeilToInt((float)_totalElements / _pageSize));
+		_currentPage = Math.Clamp(_currentPage, 0, pageCount - 1);
 
 		_pageSpin.Value = _currentPage + 1;
-		var pageCount = _totalElements / _pageSize + 1;
 		_pageSpin.Suffix = $"/{pageCount}";
 		_pageSpin.MaxValue = pageCount;
 		
@@ -74,9 +83,8 @@ public partial class AssetsPreview : Control
 			if (index >= _totalElements)
 				break;
 			
-			var id = GlobalData.Instance.AssetIds[index];
+			var id = _filteredAssetIds[index];
 			if (!GlobalData.Instance.ValidAssets.TryGetValue(id, out var asset)) continue;
-			if ((asset.Biome != biome && biome != Enums.Biome.Global) || (asset.Category != category && category != Enums.Category.Global)) continue;
 
 			var preview = _component.Instantiate<PreviewComponent>();
 			preview.InitAsset(index, asset);
@@ -112,19 +120,20 @@ public partial class AssetsPreview : Control
 	private void _OnPreviousPressed()
 	{
 		_currentPage = Math.Max(0, _currentPage - 1);
-		DisplayAssets(_biome, _category, _mode);
+		DisplayAssets(_biome, _category, _mode, _usedAssetIds);
 	}
 
 	private void _OnNextPressed()
 	{
-		_currentPage = Math.Min(_currentPage + 1, _totalElements / _pageSize);
-		DisplayAssets(_biome, _category, _mode);
+		var lastPage = Math.Max(0, Mathf.CeilToInt((float)_totalElements / _pageSize) - 1);
+		_currentPage = Math.Min(_currentPage + 1, lastPage);
+		DisplayAssets(_biome, _category, _mode, _usedAssetIds);
 	}
 
 	private void _OnCurrentSubmitted(double newPage)
 	{
 		_currentPage = (int)newPage - 1;
-		DisplayAssets(_biome, _category, _mode);
+		DisplayAssets(_biome, _category, _mode, _usedAssetIds);
 	}
 
 	public class AssetSelectedEventArgs(ElementData element) : EventArgs

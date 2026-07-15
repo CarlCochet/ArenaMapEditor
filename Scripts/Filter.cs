@@ -6,6 +6,7 @@ public partial class Filter : Control
     public Enums.Biome Biome { get; set; } = Enums.Biome.Global;
     public Enums.Category Category { get; set; } = Enums.Category.Global;
     public Enums.Mode Mode { get; set; } = Enums.Mode.Gfx;
+    public bool UsedOnly => _usedCheckBox.ButtonPressed;
 
     public event EventHandler FilterUpdated; 
     public event EventHandler ModeUpdated;
@@ -13,8 +14,12 @@ public partial class Filter : Control
     [Export] private OptionButton _biomeButton;
     [Export] private OptionButton _categoryButton;
     [Export] private OptionButton _modeButton;
+    [Export] private CheckBox _usedCheckBox;
 	
-    public override void _Ready() { }
+    public override void _Ready()
+    {
+        _usedCheckBox.Toggled += _ => FilterUpdated?.Invoke(this, EventArgs.Empty);
+    }
 
     public override void _Input(InputEvent @event)
     {

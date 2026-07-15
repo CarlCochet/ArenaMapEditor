@@ -42,6 +42,7 @@ public partial class Map : Node2D
     public event EventHandler<TopologyTileSelectedEventArgs> TopologyTileSelected;
     public event EventHandler<EnvTileSelectedEventArgs> EnvTileSelected;
     public event EventHandler<FightDataUpdatedEventArgs> FightDataUpdated;
+    public event EventHandler GfxDataUpdated;
 
     private List<EnvData.Element> _selectedEnvElements;
     private readonly List<EnvMarker> _selectedEnvMarkers = [];
@@ -339,6 +340,7 @@ public partial class Map : Node2D
         UpdateTopologyFromElement(newElement);
         ReloadGfxRenderer();
         SelectGfxElement(newElement);
+        GfxDataUpdated?.Invoke(this, EventArgs.Empty);
     }
 
     private void UpdateElementColor(GfxData.Element element, Color color, float[] colors, sbyte typeMask,
@@ -386,6 +388,7 @@ public partial class Map : Node2D
         
         _mapData.Gfx.AddElement(element);
         ReloadGfxRenderer();
+        GfxDataUpdated?.Invoke(this, EventArgs.Empty);
     }
 
     public void UpdateTopologyFromElement(GfxData.Element element)
@@ -418,6 +421,7 @@ public partial class Map : Node2D
             var (path, visibility) = _mapData.Topology.ResetTile(element.CellX, element.CellY);
             _topology.UpdateCell(path, visibility);
         }
+        GfxDataUpdated?.Invoke(this, EventArgs.Empty);
     }
 
     public void UpdateDisplay(Enums.Mode mode)
@@ -528,6 +532,17 @@ public partial class Map : Node2D
             .ToList();
 
         _multiMeshRenderer.LoadElements(sortedElements);
+    }
+
+    public IReadOnlySet<int> GetUsedGfxIds()
+    {
+        if (_mapData?.Gfx == null)
+            return new HashSet<int>();
+        return _mapData.Gfx.Partitions
+            .SelectMany(partition => partition.Elements)
+            .Where(element => element.CommonData != null)
+            .Select(element => element.CommonData.GfxId)
+            .ToHashSet();
     }
 
     private void LoadTopology()

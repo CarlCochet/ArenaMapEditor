@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://0isfc62nmil3" path="res://Scripts/Filter.cs" id="1_ajv58"]
 
-[node name="Filter" type="Control" unique_id=221806953 node_paths=PackedStringArray("_biomeButton", "_categoryButton", "_modeButton")]
+[node name="Filter" type="Control" unique_id=221806953 node_paths=PackedStringArray("_biomeButton", "_categoryButton", "_modeButton", "_usedCheckBox")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -13,6 +13,7 @@ script = ExtResource("1_ajv58")
 _biomeButton = NodePath("MarginContainer/GridContainer/BiomeButton")
 _categoryButton = NodePath("MarginContainer/GridContainer/CategoryButton")
 _modeButton = NodePath("MarginContainer/GridContainer/ModeButton")
+_usedCheckBox = NodePath("MarginContainer/GridContainer/Used/CheckBox")
 
 [node name="MarginContainer" type="MarginContainer" parent="." unique_id=1473599344]
 layout_mode = 0
@@ -123,17 +124,16 @@ popup/item_2/id = 2
 popup/item_3/text = "Environement"
 popup/item_3/id = 3
 
-[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/GridContainer" unique_id=668881276]
+[node name="Used" type="HBoxContainer" parent="MarginContainer/GridContainer" unique_id=668881276]
 layout_mode = 2
 alignment = 1
 
-[node name="Label" type="Label" parent="MarginContainer/GridContainer/HBoxContainer" unique_id=1986278041]
+[node name="Label" type="Label" parent="MarginContainer/GridContainer/Used" unique_id=1986278041]
 layout_mode = 2
 text = "Utilisés :"
 
-[node name="CheckBox" type="CheckBox" parent="MarginContainer/GridContainer/HBoxContainer" unique_id=1900393637]
+[node name="CheckBox" type="CheckBox" parent="MarginContainer/GridContainer/Used" unique_id=1900393637]
 layout_mode = 2
-disabled = true
 
 [connection signal="item_selected" from="MarginContainer/GridContainer/BiomeButton" to="." method="_OnBiomeSelected"]
 [connection signal="item_selected" from="MarginContainer/GridContainer/CategoryButton" to="." method="_OnCategorySelected"]
