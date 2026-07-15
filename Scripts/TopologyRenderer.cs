@@ -36,8 +36,9 @@ public partial class TopologyRenderer : Node2D
     private bool _hasTopologyBounds;
 
     private const float CellSize = 1.0f;
-    private const float VerticalScale = 0.35f;
+    private const float VerticalScale = 0.25f;
     private const float MinimumHeight = 0.15f;
+    private const int HoleDisplayZ = -100;
 
     private static readonly Color OpenColor = new(0.72f, 0.76f, 0.8f);
     private static readonly Color BlockedColor = new(0.78f, 0.25f, 0.22f);
@@ -219,7 +220,7 @@ public partial class TopologyRenderer : Node2D
         if (pathData == null || visibilityData == null)
             return;
 
-        var displayZ = pathData.Z == short.MinValue ? 0 : pathData.Z;
+        var displayZ = pathData.Z == short.MinValue ? HoleDisplayZ : pathData.Z;
         var bottom = (displayZ - pathData.Height) * VerticalScale;
         var height = Math.Max(pathData.Height * VerticalScale, MinimumHeight);
         _cells.Add(new CellData
@@ -416,6 +417,8 @@ public partial class TopologyRenderer : Node2D
 
     private Color GetCellColor(in CellData cell)
     {
+        if (cell.IsCenter)
+            return CenterColor;
         if (cell.PathData.Z == short.MinValue)
             return HoleColor;
         if (_fightData != null)
@@ -430,8 +433,6 @@ public partial class TopologyRenderer : Node2D
             if (bonus != -1)
                 return BonusColor;
         }
-        if (cell.IsCenter)
-            return CenterColor;
         if (cell.CanViewThrough)
             return PassThroughColor;
         return cell.IsBlocked ? BlockedColor : OpenColor;
