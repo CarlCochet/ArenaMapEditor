@@ -7,7 +7,7 @@ public partial class TopologyRenderer : Node2D
     private struct CellData
     {
         public int X, Y, Z, Height, LayerIndex;
-        public bool CanViewThrough, IsBlocked, IsSelected, Highlighted, IsCenter;
+        public bool CanViewThrough, IsBlocked, Highlighted, IsCenter;
         public TopologyData.CellPathData PathData;
         public TopologyData.CellVisibilityData VisibilityData;
         public Aabb Bounds;
@@ -18,6 +18,7 @@ public partial class TopologyRenderer : Node2D
     private Sprite2D _viewportSprite;
     private Node3D _world;
     private MeshInstance3D _mesh;
+    private MeshInstance3D _selectionMesh;
     private Camera3D _camera;
     private FightData _fightData;
     private int _selectedIndex = -1;
@@ -30,6 +31,9 @@ public partial class TopologyRenderer : Node2D
     private float _pitch = -0.75f;
     private float _cameraSize = 30.0f;
     private Vector3 _focus;
+    private readonly Dictionary<(int X, int Y), List<int>> _columns = [];
+    private Aabb _topologyBounds;
+    private bool _hasTopologyBounds;
 
     private const float CellSize = 1.0f;
     private const float VerticalScale = 0.35f;
@@ -89,6 +93,13 @@ public partial class TopologyRenderer : Node2D
             CastShadow = GeometryInstance3D.ShadowCastingSetting.Off
         };
         _world.AddChild(_mesh);
+
+        _selectionMesh = new MeshInstance3D
+        {
+            Name = "TopologySelection",
+            CastShadow = GeometryInstance3D.ShadowCastingSetting.Off
+        };
+        _world.AddChild(_selectionMesh);
 
         _viewportSprite = new Sprite2D
         {
@@ -196,8 +207,10 @@ public partial class TopologyRenderer : Node2D
             AddCell(centerPath, visibility, 0, true);
         }
 
+        RebuildSpatialIndex();
         FrameTopology();
         BuildMesh();
+        BuildSelectionMesh();
     }
 
     private void AddCell(TopologyData.CellPathData pathData,
@@ -250,6 +263,33 @@ public partial class TopologyRenderer : Node2D
         UpdateCamera();
     }
 
+    private void RebuildSpatialIndex()
+    {
+        _columns.Clear();
+        _hasTopologyBounds = false;
+        for (var i = 0; i < _cells.Count; i++)
+        {
+            var cell = _cells[i];
+            var key = (cell.X, cell.Y);
+            if (!_columns.TryGetValue(key, out var column))
+            {
+                column = [];
+                _columns.Add(key, column);
+            }
+            column.Add(i);
+
+            if (!_hasTopologyBounds)
+            {
+                _topologyBounds = cell.Bounds;
+                _hasTopologyBounds = true;
+            }
+            else
+            {
+                _topologyBounds = _topologyBounds.Merge(cell.Bounds);
+            }
+        }
+    }
+
     private void UpdateCamera()
     {
         if (_camera == null)
@@ -285,29 +325,17 @@ public partial class TopologyRenderer : Node2D
         var st = new SurfaceTool();
         st.Begin(Mesh.PrimitiveType.Triangles);
         var hasGeometry = false;
-        var columns = new Dictionary<(int X, int Y), List<int>>();
-        for (var i = 0; i < _cells.Count; i++)
-        {
-            var key = (_cells[i].X, _cells[i].Y);
-            if (!columns.TryGetValue(key, out var column))
-            {
-                column = [];
-                columns.Add(key, column);
-            }
-            column.Add(i);
-        }
-
         for (var i = 0; i < _cells.Count; i++)
         {
             var cell = _cells[i];
             if (!cell.Highlighted)
                 continue;
             AddBox(st, cell.Bounds, GetCellColor(cell),
-                !IsSideCovered(columns, cell, -1, 0),
-                !IsSideCovered(columns, cell, 1, 0),
-                !IsSideCovered(columns, cell, 0, -1),
-                !IsSideCovered(columns, cell, 0, 1),
-                !IsTopCovered(columns, cell, i));
+                !IsSideCovered(_columns, cell, -1, 0),
+                !IsSideCovered(_columns, cell, 1, 0),
+                !IsSideCovered(_columns, cell, 0, -1),
+                !IsSideCovered(_columns, cell, 0, 1),
+                !IsTopCovered(_columns, cell, i));
             hasGeometry = true;
         }
 
@@ -318,7 +346,34 @@ public partial class TopologyRenderer : Node2D
             return;
         }
 
-        var material = new StandardMaterial3D
+        st.SetMaterial(CreateTopologyMaterial());
+        _mesh.Mesh = st.Commit();
+        RequestViewportUpdate();
+    }
+
+    private void BuildSelectionMesh()
+    {
+        if (_selectionMesh == null)
+            return;
+        if (_selectedIndex < 0 || _selectedIndex >= _cells.Count || !_cells[_selectedIndex].Highlighted)
+        {
+            _selectionMesh.Mesh = null;
+            RequestViewportUpdate();
+            return;
+        }
+
+        var st = new SurfaceTool();
+        st.Begin(Mesh.PrimitiveType.Triangles);
+        AddBox(st, _cells[_selectedIndex].Bounds.Grow(0.0125f), SelectedColor,
+            true, true, true, true, true);
+        st.SetMaterial(CreateTopologyMaterial());
+        _selectionMesh.Mesh = st.Commit();
+        RequestViewportUpdate();
+    }
+
+    private static StandardMaterial3D CreateTopologyMaterial()
+    {
+        return new StandardMaterial3D
         {
             VertexColorUseAsAlbedo = true,
             Transparency = BaseMaterial3D.TransparencyEnum.Disabled,
@@ -326,9 +381,6 @@ public partial class TopologyRenderer : Node2D
             CullMode = BaseMaterial3D.CullModeEnum.Back,
             Roughness = 0.85f
         };
-        st.SetMaterial(material);
-        _mesh.Mesh = st.Commit();
-        RequestViewportUpdate();
     }
 
     private bool IsSideCovered(Dictionary<(int X, int Y), List<int>> columns,
@@ -364,8 +416,6 @@ public partial class TopologyRenderer : Node2D
 
     private Color GetCellColor(in CellData cell)
     {
-        if (cell.IsSelected)
-            return SelectedColor;
         if (cell.PathData.Z == short.MinValue)
             return HoleColor;
         if (_fightData != null)
@@ -434,18 +484,92 @@ public partial class TopologyRenderer : Node2D
 
     public int? GetCellIndexAt(Vector2 globalPosition)
     {
-        if (_camera == null)
+        if (_camera == null || !_hasTopologyBounds)
             return null;
         var screenPosition = GetViewport().CanvasTransform * globalPosition;
         var origin = _camera.ProjectRayOrigin(screenPosition);
         var direction = _camera.ProjectRayNormal(screenPosition);
+        if (!RayIntersectsAabb(origin, direction, _topologyBounds, out var entry, out var exit))
+            return null;
+
+        const float epsilon = 0.0001f;
+        var point = origin + direction * (entry + epsilon);
+        var x = Mathf.FloorToInt(point.X + 0.5f);
+        var y = Mathf.FloorToInt(point.Z + 0.5f);
+        var stepX = Math.Sign(direction.X);
+        var stepY = Math.Sign(direction.Z);
+        var nextX = stepX == 0
+            ? float.MaxValue
+            : (x + (stepX > 0 ? 0.5f : -0.5f) - origin.X) / direction.X;
+        var nextY = stepY == 0
+            ? float.MaxValue
+            : (y + (stepY > 0 ? 0.5f : -0.5f) - origin.Z) / direction.Z;
+        var deltaX = stepX == 0 ? float.MaxValue : 1.0f / Mathf.Abs(direction.X);
+        var deltaY = stepY == 0 ? float.MaxValue : 1.0f / Mathf.Abs(direction.Z);
+        var nearest = float.MaxValue;
+        int? result = null;
+        var maxSteps = Mathf.CeilToInt(_topologyBounds.Size.X + _topologyBounds.Size.Z) + 4;
+        if (maxSteps > _cells.Count)
+            return FindNearestCell(origin, direction);
+
+        var onXBoundary = stepX == 0 &&
+                          Mathf.Abs(point.X + 0.5f - Mathf.Round(point.X + 0.5f)) <= epsilon;
+        var onYBoundary = stepY == 0 &&
+                          Mathf.Abs(point.Z + 0.5f - Mathf.Round(point.Z + 0.5f)) <= epsilon;
+
+        void TestColumn(int columnX, int columnY)
+        {
+            if (!_columns.TryGetValue((columnX, columnY), out var column))
+                return;
+            foreach (var index in column)
+            {
+                if (!_cells[index].Highlighted ||
+                    !RayIntersectsAabb(origin, direction, _cells[index].Bounds, out var distance) ||
+                    distance >= nearest)
+                    continue;
+                nearest = distance;
+                result = index;
+            }
+        }
+
+        for (var step = 0; step < maxSteps; step++)
+        {
+            TestColumn(x, y);
+            if (onXBoundary)
+                TestColumn(x - 1, y);
+            if (onYBoundary)
+                TestColumn(x, y - 1);
+            if (onXBoundary && onYBoundary)
+                TestColumn(x - 1, y - 1);
+
+            var next = Math.Min(nextX, nextY);
+            if (nearest <= next || next > exit)
+                break;
+            var advanceX = nextX <= nextY;
+            var advanceY = nextY <= nextX;
+            if (advanceX)
+            {
+                x += stepX;
+                nextX += deltaX;
+            }
+            if (advanceY)
+            {
+                y += stepY;
+                nextY += deltaY;
+            }
+        }
+        return result;
+    }
+
+    private int? FindNearestCell(Vector3 origin, Vector3 direction)
+    {
         var nearest = float.MaxValue;
         int? result = null;
         for (var i = 0; i < _cells.Count; i++)
         {
-            if (!_cells[i].Highlighted || !RayIntersectsAabb(origin, direction, _cells[i].Bounds, out var distance))
-                continue;
-            if (distance >= nearest)
+            if (!_cells[i].Highlighted ||
+                !RayIntersectsAabb(origin, direction, _cells[i].Bounds, out var distance) ||
+                distance >= nearest)
                 continue;
             nearest = distance;
             result = i;
@@ -454,6 +578,13 @@ public partial class TopologyRenderer : Node2D
     }
 
     private static bool RayIntersectsAabb(Vector3 origin, Vector3 direction, Aabb box, out float distance)
+    {
+        var intersects = RayIntersectsAabb(origin, direction, box, out distance, out _);
+        return intersects;
+    }
+
+    private static bool RayIntersectsAabb(Vector3 origin, Vector3 direction, Aabb box,
+        out float entry, out float exit)
     {
         var min = box.Position;
         var max = box.End;
@@ -467,7 +598,8 @@ public partial class TopologyRenderer : Node2D
             {
                 if (o < min[axis] || o > max[axis])
                 {
-                    distance = 0;
+                    entry = 0;
+                    exit = 0;
                     return false;
                 }
                 continue;
@@ -481,30 +613,20 @@ public partial class TopologyRenderer : Node2D
             tMax = Math.Min(tMax, t2);
             if (tMin > tMax)
             {
-                distance = 0;
+                entry = 0;
+                exit = 0;
                 return false;
             }
         }
-        distance = tMin;
+        entry = tMin;
+        exit = tMax;
         return true;
     }
 
     public void SelectCell(int index)
     {
-        if (_selectedIndex >= 0 && _selectedIndex < _cells.Count)
-        {
-            var old = _cells[_selectedIndex];
-            old.IsSelected = false;
-            _cells[_selectedIndex] = old;
-        }
         _selectedIndex = index;
-        if (_selectedIndex >= 0 && _selectedIndex < _cells.Count)
-        {
-            var selected = _cells[_selectedIndex];
-            selected.IsSelected = true;
-            _cells[_selectedIndex] = selected;
-        }
-        BuildMesh();
+        BuildSelectionMesh();
     }
 
     public void UnselectCell() => SelectCell(-1);
@@ -534,15 +656,14 @@ public partial class TopologyRenderer : Node2D
             var cell = _cells[i];
             if (cell.X != pathData.X || cell.Y != pathData.Y || cell.LayerIndex != layerIndex)
                 continue;
-            var selected = cell.IsSelected;
+            var selected = _selectedIndex == i;
             _cells.RemoveAt(i);
+            if (_selectedIndex > i)
+                _selectedIndex--;
             var oldCount = _cells.Count;
             AddCell(pathData, visibilityData, layerIndex, pathData.X == _centerX && pathData.Y == _centerY);
             if (_cells.Count > oldCount)
             {
-                var updated = _cells[^1];
-                updated.IsSelected = selected;
-                _cells[^1] = updated;
                 if (selected)
                     _selectedIndex = _cells.Count - 1;
             }
@@ -550,11 +671,15 @@ public partial class TopologyRenderer : Node2D
             {
                 _selectedIndex = -1;
             }
+            RebuildSpatialIndex();
             BuildMesh();
+            BuildSelectionMesh();
             return;
         }
         AddCell(pathData, visibilityData, layerIndex, false);
+        RebuildSpatialIndex();
         BuildMesh();
+        BuildSelectionMesh();
     }
 
     public void Set2D(bool is2D)
@@ -576,6 +701,7 @@ public partial class TopologyRenderer : Node2D
             _cells[i] = cell;
         }
         BuildMesh();
+        BuildSelectionMesh();
     }
 
     public void SetHeightHighlight(int z)
@@ -589,6 +715,7 @@ public partial class TopologyRenderer : Node2D
             _cells[i] = cell;
         }
         BuildMesh();
+        BuildSelectionMesh();
     }
 
     public void ClearHeightHighlight()
@@ -601,6 +728,7 @@ public partial class TopologyRenderer : Node2D
             _cells[i] = cell;
         }
         BuildMesh();
+        BuildSelectionMesh();
     }
 
     public void SetFightData(FightData fightData)
@@ -611,11 +739,8 @@ public partial class TopologyRenderer : Node2D
 
     public int? HasCellAt(int x, int y)
     {
-        for (var i = 0; i < _cells.Count; i++)
-        {
-            if (_cells[i].X == x && _cells[i].Y == y)
-                return i;
-        }
-        return null;
+        return _columns.TryGetValue((x, y), out var column) && column.Count > 0
+            ? column[0]
+            : null;
     }
 }
