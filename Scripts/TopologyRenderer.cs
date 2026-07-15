@@ -38,9 +38,12 @@ public partial class TopologyRenderer : Node2D
     private static readonly Color OpenColor = new(0.72f, 0.76f, 0.8f);
     private static readonly Color BlockedColor = new(0.78f, 0.25f, 0.22f);
     private static readonly Color PassThroughColor = new(0.22f, 0.58f, 0.88f);
+    private static readonly Color HoleColor = new(0.25f, 0.09f, 0.34f);
+    private static readonly Color CoachColor = new(0.08f, 0.34f, 0.15f);
+    private static readonly Color RedTeamColor = new(0.42f, 0.08f, 0.09f);
+    private static readonly Color BlueTeamColor = new(0.07f, 0.14f, 0.42f);
     private static readonly Color SelectedColor = new(0.25f, 1.0f, 0.35f);
     private static readonly Color CenterColor = new(0.2f, 0.9f, 0.95f);
-    private static readonly Color PlacementColor = new(0.35f, 0.45f, 1.0f);
     private static readonly Color BonusColor = new(1.0f, 0.65f, 0.12f);
 
     public override void _Ready()
@@ -354,16 +357,22 @@ public partial class TopologyRenderer : Node2D
     {
         if (cell.IsSelected)
             return SelectedColor;
-        if (cell.IsCenter)
-            return CenterColor;
+        if (cell.PathData.Z == short.MinValue)
+            return HoleColor;
         if (_fightData != null)
         {
             var (placement, bonus) = _fightData.GetData(cell.X, cell.Y, cell.Z);
-            if (placement != -1)
-                return PlacementColor;
+            if (placement == 0)
+                return RedTeamColor;
+            if (placement == 1)
+                return BlueTeamColor;
+            if (placement == 2)
+                return CoachColor;
             if (bonus != -1)
                 return BonusColor;
         }
+        if (cell.IsCenter)
+            return CenterColor;
         if (cell.CanViewThrough)
             return PassThroughColor;
         return cell.IsBlocked ? BlockedColor : OpenColor;
