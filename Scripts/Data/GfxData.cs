@@ -396,7 +396,7 @@ public class GfxData
                             
                             var colorIndex = reader.ReadShort() & 0xFFFF;
                             element.Colors = colorIndex < colors.Length ? colors[colorIndex] : [ 1.0f, 1.0f, 1.0f ];
-                            element.Color = element.Colors.Length < 3
+                            element.Color = (element.TypeMask & Element.TeintMask) == 0 || element.Colors.Length < 3
                                 ? new Color(1, 1, 1)
                                 : new Color(element.Colors[0], element.Colors[1], element.Colors[2]);
                             Elements.Add(element);

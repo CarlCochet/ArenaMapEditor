@@ -227,6 +227,9 @@ public partial class MultiMeshMapRenderer : MultiMeshInstance2D
 
 	private static Color ComputeBaseColor(GfxData.Element element)
 	{
+		if ((element.TypeMask & GfxData.Element.TeintMask) == 0)
+			return Colors.White;
+
 		return new Color(
 			0.5f + 0.5f * element.Color.R,
 			0.5f + 0.5f * element.Color.G,

@@ -247,7 +247,7 @@ public partial class Inspector : Control
         _slope.Text = element.CommonData.Slope.ToString();
         _walkable.ButtonPressed = element.Walkable;
 
-        _color.Color = element.Colors.Length == 3
+        _color.Color = (element.TypeMask & GfxData.Element.TeintMask) != 0 && element.Colors.Length >= 3
             ? new Color(element.Colors[0], element.Colors[1], element.Colors[2])
             : Colors.White;
         _shader.Text = element.CommonData.ShaderId.ToString();
