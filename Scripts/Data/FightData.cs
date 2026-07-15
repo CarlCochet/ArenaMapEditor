@@ -211,8 +211,7 @@ public class FightData
         bool IsValid(int coord)
         {
             var (x, y, z) = GetCoords(coord);
-            var path = topology.GetPathData(x, y);
-            return path != null && path.Z != short.MinValue && path.Z == z;
+            return topology.HasLayerAtZ(x, y, z);
         }
 
         foreach (var start in StartPoints)

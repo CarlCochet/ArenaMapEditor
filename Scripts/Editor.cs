@@ -56,7 +56,7 @@ public partial class Editor : Node2D
 
 		_inspector.ElementUpdated += (_, e) => _map.RegisterUpdateElement(e.OldElement, e.NewElement);
 		_inspector.ElementColorUpdated += (_, e) => _map.RegisterUpdateElementColor(e.OldElement, e.NewElement);
-		_inspector.TopologyUpdated += (_, e) => _map.RegisterUpdateTopologyCell(e.Path, e.Visibility);
+		_inspector.TopologyUpdated += (_, e) => _map.RegisterUpdateTopologyCell(e.Path, e.Visibility, e.LayerIndex);
 		_inspector.FightUpdated += (_, e) => _map.RegisterUpdateFight(e.OldFightData, e.NewFightData);
 		_inspector.MouseEntered += () => _map.UpdateFocus(false);
 		_inspector.MouseExited += () => _map.UpdateFocus(true);
@@ -122,7 +122,7 @@ public partial class Editor : Node2D
 	
 	private void OnTopologyTileSelected(object sender, Map.TopologyTileSelectedEventArgs e)
 	{
-		_inspector.UpdateTopology(e.PathData, e.VisibilityData);
+		_inspector.UpdateTopology(e.PathData, e.VisibilityData, e.LayerIndex);
 		_z = e.PathData.Z;
 	}
 	

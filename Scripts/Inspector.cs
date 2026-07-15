@@ -40,6 +40,7 @@ public partial class Inspector : Control
     [Export] private CheckBox _canViewThrough;
     [Export] private SpinBox _murFinInfo;
     [Export] private SpinBox _miscProperties;
+    [Export] private Label _topoLayer;
     [Export] private OptionButton _placement;
     [Export] private OptionButton _bonus;
     [Export] private VBoxContainer _gfxContainer;
@@ -81,6 +82,7 @@ public partial class Inspector : Control
     private TopologyData.CellPathData _pathData;
     private TopologyData.CellVisibilityData _visibilityData;
     private FightData _fightData;
+    private int _topologyLayerIndex;
 
     private List<EnvData.Element> _envElements;
     private int _currentEnvIndex;
@@ -118,6 +120,7 @@ public partial class Inspector : Control
         _canMoveThrough.Toggled += _OnCanMoveThroughToggled;
         _canViewThrough.Toggled += _OnCanViewThroughToggled;
         _murFinInfo.ValueChanged += _OnMurFinInfoChanged;
+        _miscProperties.ValueChanged += _OnMiscPropertiesChanged;
         _placement.ItemSelected += _OnPlacementChanged;
         _bonus.ItemSelected += _OnBonusChanged;
         _centerX.ValueChanged += _OnCenterXChanged;
@@ -259,10 +262,12 @@ public partial class Inspector : Control
         _suppressSignals = false;
     }
 
-    public void UpdateTopology(TopologyData.CellPathData pathData, TopologyData.CellVisibilityData visibilityData)
+    public void UpdateTopology(TopologyData.CellPathData pathData,
+        TopologyData.CellVisibilityData visibilityData, int layerIndex)
     {
         _pathData = pathData;
         _visibilityData = visibilityData;
+        _topologyLayerIndex = layerIndex;
         _suppressSignals = true;
         
         _topoX.Value = pathData.X;
@@ -274,6 +279,7 @@ public partial class Inspector : Control
         _canViewThrough.ButtonPressed = visibilityData.CanViewThrough;
         _murFinInfo.Value = pathData.MurFinInfo;
         _miscProperties.Value = pathData.MiscProperties;
+        _topoLayer.Text = layerIndex.ToString();
         
         if (_fightData != null)
         {
@@ -452,7 +458,7 @@ public partial class Inspector : Control
 
         _pathData.X = (int) value;
         _visibilityData.X = (int) value;
-        TopologyUpdated?.Invoke(this, new TopologyUpdatedEventArgs(_pathData, _visibilityData));
+        TopologyUpdated?.Invoke(this, new TopologyUpdatedEventArgs(_pathData, _visibilityData, _topologyLayerIndex));
     }
     
     private void _OnTopoYChanged(double value)
@@ -462,7 +468,7 @@ public partial class Inspector : Control
         
         _pathData.Y = (int) value;
         _visibilityData.Y = (int) value;
-        TopologyUpdated?.Invoke(this, new TopologyUpdatedEventArgs(_pathData, _visibilityData));
+        TopologyUpdated?.Invoke(this, new TopologyUpdatedEventArgs(_pathData, _visibilityData, _topologyLayerIndex));
     }
     
     private void _OnTopoZChanged(double value)
@@ -482,7 +488,7 @@ public partial class Inspector : Control
             Height = _visibilityData.Height,
             CanViewThrough = _visibilityData.CanViewThrough
         };
-        TopologyUpdated?.Invoke(this, new TopologyUpdatedEventArgs(newPathData, newVisibilityData));
+        TopologyUpdated?.Invoke(this, new TopologyUpdatedEventArgs(newPathData, newVisibilityData, _topologyLayerIndex));
     }
     
     private void _OnTopoHeightChanged(double value)
@@ -492,7 +498,7 @@ public partial class Inspector : Control
         
         _pathData.Height = (sbyte) value;
         _visibilityData.Height = (sbyte) value;
-        TopologyUpdated?.Invoke(this, new TopologyUpdatedEventArgs(_pathData, _visibilityData));
+        TopologyUpdated?.Invoke(this, new TopologyUpdatedEventArgs(_pathData, _visibilityData, _topologyLayerIndex));
     }
     
     private void _OnCostChanged(double value)
@@ -501,7 +507,7 @@ public partial class Inspector : Control
             return;
         
         _pathData.Cost = (sbyte) value;
-        TopologyUpdated?.Invoke(this, new TopologyUpdatedEventArgs(_pathData, _visibilityData));
+        TopologyUpdated?.Invoke(this, new TopologyUpdatedEventArgs(_pathData, _visibilityData, _topologyLayerIndex));
     }
     
     private void _OnCanMoveThroughToggled(bool toggledOn)
@@ -510,7 +516,7 @@ public partial class Inspector : Control
             return;
         
         _pathData.CanMoveThrough = toggledOn;
-        TopologyUpdated?.Invoke(this, new TopologyUpdatedEventArgs(_pathData, _visibilityData));
+        TopologyUpdated?.Invoke(this, new TopologyUpdatedEventArgs(_pathData, _visibilityData, _topologyLayerIndex));
     }
     
     private void _OnCanViewThroughToggled(bool toggledOn)
@@ -519,7 +525,7 @@ public partial class Inspector : Control
             return;
         
         _visibilityData.CanViewThrough = toggledOn;
-        TopologyUpdated?.Invoke(this, new TopologyUpdatedEventArgs(_pathData, _visibilityData));
+        TopologyUpdated?.Invoke(this, new TopologyUpdatedEventArgs(_pathData, _visibilityData, _topologyLayerIndex));
     }
     
     private void _OnMurFinInfoChanged(double value)
@@ -528,7 +534,7 @@ public partial class Inspector : Control
             return;
         
         _pathData.MurFinInfo = (sbyte) value;
-        TopologyUpdated?.Invoke(this, new TopologyUpdatedEventArgs(_pathData, _visibilityData));
+        TopologyUpdated?.Invoke(this, new TopologyUpdatedEventArgs(_pathData, _visibilityData, _topologyLayerIndex));
     }
     
     private void _OnMiscPropertiesChanged(double value)
@@ -537,7 +543,7 @@ public partial class Inspector : Control
             return;
         
         _pathData.MiscProperties = (sbyte) value;
-        TopologyUpdated?.Invoke(this, new TopologyUpdatedEventArgs(_pathData, _visibilityData));
+        TopologyUpdated?.Invoke(this, new TopologyUpdatedEventArgs(_pathData, _visibilityData, _topologyLayerIndex));
     }
 
     private void _OnPlacementChanged(long id)
@@ -1127,11 +1133,13 @@ public partial class Inspector : Control
         public GfxData.Element NewElement => newElement;
     }
 
-    public class TopologyUpdatedEventArgs(TopologyData.CellPathData path, TopologyData.CellVisibilityData visibility)
+    public class TopologyUpdatedEventArgs(TopologyData.CellPathData path,
+        TopologyData.CellVisibilityData visibility, int layerIndex)
         : EventArgs
     {
         public TopologyData.CellPathData Path => path;
         public TopologyData.CellVisibilityData Visibility => visibility;
+        public int LayerIndex => layerIndex;
     }
 
     public class FightUpdatedEventArgs(FightData oldFightData, FightData newFightData) : EventArgs

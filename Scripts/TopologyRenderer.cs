@@ -6,582 +6,469 @@ public partial class TopologyRenderer : Node2D
 {
     private struct CellData
     {
-        public int X, Y, Z, Height;
+        public int X, Y, Z, Height, LayerIndex;
         public bool CanViewThrough, IsBlocked, IsSelected, Highlighted, IsCenter;
         public TopologyData.CellPathData PathData;
         public TopologyData.CellVisibilityData VisibilityData;
-        public Vector2 IsoPos;
+        public Aabb Bounds;
     }
 
     private readonly List<CellData> _cells = [];
-    private bool _is2D;
-    private int _selectedIndex = -1;
-    private int _highlightZ;
-    private bool _highlightActive;
+    private SubViewport _subViewport;
+    private Sprite2D _viewportSprite;
+    private Node3D _world;
+    private MeshInstance3D _mesh;
+    private Camera3D _camera;
     private FightData _fightData;
-    private bool _needsMeshRebuild;
+    private int _selectedIndex = -1;
     private int _centerX = 8;
     private int _centerY = 8;
+    private bool _topDown;
+    private bool _highlightActive;
+    private int _highlightZ;
+    private float _yaw = Mathf.Pi / 4.0f;
+    private float _pitch = -0.75f;
+    private float _cameraSize = 30.0f;
+    private Vector3 _focus;
 
-    private MeshInstance2D _mesh;
-    private Sprite2D _centerMarker;
+    private const float CellSize = 1.0f;
+    private const float VerticalScale = 0.35f;
+    private const float MinimumHeight = 0.15f;
 
-    private const float HalfWidth = GlobalData.CellWidth * 0.5f;
-    private const float HalfHeight = GlobalData.CellHeight * 0.5f;
-    private const float OutlineWidth = 0.5f;
-
-    private static readonly Color TopColor = new(0.9f, 0.9f, 0.9f);
-    private static readonly Color LeftColor = new(0.8f, 0.8f, 0.8f);
-    private static readonly Color RightColor = new(0.6f, 0.6f, 0.6f);
-    private static readonly Color TopObstacleColor = new(0.7f, 0.4f, 0.4f, 0.75f);
-    private static readonly Color LeftObstacleColor = new(0.6f, 0.3f, 0.3f, 0.75f);
-    private static readonly Color RightObstacleColor = new(0.5f, 0.2f, 0.2f, 0.75f);
-    private static readonly Color TopHighlightColor = new(0.3f, 1.0f, 0.3f);
-    private static readonly Color LeftHighlightColor = new(0.2f, 0.8f, 0.2f);
-    private static readonly Color RightHighlightColor = new(0.1f, 0.6f, 0.1f);
-
-    private const float DimAlpha = 0.25f;
-
-    private static Color TopFaceColor(bool selected, bool blocked, bool highlighted)
-    {
-        var alpha = highlighted ? 1.0f : DimAlpha;
-        if (selected) return TopHighlightColor * new Color(1, 1, 1, alpha);
-        if (blocked) return TopObstacleColor * new Color(1, 1, 1, alpha);
-        return TopColor * new Color(1, 1, 1, alpha);
-    }
-
-    private static (Color left, Color right) SideColors(bool selected, bool blocked, bool highlighted)
-    {
-        var alpha = highlighted ? 1.0f : DimAlpha;
-        if (selected)
-            return (LeftHighlightColor * new Color(1, 1, 1, alpha),
-                    RightHighlightColor * new Color(1, 1, 1, alpha));
-        if (blocked)
-            return (LeftObstacleColor * new Color(1, 1, 1, alpha),
-                    RightObstacleColor * new Color(1, 1, 1, alpha));
-        return (LeftColor * new Color(1, 1, 1, alpha),
-                RightColor * new Color(1, 1, 1, alpha));
-    }
+    private static readonly Color OpenColor = new(0.72f, 0.76f, 0.8f);
+    private static readonly Color BlockedColor = new(0.78f, 0.25f, 0.22f);
+    private static readonly Color PassThroughColor = new(0.22f, 0.58f, 0.88f);
+    private static readonly Color SelectedColor = new(0.25f, 1.0f, 0.35f);
+    private static readonly Color CenterColor = new(0.2f, 0.9f, 0.95f);
+    private static readonly Color PlacementColor = new(0.35f, 0.45f, 1.0f);
+    private static readonly Color BonusColor = new(1.0f, 0.65f, 0.12f);
 
     public override void _Ready()
     {
-        _mesh = new MeshInstance2D
+        _subViewport = new SubViewport
         {
-            Name = "TopologyMesh",
+            Name = "Topology3DViewport",
+            Size = ToVector2I(GetViewport().GetVisibleRect().Size),
+            RenderTargetUpdateMode = SubViewport.UpdateMode.Once,
+            TransparentBg = false,
+            HandleInputLocally = false
+        };
+        AddChild(_subViewport);
+
+        _world = new Node3D { Name = "TopologyWorld" };
+        _subViewport.AddChild(_world);
+
+        var environment = new WorldEnvironment
+        {
+            Environment = new Godot.Environment
+            {
+                BackgroundMode = Godot.Environment.BGMode.Color,
+                BackgroundColor = new Color(0.055f, 0.065f, 0.08f),
+                AmbientLightSource = Godot.Environment.AmbientSource.Color,
+                AmbientLightColor = new Color(0.75f, 0.78f, 0.85f),
+                AmbientLightEnergy = 0.65f
+            }
+        };
+        _world.AddChild(environment);
+
+        _camera = new Camera3D
+        {
+            Projection = Camera3D.ProjectionType.Perspective,
+            Current = true,
+            Near = 0.05f,
+            Far = 1000.0f
+        };
+        _world.AddChild(_camera);
+
+        _mesh = new MeshInstance3D
+        {
+            Name = "TopologyCells",
+            CastShadow = GeometryInstance3D.ShadowCastingSetting.Off
+        };
+        _world.AddChild(_mesh);
+
+        _viewportSprite = new Sprite2D
+        {
+            Name = "Topology3D",
+            Centered = false,
+            Texture = _subViewport.GetTexture(),
             ZIndex = -1
         };
-        AddChild(_mesh);
-
-        _centerMarker = new Sprite2D
-        {
-            Name = "CenterMarker",
-            Centered = false,
-            ZIndex = 1
-        };
-        AddChild(_centerMarker);
-        UpdateCenterPosition();
+        AddChild(_viewportSprite);
+        UpdateViewportLayout();
+        UpdateCamera();
     }
 
-    private void UpdateCenterPosition()
+    public override void _Process(double delta)
     {
-        var z = 0;
-        for (var i = 0; i < _cells.Count; i++)
+        if (!Visible)
+            return;
+        var size = ToVector2I(GetViewport().GetVisibleRect().Size);
+        if (_subViewport.Size != size)
         {
-            if (_cells[i].X == _centerX && _cells[i].Y == _centerY)
-            {
-                z = _is2D ? 0 : _cells[i].Z;
-                break;
-            }
+            _subViewport.Size = size;
+            RequestViewportUpdate();
         }
-        _centerMarker.Position = IsoFromGrid(_centerX, _centerY, z, 0) + new Vector2(-43, -21);
+        UpdateViewportLayout();
     }
 
-    private static Vector2 IsoFromGrid(int x, int y, int z, int height)
+    public override void _UnhandledInput(InputEvent @event)
     {
-        return new Vector2(
-            (x - y) * GlobalData.CellWidth * 0.5f,
-            (x + y) * GlobalData.CellHeight * 0.5f - (z - height) * GlobalData.ElevationStep
-        );
+        if (!Visible)
+            return;
+
+        if (@event is InputEventMouseMotion motion &&
+            Input.IsMouseButtonPressed(MouseButton.Right) && !_topDown)
+        {
+            _yaw -= motion.Relative.X * 0.008f;
+            _pitch = Mathf.Clamp(_pitch - motion.Relative.Y * 0.008f, -1.45f, -0.15f);
+            UpdateCamera();
+            GetViewport().SetInputAsHandled();
+        }
+        else if (@event is InputEventMouseButton { Pressed: true } button &&
+                 button.ButtonIndex is MouseButton.WheelUp or MouseButton.WheelDown)
+        {
+            _cameraSize = Mathf.Clamp(_cameraSize * (button.ButtonIndex == MouseButton.WheelUp ? 0.9f : 1.1f), 3.0f, 180.0f);
+            UpdateCamera();
+            GetViewport().SetInputAsHandled();
+        }
     }
 
-    public void LoadTopology(TopologyData topology, int centerX, int centerY, TopologyData.CellPathData centerPath, FightData fightData)
+    private void UpdateViewportLayout()
+    {
+        // Cancel the active Camera2D transform so the 3D viewport remains screen-aligned.
+        GlobalTransform = GetViewport().CanvasTransform.AffineInverse();
+    }
+
+    private static Vector2I ToVector2I(Vector2 value) =>
+        new(Math.Max(1, Mathf.RoundToInt(value.X)), Math.Max(1, Mathf.RoundToInt(value.Y)));
+
+    private void RequestViewportUpdate()
+    {
+        if (_subViewport != null)
+            _subViewport.RenderTargetUpdateMode = SubViewport.UpdateMode.Once;
+    }
+
+    public void LoadTopology(TopologyData topology, int centerX, int centerY,
+        TopologyData.CellPathData centerPath, FightData fightData)
     {
         _fightData = fightData;
         _centerX = centerX;
         _centerY = centerY;
         _cells.Clear();
         _selectedIndex = -1;
-        _needsMeshRebuild = false;
-        _centerMarker.Texture = GlobalData.Instance.PlacementTextures[3];
 
-        if (topology.InstanceSet.Maps.Count == 0)
+        foreach (var instance in topology.InstanceSet.Maps)
         {
-            AddCenterCell(centerX, centerY, centerPath);
-            BuildMesh();
-            UpdateCenterPosition();
-            QueueRedraw();
-            return;
-        }
-
-        var hasCenterInBounds = false;
-        for (var x = topology.InstanceSet.MinX; x <= topology.InstanceSet.MinX + topology.InstanceSet.Width; x++)
-        {
-            for (var y = topology.InstanceSet.MinY; y <= topology.InstanceSet.MinY + topology.InstanceSet.Height; y++)
+            var map = instance.TopologyMap;
+            for (var y = map.Y; y < map.Y + MapConstants.MapLength; y++)
             {
-                var visData = topology.GetVisibilityData(x, y);
-                var pathData = topology.GetPathData(x, y);
-                if (visData == null || pathData == null)
-                    continue;
-
-                var isCenter = x == centerX && y == centerY;
-                AddCell(pathData, visData, isCenter);
-                if (isCenter)
-                    hasCenterInBounds = true;
+                for (var x = map.X; x < map.X + MapConstants.MapWidth; x++)
+                {
+                    foreach (var layer in topology.GetLayers(x, y))
+                        AddCell(layer.PathData, layer.VisibilityData, layer.LayerIndex,
+                            x == centerX && y == centerY);
+                }
             }
         }
 
-        if (!hasCenterInBounds)
-            AddCenterCell(centerX, centerY, centerPath);
+        if (_cells.Count == 0 && centerPath != null)
+        {
+            var visibility = new TopologyData.CellVisibilityData
+            {
+                X = centerPath.X,
+                Y = centerPath.Y,
+                Z = centerPath.Z,
+                Height = centerPath.Height
+            };
+            AddCell(centerPath, visibility, 0, true);
+        }
 
-        _cells.Sort(CellSort);
+        FrameTopology();
         BuildMesh();
-        UpdateCenterPosition();
-        QueueRedraw();
     }
 
-    private static int CellSort(CellData a, CellData b)
+    private void AddCell(TopologyData.CellPathData pathData,
+        TopologyData.CellVisibilityData visibilityData, int layerIndex, bool isCenter)
     {
-        var ha = (a.Y + 8192L & 0x3FFFL) << 34 | (a.X + 8192L & 0x3FFFL) << 19;
-        var hb = (b.Y + 8192L & 0x3FFFL) << 34 | (b.X + 8192L & 0x3FFFL) << 19;
-        return ha.CompareTo(hb);
-    }
+        if (pathData == null || visibilityData == null)
+            return;
 
-    private void AddCell(TopologyData.CellPathData pathData, TopologyData.CellVisibilityData visData, bool isCenter)
-    {
-        var height = visData.Height;
-        var z = visData.Z;
-        var pos = _is2D
-            ? IsoFromGrid(visData.X, visData.Y, 0, 0)
-            : IsoFromGrid(visData.X, visData.Y, z - height, -height);
-
+        var displayZ = pathData.Z == short.MinValue ? 0 : pathData.Z;
+        var bottom = (displayZ - pathData.Height) * VerticalScale;
+        var height = Math.Max(pathData.Height * VerticalScale, MinimumHeight);
         _cells.Add(new CellData
         {
-            X = visData.X,
-            Y = visData.Y,
-            Z = z,
-            Height = height,
-            CanViewThrough = visData.CanViewThrough,
+            X = pathData.X,
+            Y = pathData.Y,
+            Z = pathData.Z,
+            Height = pathData.Height,
+            LayerIndex = layerIndex,
+            CanViewThrough = visibilityData.CanViewThrough,
             IsBlocked = pathData.Cost == -1,
-            IsSelected = false,
-            Highlighted = true,
+            Highlighted = !_highlightActive || pathData.Z == _highlightZ,
             IsCenter = isCenter,
             PathData = pathData,
-            VisibilityData = visData,
-            IsoPos = pos,
+            VisibilityData = visibilityData,
+            Bounds = new Aabb(
+                new Vector3(pathData.X - CellSize * 0.5f, bottom, pathData.Y - CellSize * 0.5f),
+                new Vector3(CellSize, height, CellSize))
         });
     }
 
-    private void AddCenterCell(int x, int y, TopologyData.CellPathData pathData)
+    private void FrameTopology()
     {
-        var z = pathData?.Z == short.MinValue || _is2D ? 0 : pathData?.Z ?? 0;
-        var pos = IsoFromGrid(x, y, z, 0);
-
-        _cells.Add(new CellData
+        if (_cells.Count == 0)
         {
-            X = x,
-            Y = y,
-            Z = z,
-            Height = 0,
-            CanViewThrough = false,
-            IsBlocked = false,
-            IsSelected = false,
-            Highlighted = true,
-            IsCenter = true,
-            PathData = pathData,
-            VisibilityData = null,
-            IsoPos = pos,
-        });
-    }
-
-    public void SetCenter(int x, int y)
-    {
-        _centerX = x;
-        _centerY = y;
-        UpdateCenterPosition();
-    }
-
-    public void RebuildIfNeeded()
-    {
-        if (!_needsMeshRebuild)
+            _focus = new Vector3(_centerX, 0, _centerY);
+            _cameraSize = 20;
+            UpdateCamera();
             return;
-        _needsMeshRebuild = false;
-        BuildMesh();
+        }
+
+        var min = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
+        var max = new Vector3(float.MinValue, float.MinValue, float.MinValue);
+        foreach (var cell in _cells)
+        {
+            min = min.Min(cell.Bounds.Position);
+            max = max.Max(cell.Bounds.End);
+        }
+        _focus = (min + max) * 0.5f;
+        _cameraSize = Math.Max(8.0f, Math.Max(max.X - min.X, max.Z - min.Z) * 1.25f);
+        UpdateCamera();
+    }
+
+    private void UpdateCamera()
+    {
+        if (_camera == null)
+            return;
+        if (_topDown)
+        {
+            _camera.Projection = Camera3D.ProjectionType.Orthogonal;
+            _camera.Size = _cameraSize;
+            _camera.Position = _focus + Vector3.Up * 100.0f;
+            _camera.LookAt(_focus, Vector3.Forward);
+        }
+        else
+        {
+            _camera.Projection = Camera3D.ProjectionType.Perspective;
+            _camera.Fov = 55.0f;
+            var horizontal = Mathf.Cos(_pitch);
+            var direction = new Vector3(
+                Mathf.Sin(_yaw) * horizontal,
+                -Mathf.Sin(_pitch),
+                Mathf.Cos(_yaw) * horizontal);
+            var distance = _cameraSize / (2.0f * Mathf.Tan(Mathf.DegToRad(_camera.Fov) * 0.5f)) * 1.25f;
+            _camera.Position = _focus + direction * distance;
+            _camera.LookAt(_focus, Vector3.Up);
+        }
+        RequestViewportUpdate();
     }
 
     private void BuildMesh()
     {
+        if (_mesh == null)
+            return;
+
         var st = new SurfaceTool();
         st.Begin(Mesh.PrimitiveType.Triangles);
-
-        foreach (var cell in _cells)
+        var hasGeometry = false;
+        var columns = new Dictionary<(int X, int Y), List<int>>();
+        for (var i = 0; i < _cells.Count; i++)
         {
-            var pos = cell.IsoPos;
-
-            if (cell.IsCenter)
+            var key = (_cells[i].X, _cells[i].Y);
+            if (!columns.TryGetValue(key, out var column))
             {
-                AddDiamondFilled(st, pos, TopColor);
-                AddDiamondOutline(st, pos, Colors.Black);
-                if (!_is2D)
-                {
-                    var cubeHeight = cell.Height == 0 ? GlobalData.ElevationStep : cell.Height * GlobalData.ElevationStep;
-                    AddWall(st, pos, -1, cubeHeight, LeftColor);
-                    AddWallOutline(st, pos, -1, cubeHeight, Colors.Black);
-                    AddWall(st, pos, 1, cubeHeight, RightColor);
-                    AddWallOutline(st, pos, 1, cubeHeight, Colors.Black);
-                }
-                continue;
+                column = [];
+                columns.Add(key, column);
             }
-
-            if (cell.CanViewThrough)
-                continue;
-
-            var selected = cell.IsSelected;
-            var blocked = cell.IsBlocked;
-            var highlighted = cell.Highlighted;
-
-            if (_is2D)
-            {
-                var color = TopFaceColor(selected, blocked, highlighted);
-                AddDiamondFilled(st, pos, color);
-                AddDiamondOutline(st, pos, Colors.Black);
-            }
-            else
-            {
-                var cubeHeight = cell.Height == 0 ? GlobalData.ElevationStep : cell.Height * GlobalData.ElevationStep;
-                var (leftColor, rightColor) = SideColors(selected, blocked, highlighted);
-                var topColor = TopFaceColor(selected, blocked, highlighted);
-
-                AddDiamondFilled(st, pos, topColor);
-                AddDiamondOutline(st, pos, Colors.Black);
-
-                AddWall(st, pos, -1, cubeHeight, leftColor);
-                AddWallOutline(st, pos, -1, cubeHeight, Colors.Black);
-
-                AddWall(st, pos, 1, cubeHeight, rightColor);
-                AddWallOutline(st, pos, 1, cubeHeight, Colors.Black);
-            }
+            column.Add(i);
         }
-
-        st.GenerateNormals();
-        _mesh.Mesh = st.Commit();
-    }
-
-    private static void AddDiamondFilled(SurfaceTool st, Vector2 pos, Color color)
-    {
-        var c = new Vector3(pos.X, pos.Y, 0);
-        var r = new Vector3(pos.X + HalfWidth, pos.Y, 0);
-        var b = new Vector3(pos.X, pos.Y + HalfHeight, 0);
-        var l = new Vector3(pos.X - HalfWidth, pos.Y, 0);
-        var t = new Vector3(pos.X, pos.Y - HalfHeight, 0);
-
-        st.SetColor(color);
-        st.AddVertex(c);
-        st.SetColor(color);
-        st.AddVertex(r);
-        st.SetColor(color);
-        st.AddVertex(b);
-
-        st.SetColor(color);
-        st.AddVertex(c);
-        st.SetColor(color);
-        st.AddVertex(b);
-        st.SetColor(color);
-        st.AddVertex(l);
-
-        st.SetColor(color);
-        st.AddVertex(c);
-        st.SetColor(color);
-        st.AddVertex(l);
-        st.SetColor(color);
-        st.AddVertex(t);
-
-        st.SetColor(color);
-        st.AddVertex(c);
-        st.SetColor(color);
-        st.AddVertex(t);
-        st.SetColor(color);
-        st.AddVertex(r);
-    }
-
-    private static void AddWall(SurfaceTool st, Vector2 pos, int dir, float cubeHeight, Color color)
-    {
-        Vector2 a, b, c, d;
-        if (dir < 0)
-        {
-            a = pos + new Vector2(-HalfWidth, 0);
-            b = pos + new Vector2(-HalfWidth, cubeHeight);
-            c = pos + new Vector2(0, HalfHeight + cubeHeight);
-            d = pos + new Vector2(0, HalfHeight);
-        }
-        else
-        {
-            a = pos + new Vector2(0, HalfHeight);
-            b = pos + new Vector2(0, HalfHeight + cubeHeight);
-            c = pos + new Vector2(HalfWidth, cubeHeight);
-            d = pos + new Vector2(HalfWidth, 0);
-        }
-
-        var va = new Vector3(a.X, a.Y, 0);
-        var vb = new Vector3(b.X, b.Y, 0);
-        var vc = new Vector3(c.X, c.Y, 0);
-        var vd = new Vector3(d.X, d.Y, 0);
-
-        st.SetColor(color);
-        st.AddVertex(va);
-        st.SetColor(color);
-        st.AddVertex(vb);
-        st.SetColor(color);
-        st.AddVertex(vc);
-
-        st.SetColor(color);
-        st.AddVertex(va);
-        st.SetColor(color);
-        st.AddVertex(vc);
-        st.SetColor(color);
-        st.AddVertex(vd);
-    }
-
-    private static void AddEdgeQuad(SurfaceTool st, Vector2 a, Vector2 b, Color color)
-    {
-        var edge = b - a;
-        var n = new Vector2(-edge.Y, edge.X).Normalized() * OutlineWidth;
-
-        var v0 = new Vector3(a.X - n.X, a.Y - n.Y, 0);
-        var v1 = new Vector3(a.X + n.X, a.Y + n.Y, 0);
-        var v2 = new Vector3(b.X + n.X, b.Y + n.Y, 0);
-        var v3 = new Vector3(b.X - n.X, b.Y - n.Y, 0);
-
-        st.SetColor(color);
-        st.AddVertex(v0);
-        st.SetColor(color);
-        st.AddVertex(v1);
-        st.SetColor(color);
-        st.AddVertex(v2);
-
-        st.SetColor(color);
-        st.AddVertex(v0);
-        st.SetColor(color);
-        st.AddVertex(v2);
-        st.SetColor(color);
-        st.AddVertex(v3);
-    }
-
-    private static void AddDiamondOutline(SurfaceTool st, Vector2 pos, Color color)
-    {
-        var r = pos + new Vector2(HalfWidth, 0);
-        var b = pos + new Vector2(0, HalfHeight);
-        var l = pos + new Vector2(-HalfWidth, 0);
-        var t = pos + new Vector2(0, -HalfHeight);
-
-        AddEdgeQuad(st, r, b, color);
-        AddEdgeQuad(st, b, l, color);
-        AddEdgeQuad(st, l, t, color);
-        AddEdgeQuad(st, t, r, color);
-    }
-
-    private static void AddWallOutline(SurfaceTool st, Vector2 pos, int dir, float cubeHeight, Color color)
-    {
-        Vector2 a, b, c, d;
-        if (dir < 0)
-        {
-            a = pos + new Vector2(-HalfWidth, 0);
-            b = pos + new Vector2(-HalfWidth, cubeHeight);
-            c = pos + new Vector2(0, HalfHeight + cubeHeight);
-            d = pos + new Vector2(0, HalfHeight);
-        }
-        else
-        {
-            a = pos + new Vector2(0, HalfHeight);
-            b = pos + new Vector2(0, HalfHeight + cubeHeight);
-            c = pos + new Vector2(HalfWidth, cubeHeight);
-            d = pos + new Vector2(HalfWidth, 0);
-        }
-
-        AddEdgeQuad(st, a, b, color);
-        AddEdgeQuad(st, b, c, color);
-        AddEdgeQuad(st, c, d, color);
-        AddEdgeQuad(st, d, a, color);
-    }
-
-    public override void _Draw()
-    {
-        if (_needsMeshRebuild)
-        {
-            _needsMeshRebuild = false;
-            BuildMesh();
-        }
-
-        foreach (var cell in _cells)
-        {
-            if (!cell.IsCenter)
-                DrawPlacementBonus(cell);
-        }
-
-        DrawSelectionHighlight();
-    }
-
-    private void DrawSelectionHighlight()
-    {
-        if (_selectedIndex < 0 || _selectedIndex >= _cells.Count)
-            return;
-
-        var cell = _cells[_selectedIndex];
-        if (cell.CanViewThrough)
-            return;
-
-        var pos = cell.IsoPos;
-
-        if (_is2D)
-        {
-            var topFace = new Vector2[]
-            {
-                pos + new Vector2(0, -HalfHeight),
-                pos + new Vector2(HalfWidth, 0),
-                pos + new Vector2(0, HalfHeight),
-                pos + new Vector2(-HalfWidth, 0),
-            };
-            DrawColoredPolygon(topFace, TopHighlightColor);
-        }
-        else
-        {
-            var cubeHeight = cell.Height == 0 ? GlobalData.ElevationStep : cell.Height * GlobalData.ElevationStep;
-
-            var topFace = new Vector2[]
-            {
-                pos + new Vector2(0, -HalfHeight),
-                pos + new Vector2(HalfWidth, 0),
-                pos + new Vector2(0, HalfHeight),
-                pos + new Vector2(-HalfWidth, 0),
-            };
-            var leftFace = new Vector2[]
-            {
-                pos + new Vector2(-HalfWidth, 0),
-                pos + new Vector2(-HalfWidth, cubeHeight),
-                pos + new Vector2(0, HalfHeight + cubeHeight),
-                pos + new Vector2(0, HalfHeight),
-            };
-            var rightFace = new Vector2[]
-            {
-                pos + new Vector2(0, HalfHeight),
-                pos + new Vector2(0, HalfHeight + cubeHeight),
-                pos + new Vector2(HalfWidth, cubeHeight),
-                pos + new Vector2(HalfWidth, 0),
-            };
-
-            DrawColoredPolygon(leftFace, LeftHighlightColor);
-            DrawColoredPolygon(rightFace, RightHighlightColor);
-            DrawColoredPolygon(topFace, TopHighlightColor);
-        }
-    }
-
-    private void DrawPlacementBonus(in CellData cell)
-    {
-        if (_fightData == null || cell.PathData == null)
-            return;
-
-        var (placement, bonus) = _fightData.GetData(cell.X, cell.Y, cell.Z);
-        if (placement != -1)
-        {
-            var tex = GlobalData.Instance.PlacementTextures[placement];
-            if (tex != null)
-                DrawTexture(tex, cell.IsoPos + new Vector2(-43, -21));
-        }
-        if (bonus != -1)
-        {
-            var tex = GlobalData.Instance.BonusTextures[bonus];
-            if (tex != null)
-                DrawTexture(tex, cell.IsoPos + new Vector2(-34, -17));
-        }
-    }
-
-    public void Set2D(bool is2D)
-    {
-        if (_is2D == is2D)
-            return;
-        _is2D = is2D;
 
         for (var i = 0; i < _cells.Count; i++)
         {
             var cell = _cells[i];
-            if (cell.IsCenter)
-            {
-                var z = cell.PathData?.Z == short.MinValue || _is2D ? 0 : cell.PathData?.Z ?? 0;
-                cell.IsoPos = IsoFromGrid(cell.X, cell.Y, z, 0);
-            }
-            else if (!_is2D)
-            {
-                cell.IsoPos = IsoFromGrid(cell.X, cell.Y, cell.Z - cell.Height, -cell.Height);
-            }
-            else
-            {
-                cell.IsoPos = IsoFromGrid(cell.X, cell.Y, 0, 0);
-            }
-            _cells[i] = cell;
+            if (!cell.Highlighted)
+                continue;
+            AddBox(st, cell.Bounds, GetCellColor(cell),
+                !IsSideCovered(columns, cell, -1, 0),
+                !IsSideCovered(columns, cell, 1, 0),
+                !IsSideCovered(columns, cell, 0, -1),
+                !IsSideCovered(columns, cell, 0, 1),
+                !IsTopCovered(columns, cell, i));
+            hasGeometry = true;
         }
 
-        BuildMesh();
-        UpdateCenterPosition();
-        QueueRedraw();
+        if (!hasGeometry)
+        {
+            _mesh.Mesh = null;
+            RequestViewportUpdate();
+            return;
+        }
+
+        var material = new StandardMaterial3D
+        {
+            VertexColorUseAsAlbedo = true,
+            Transparency = BaseMaterial3D.TransparencyEnum.Disabled,
+            ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
+            CullMode = BaseMaterial3D.CullModeEnum.Back,
+            Roughness = 0.85f
+        };
+        st.SetMaterial(material);
+        _mesh.Mesh = st.Commit();
+        RequestViewportUpdate();
+    }
+
+    private bool IsSideCovered(Dictionary<(int X, int Y), List<int>> columns,
+        in CellData cell, int offsetX, int offsetY)
+    {
+        if (!columns.TryGetValue((cell.X + offsetX, cell.Y + offsetY), out var neighbors))
+            return false;
+        const float epsilon = 0.0001f;
+        foreach (var index in neighbors)
+        {
+            var neighbor = _cells[index];
+            if (neighbor.Highlighted && neighbor.Bounds.Position.Y <= cell.Bounds.Position.Y + epsilon &&
+                neighbor.Bounds.End.Y >= cell.Bounds.End.Y - epsilon)
+                return true;
+        }
+        return false;
+    }
+
+    private bool IsTopCovered(Dictionary<(int X, int Y), List<int>> columns,
+        in CellData cell, int cellIndex)
+    {
+        const float epsilon = 0.0001f;
+        foreach (var index in columns[(cell.X, cell.Y)])
+        {
+            if (index == cellIndex)
+                continue;
+            var other = _cells[index];
+            if (other.Highlighted && Mathf.Abs(other.Bounds.Position.Y - cell.Bounds.End.Y) <= epsilon)
+                return true;
+        }
+        return false;
+    }
+
+    private Color GetCellColor(in CellData cell)
+    {
+        if (cell.IsSelected)
+            return SelectedColor;
+        if (cell.IsCenter)
+            return CenterColor;
+        if (_fightData != null)
+        {
+            var (placement, bonus) = _fightData.GetData(cell.X, cell.Y, cell.Z);
+            if (placement != -1)
+                return PlacementColor;
+            if (bonus != -1)
+                return BonusColor;
+        }
+        if (cell.CanViewThrough)
+            return PassThroughColor;
+        return cell.IsBlocked ? BlockedColor : OpenColor;
+    }
+
+    private static void AddBox(SurfaceTool st, Aabb box, Color color,
+        bool left, bool right, bool back, bool front, bool top)
+    {
+        var p = box.Position;
+        var e = box.End;
+        var vertices = new[]
+        {
+            new Vector3(p.X,p.Y,p.Z), new Vector3(e.X,p.Y,p.Z), new Vector3(e.X,e.Y,p.Z), new Vector3(p.X,e.Y,p.Z),
+            new Vector3(p.X,p.Y,e.Z), new Vector3(e.X,p.Y,e.Z), new Vector3(e.X,e.Y,e.Z), new Vector3(p.X,e.Y,e.Z)
+        };
+        if (back)
+            AddFace(st, vertices, 0, 3, 2, 1, Vector3.Back, Shade(color, 0.72f));
+        if (front)
+            AddFace(st, vertices, 4, 5, 6, 7, Vector3.Forward, Shade(color, 0.9f));
+        if (left)
+            AddFace(st, vertices, 0, 4, 7, 3, Vector3.Left, Shade(color, 0.8f));
+        if (right)
+            AddFace(st, vertices, 1, 2, 6, 5, Vector3.Right, Shade(color, 0.62f));
+        if (top)
+            AddFace(st, vertices, 3, 7, 6, 2, Vector3.Up, color);
+    }
+
+    private static Color Shade(Color color, float brightness)
+    {
+        return new Color(color.R * brightness, color.G * brightness, color.B * brightness, color.A);
+    }
+
+    private static void AddFace(SurfaceTool st, Vector3[] vertices, int a, int b, int c, int d,
+        Vector3 normal, Color color)
+    {
+        AddVertex(st, vertices[a], normal, color);
+        AddVertex(st, vertices[c], normal, color);
+        AddVertex(st, vertices[b], normal, color);
+        AddVertex(st, vertices[a], normal, color);
+        AddVertex(st, vertices[d], normal, color);
+        AddVertex(st, vertices[c], normal, color);
+    }
+
+    private static void AddVertex(SurfaceTool st, Vector3 vertex, Vector3 normal, Color color)
+    {
+        st.SetColor(color);
+        st.SetNormal(normal);
+        st.AddVertex(vertex);
     }
 
     public int? GetCellIndexAt(Vector2 globalPosition)
     {
-        var localPos = globalPosition - GlobalPosition;
-        var halfW = (float)HalfWidth;
-        var halfH = (float)HalfHeight;
-
-        for (var i = _cells.Count - 1; i >= 0; i--)
+        if (_camera == null)
+            return null;
+        var screenPosition = GetViewport().CanvasTransform * globalPosition;
+        var origin = _camera.ProjectRayOrigin(screenPosition);
+        var direction = _camera.ProjectRayNormal(screenPosition);
+        var nearest = float.MaxValue;
+        int? result = null;
+        for (var i = 0; i < _cells.Count; i++)
         {
-            var cell = _cells[i];
-            if (!cell.Highlighted)
+            if (!_cells[i].Highlighted || !RayIntersectsAabb(origin, direction, _cells[i].Bounds, out var distance))
                 continue;
-
-            var pos = cell.IsoPos;
-
-            var r = pos + new Vector2(halfW, 0);
-            var b = pos + new Vector2(0, halfH);
-            var l = pos + new Vector2(-halfW, 0);
-            var t = pos + new Vector2(0, -halfH);
-
-            if (IsPointInConvexQuad(localPos, r, b, l, t))
-                return i;
-
-            if (_is2D)
+            if (distance >= nearest)
                 continue;
-
-            var cubeHeight = cell.Height == 0 ? GlobalData.ElevationStep : cell.Height * GlobalData.ElevationStep;
-            var br = pos + new Vector2(0, halfH + cubeHeight);
-            var bl = pos + new Vector2(0, halfH);
-
-            var leftR = pos + new Vector2(-halfW, cubeHeight);
-            if (IsPointInConvexQuad(localPos, pos + new Vector2(-halfW, 0), leftR, pos + new Vector2(0, halfH + cubeHeight), bl))
-                return i;
-
-            if (IsPointInConvexQuad(localPos, bl, br, pos + new Vector2(halfW, cubeHeight), pos + new Vector2(halfW, 0)))
-                return i;
+            nearest = distance;
+            result = i;
         }
-
-        return null;
+        return result;
     }
 
-    private static bool IsPointInConvexQuad(Vector2 p, Vector2 v0, Vector2 v1, Vector2 v2, Vector2 v3)
+    private static bool RayIntersectsAabb(Vector3 origin, Vector3 direction, Aabb box, out float distance)
     {
-        return IsLeft(v0, v1, p) && IsLeft(v1, v2, p) && IsLeft(v2, v3, p) && IsLeft(v3, v0, p);
-    }
-
-    private static bool IsLeft(Vector2 a, Vector2 b, Vector2 p)
-    {
-        return (b.X - a.X) * (p.Y - a.Y) - (b.Y - a.Y) * (p.X - a.X) >= 0;
+        var min = box.Position;
+        var max = box.End;
+        var tMin = 0.0f;
+        var tMax = float.MaxValue;
+        for (var axis = 0; axis < 3; axis++)
+        {
+            var o = origin[axis];
+            var d = direction[axis];
+            if (Mathf.Abs(d) < 0.00001f)
+            {
+                if (o < min[axis] || o > max[axis])
+                {
+                    distance = 0;
+                    return false;
+                }
+                continue;
+            }
+            var inverse = 1.0f / d;
+            var t1 = (min[axis] - o) * inverse;
+            var t2 = (max[axis] - o) * inverse;
+            if (t1 > t2)
+                (t1, t2) = (t2, t1);
+            tMin = Math.Max(tMin, t1);
+            tMax = Math.Min(tMax, t2);
+            if (tMin > tMax)
+            {
+                distance = 0;
+                return false;
+            }
+        }
+        distance = tMin;
+        return true;
     }
 
     public void SelectCell(int index)
@@ -593,64 +480,84 @@ public partial class TopologyRenderer : Node2D
             _cells[_selectedIndex] = old;
         }
         _selectedIndex = index;
-        if (index >= 0 && index < _cells.Count)
+        if (_selectedIndex >= 0 && _selectedIndex < _cells.Count)
         {
-            var sel = _cells[index];
-            sel.IsSelected = true;
-            _cells[index] = sel;
+            var selected = _cells[_selectedIndex];
+            selected.IsSelected = true;
+            _cells[_selectedIndex] = selected;
         }
-        _needsMeshRebuild = true;
-        QueueRedraw();
+        BuildMesh();
     }
 
-    public void UnselectCell()
-    {
-        SelectCell(-1);
-    }
+    public void UnselectCell() => SelectCell(-1);
 
     public Vector2 GetSelectedCellGlobalPosition()
     {
         if (_selectedIndex < 0 || _selectedIndex >= _cells.Count)
             return Vector2.Zero;
-        return _cells[_selectedIndex].IsoPos + GlobalPosition;
+        var center = _cells[_selectedIndex].Bounds.GetCenter();
+        var screen = _camera.UnprojectPosition(center);
+        return GetViewport().CanvasTransform.AffineInverse() * screen;
     }
 
-    public (TopologyData.CellPathData, TopologyData.CellVisibilityData)? GetSelectedCellData()
+    public (TopologyData.CellPathData Path, TopologyData.CellVisibilityData Visibility, int LayerIndex)? GetSelectedCellData()
     {
         if (_selectedIndex < 0 || _selectedIndex >= _cells.Count)
             return null;
         var cell = _cells[_selectedIndex];
-        return (cell.PathData, cell.VisibilityData);
+        return (cell.PathData, cell.VisibilityData, cell.LayerIndex);
     }
 
-    public void UpdateCell(TopologyData.CellPathData pathData, TopologyData.CellVisibilityData visData)
+    public void UpdateCell(TopologyData.CellPathData pathData,
+        TopologyData.CellVisibilityData visibilityData, int layerIndex = 0)
     {
         for (var i = 0; i < _cells.Count; i++)
         {
             var cell = _cells[i];
-            if (cell.X != visData.X || cell.Y != visData.Y)
+            if (cell.X != pathData.X || cell.Y != pathData.Y || cell.LayerIndex != layerIndex)
                 continue;
-
-            var pos = _is2D
-                ? IsoFromGrid(visData.X, visData.Y, 0, 0)
-                : IsoFromGrid(visData.X, visData.Y, visData.Z - visData.Height, -visData.Height);
-            cell.PathData = pathData;
-            cell.VisibilityData = visData;
-            cell.Z = visData.Z;
-            cell.Height = visData.Height;
-            cell.CanViewThrough = visData.CanViewThrough;
-            cell.IsBlocked = pathData.Cost == -1;
-            cell.IsoPos = pos;
-            _cells[i] = cell;
-            _needsMeshRebuild = true;
-            QueueRedraw();
+            var selected = cell.IsSelected;
+            _cells.RemoveAt(i);
+            var oldCount = _cells.Count;
+            AddCell(pathData, visibilityData, layerIndex, pathData.X == _centerX && pathData.Y == _centerY);
+            if (_cells.Count > oldCount)
+            {
+                var updated = _cells[^1];
+                updated.IsSelected = selected;
+                _cells[^1] = updated;
+                if (selected)
+                    _selectedIndex = _cells.Count - 1;
+            }
+            else if (selected)
+            {
+                _selectedIndex = -1;
+            }
+            BuildMesh();
             return;
         }
+        AddCell(pathData, visibilityData, layerIndex, false);
+        BuildMesh();
+    }
 
-        AddCell(pathData, visData, false);
-        _cells.Sort(CellSort);
-        _needsMeshRebuild = true;
-        QueueRedraw();
+    public void Set2D(bool is2D)
+    {
+        _topDown = is2D;
+        UpdateCamera();
+    }
+
+    public void RebuildIfNeeded() => BuildMesh();
+
+    public void SetCenter(int x, int y)
+    {
+        _centerX = x;
+        _centerY = y;
+        for (var i = 0; i < _cells.Count; i++)
+        {
+            var cell = _cells[i];
+            cell.IsCenter = cell.X == x && cell.Y == y;
+            _cells[i] = cell;
+        }
+        BuildMesh();
     }
 
     public void SetHeightHighlight(int z)
@@ -664,7 +571,6 @@ public partial class TopologyRenderer : Node2D
             _cells[i] = cell;
         }
         BuildMesh();
-        QueueRedraw();
     }
 
     public void ClearHeightHighlight()
@@ -677,20 +583,19 @@ public partial class TopologyRenderer : Node2D
             _cells[i] = cell;
         }
         BuildMesh();
-        QueueRedraw();
     }
 
     public void SetFightData(FightData fightData)
     {
         _fightData = fightData;
-        QueueRedraw();
+        BuildMesh();
     }
 
     public int? HasCellAt(int x, int y)
     {
         for (var i = 0; i < _cells.Count; i++)
         {
-            if (_cells[i].X == x && _cells[i].Y == y && !_cells[i].IsCenter)
+            if (_cells[i].X == x && _cells[i].Y == y)
                 return i;
         }
         return null;

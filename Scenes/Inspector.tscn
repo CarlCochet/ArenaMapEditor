@@ -26,7 +26,7 @@ font_size = 12
 [sub_resource type="LabelSettings" id="LabelSettings_mnv65"]
 font_size = 12
 
-[node name="Inspector" type="Control" unique_id=1401068884 node_paths=PackedStringArray("_cellX", "_cellY", "_cellZ", "_offsetX", "_offsetY", "_height", "_gfxId", "_order", "_hashcode", "_groupId", "_layerIndex", "_groupLayer", "_properties", "_sound", "_slope", "_shader", "_mask", "_walkable", "_occluder", "_flip", "_animated", "_color", "_topo2D", "_topoX", "_topoY", "_topoZ", "_topoHeight", "_cost", "_canMoveThrough", "_canViewThrough", "_murFinInfo", "_miscProperties", "_placement", "_bonus", "_gfxContainer", "_topologyContainer", "_centerX", "_centerY", "_addElement", "_removeElement", "_elements", "_environmentContainer", "_envX", "_envY", "_envZ", "_particleContainer", "_particleSystemId", "_particleLevel", "_particleOffsetX", "_particleOffsetY", "_particleOffsetZ", "_particleLoD", "_soundContainer", "_soundSoundId", "_interactiveContainer", "_interactiveId", "_interactiveType", "_interactiveViews", "_interactiveData", "_interactiveClientOnly", "_interactiveLandmarkType", "_dynamicContainer", "_dynamicId", "_dynamicGfxId", "_dynamicType", "_dynamicDirection")]
+[node name="Inspector" type="Control" unique_id=1401068884 node_paths=PackedStringArray("_cellX", "_cellY", "_cellZ", "_offsetX", "_offsetY", "_height", "_gfxId", "_order", "_hashcode", "_groupId", "_layerIndex", "_groupLayer", "_properties", "_sound", "_slope", "_shader", "_mask", "_walkable", "_occluder", "_flip", "_animated", "_color", "_topo2D", "_topoX", "_topoY", "_topoZ", "_topoHeight", "_cost", "_canMoveThrough", "_canViewThrough", "_murFinInfo", "_miscProperties", "_topoLayer", "_placement", "_bonus", "_gfxContainer", "_topologyContainer", "_centerX", "_centerY", "_addElement", "_removeElement", "_elements", "_environmentContainer", "_envX", "_envY", "_envZ", "_particleContainer", "_particleSystemId", "_particleLevel", "_particleOffsetX", "_particleOffsetY", "_particleOffsetZ", "_particleLoD", "_soundContainer", "_soundSoundId", "_interactiveContainer", "_interactiveId", "_interactiveType", "_interactiveViews", "_interactiveData", "_interactiveClientOnly", "_interactiveLandmarkType", "_dynamicContainer", "_dynamicId", "_dynamicGfxId", "_dynamicType", "_dynamicDirection")]
 custom_minimum_size = Vector2(250, 550)
 layout_mode = 3
 anchors_preset = 15
@@ -67,6 +67,7 @@ _canMoveThrough = NodePath("ScrollContainer/MarginContainer/TopologyContainer/To
 _canViewThrough = NodePath("ScrollContainer/MarginContainer/TopologyContainer/TopologyContainer/CanViewThrough/CheckBox")
 _murFinInfo = NodePath("ScrollContainer/MarginContainer/TopologyContainer/TopologyContainer/MurFinInfo/SpinBox")
 _miscProperties = NodePath("ScrollContainer/MarginContainer/TopologyContainer/TopologyContainer/MiscProperties/SpinBox")
+_topoLayer = NodePath("ScrollContainer/MarginContainer/TopologyContainer/TopologyContainer/Layer/Value")
 _placement = NodePath("ScrollContainer/MarginContainer/TopologyContainer/FightContainer/Placement/OptionButton")
 _bonus = NodePath("ScrollContainer/MarginContainer/TopologyContainer/FightContainer/Bonus/OptionButton")
 _gfxContainer = NodePath("ScrollContainer/MarginContainer/GfxContainer")
@@ -543,6 +544,20 @@ horizontal_alignment = 1
 layout_mode = 2
 theme_override_constants/separation = 1
 
+[node name="Layer" type="HBoxContainer" parent="ScrollContainer/MarginContainer/TopologyContainer/TopologyContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="ScrollContainer/MarginContainer/TopologyContainer/TopologyContainer/Layer"]
+custom_minimum_size = Vector2(81, 18)
+layout_mode = 2
+text = "Layer"
+label_settings = SubResource("LabelSettings_mnv65")
+
+[node name="Value" type="Label" parent="ScrollContainer/MarginContainer/TopologyContainer/TopologyContainer/Layer"]
+layout_mode = 2
+text = "0"
+
 [node name="X" type="HBoxContainer" parent="ScrollContainer/MarginContainer/TopologyContainer/TopologyContainer" unique_id=1885095733]
 layout_mode = 2
 theme_override_constants/separation = 10
@@ -644,7 +659,6 @@ label_settings = SubResource("LabelSettings_c8tcb")
 layout_mode = 2
 focus_mode = 0
 mouse_filter = 1
-disabled = true
 
 [node name="CanViewThrough" type="HBoxContainer" parent="ScrollContainer/MarginContainer/TopologyContainer/TopologyContainer" unique_id=784201308]
 layout_mode = 2
@@ -660,7 +674,6 @@ label_settings = SubResource("LabelSettings_c8tcb")
 layout_mode = 2
 focus_mode = 0
 mouse_filter = 1
-disabled = true
 
 [node name="MurFinInfo" type="HBoxContainer" parent="ScrollContainer/MarginContainer/TopologyContainer/TopologyContainer" unique_id=100888457]
 layout_mode = 2
@@ -678,7 +691,6 @@ mouse_filter = 1
 min_value = -128.0
 max_value = 127.0
 rounded = true
-editable = false
 
 [node name="MiscProperties" type="HBoxContainer" parent="ScrollContainer/MarginContainer/TopologyContainer/TopologyContainer" unique_id=1659105127]
 layout_mode = 2
@@ -696,7 +708,6 @@ mouse_filter = 1
 min_value = -128.0
 max_value = 127.0
 rounded = true
-editable = false
 
 [node name="Fight" type="Label" parent="ScrollContainer/MarginContainer/TopologyContainer" unique_id=954773959]
 layout_mode = 2

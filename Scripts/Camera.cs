@@ -4,6 +4,7 @@ using System;
 public partial class Camera : Camera2D
 {
 	public bool HasFocus = true;
+	public bool NavigationEnabled = true;
 	
 	private Vector2I _topLeft = new(-30000, -30000);
 	private Vector2I _bottomRight = new(30000, 30000);
@@ -26,7 +27,7 @@ public partial class Camera : Camera2D
 
 	public override void _UnhandledInput(InputEvent @event)
 	{
-		if (!HasFocus)
+		if (!HasFocus || !NavigationEnabled)
 			return;
 		
 		if (@event is InputEventMouseButton eventMouseButton && @event.IsPressed())

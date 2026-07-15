@@ -258,17 +258,24 @@ public partial class Map : Node2D
         UpdateElementColor(element, newElement.Color, newColors, newElement.TypeMask);
     }
 
-    public void RegisterUpdateTopologyCell(TopologyData.CellPathData path, TopologyData.CellVisibilityData visibility)
+    public void RegisterUpdateTopologyCell(TopologyData.CellPathData path,
+        TopologyData.CellVisibilityData visibility, int layerIndex)
     {
         if (_mapData == null)
             return;
-        
-        var oldPath = _mapData.Topology.GetPathData(path.X, path.Y);
-        var oldVisibility = _mapData.Topology.GetVisibilityData(path.X, path.Y);
+
+        var oldLayer = _mapData.Topology.GetLayers(path.X, path.Y)
+            .FirstOrDefault(layer => layer.LayerIndex == layerIndex);
+        if (oldLayer == null)
+            return;
+        var oldPath = new TopologyData.CellPathData(oldLayer.PathData);
+        var oldVisibility = CopyVisibility(oldLayer.VisibilityData);
+        var newPath = new TopologyData.CellPathData(path);
+        var newVisibility = CopyVisibility(visibility);
         var oldFight = _mapData.Fight;
         var newFight = oldFight;
         if (oldFight != null &&
-            (oldPath.X != path.X || oldPath.Y != path.Y || oldPath.Z != path.Z))
+            (oldPath.X != newPath.X || oldPath.Y != newPath.Y || oldPath.Z != newPath.Z))
         {
             newFight = oldFight.Copy();
             newFight.RemovePlacement(oldPath.X, oldPath.Y, oldPath.Z);
@@ -277,10 +284,10 @@ public partial class Map : Node2D
 
         var updatedFight = newFight;
         _undos.Push(new ReversibleAction(
-            Do: () => UpdateTopologyAndFight(path, visibility, updatedFight),
-            Undo: () => UpdateTopologyAndFight(oldPath, oldVisibility, oldFight)));
+            Do: () => UpdateTopologyAndFight(newPath, newVisibility, layerIndex, updatedFight),
+            Undo: () => UpdateTopologyAndFight(oldPath, oldVisibility, layerIndex, oldFight)));
         _redos.Clear();
-        UpdateTopologyAndFight(path, visibility, updatedFight);
+        UpdateTopologyAndFight(newPath, newVisibility, layerIndex, updatedFight);
     }
 
     public void RegisterUpdateFight(FightData oldFightData, FightData newFightData)
@@ -345,17 +352,18 @@ public partial class Map : Node2D
             GfxTileSelected?.Invoke(this, new GfxTileSelectedEventArgs(element));
     }
 
-    public void UpdateTopologyCell(TopologyData.CellPathData path, TopologyData.CellVisibilityData visibility)
+    public void UpdateTopologyCell(TopologyData.CellPathData path,
+        TopologyData.CellVisibilityData visibility, int layerIndex = 0)
     {
-        _mapData.Topology.Update(path, visibility);
-        _topology.UpdateCell(path, visibility);
-        TopologyTileSelected?.Invoke(this, new TopologyTileSelectedEventArgs(path, visibility));
+        _mapData.Topology.Update(path, visibility, layerIndex);
+        _topology.UpdateCell(path, visibility, layerIndex);
+        TopologyTileSelected?.Invoke(this, new TopologyTileSelectedEventArgs(path, visibility, layerIndex));
     }
 
     private void UpdateTopologyAndFight(TopologyData.CellPathData path,
-        TopologyData.CellVisibilityData visibility, FightData fight)
+        TopologyData.CellVisibilityData visibility, int layerIndex, FightData fight)
     {
-        UpdateTopologyCell(path, visibility);
+        UpdateTopologyCell(path, visibility, layerIndex);
         if (!ReferenceEquals(_mapData.Fight, fight))
             UpdateFight(_mapData.Fight, fight);
     }
@@ -392,6 +400,8 @@ public partial class Map : Node2D
         _mapData.Topology.AddFromElement(element);
         pathData = _mapData.Topology.GetPathData(element.CellX, element.CellY);
         var visibilityData = _mapData.Topology.GetVisibilityData(element.CellX, element.CellY);
+        if (pathData == null || visibilityData == null)
+            return;
         _topology.UpdateCell(pathData, visibilityData);
     }
 
@@ -413,6 +423,7 @@ public partial class Map : Node2D
     public void UpdateDisplay(Enums.Mode mode)
     {
         _mode = mode;
+        CustomCamera.NavigationEnabled = mode != Enums.Mode.Topology;
         _pressed = false;
         ResetDisplay();
         switch (_mode)
@@ -569,13 +580,13 @@ public partial class Map : Node2D
         if (cellData == null)
             return;
         
-        var (pathData, visibilityData) = cellData.Value;
+        var (pathData, visibilityData, layerIndex) = cellData.Value;
         var z = visibilityData?.Z ?? 0;
         
         _gridMaterial.SetShaderParameter("elevation", (float)(z * GlobalData.ElevationStep));
         _grid2Material.SetShaderParameter("elevation", (float)(z * GlobalData.ElevationStep));
         _z = z;
-        TopologyTileSelected?.Invoke(this, new TopologyTileSelectedEventArgs(pathData, visibilityData));
+        TopologyTileSelected?.Invoke(this, new TopologyTileSelectedEventArgs(pathData, visibilityData, layerIndex));
     }
 
     private void SelectTile(Vector2 position)
@@ -671,6 +682,18 @@ public partial class Map : Node2D
     {
         _topology.UnselectCell();
         SelectedTile = null;
+    }
+
+    private static TopologyData.CellVisibilityData CopyVisibility(TopologyData.CellVisibilityData data)
+    {
+        return new TopologyData.CellVisibilityData
+        {
+            X = data.X,
+            Y = data.Y,
+            Z = data.Z,
+            Height = data.Height,
+            CanViewThrough = data.CanViewThrough
+        };
     }
     
     private void SelectEnvTileAtPosition(Vector2 position)
@@ -916,10 +939,12 @@ public partial class Map : Node2D
 
     public class TopologyTileSelectedEventArgs(
         TopologyData.CellPathData pathData,
-        TopologyData.CellVisibilityData visibilityData) : EventArgs
+        TopologyData.CellVisibilityData visibilityData,
+        int layerIndex) : EventArgs
     {
         public TopologyData.CellPathData PathData => pathData;
         public TopologyData.CellVisibilityData VisibilityData => visibilityData;
+        public int LayerIndex => layerIndex;
     }
 
     public class EnvTileSelectedEventArgs(
