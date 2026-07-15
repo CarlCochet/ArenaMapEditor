@@ -128,6 +128,15 @@ public partial class TopologyRenderer : Node2D
             UpdateCamera();
             GetViewport().SetInputAsHandled();
         }
+        else if (@event is InputEventMouseMotion panMotion &&
+                 Input.IsMouseButtonPressed(MouseButton.Middle))
+        {
+            var unitsPerPixel = _cameraSize / Math.Max(1.0f, _subViewport.Size.Y);
+            var basis = _camera.GlobalTransform.Basis;
+            _focus += (-basis.X * panMotion.Relative.X + basis.Y * panMotion.Relative.Y) * unitsPerPixel;
+            UpdateCamera();
+            GetViewport().SetInputAsHandled();
+        }
         else if (@event is InputEventMouseButton { Pressed: true } button &&
                  button.ButtonIndex is MouseButton.WheelUp or MouseButton.WheelDown)
         {

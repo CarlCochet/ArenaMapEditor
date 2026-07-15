@@ -20,7 +20,7 @@ public partial class Editor : Node2D
 	private string _contentPath;
 	private int _x;
 	private int _y;
-	private int _z; 
+	private int _z;
 	private string _lastDir;
 	private readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true };
 	
