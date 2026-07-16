@@ -221,8 +221,8 @@ public partial class TopologyRenderer : Node2D
             return;
 
         var displayZ = pathData.Z == short.MinValue ? HoleDisplayZ : pathData.Z;
-        var bottom = (displayZ - pathData.Height) * VerticalScale;
         var height = Math.Max(pathData.Height * VerticalScale, MinimumHeight);
+        var bottom = displayZ * VerticalScale - height;
         _cells.Add(new CellData
         {
             X = pathData.X,

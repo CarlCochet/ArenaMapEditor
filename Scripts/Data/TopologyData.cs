@@ -742,7 +742,6 @@ public class TopologyData
         [JsonPropertyName("cost")] public sbyte Cost { get; set; }
         [JsonPropertyName("wallCell")] public sbyte MurFin { get; set; }
         [JsonPropertyName("property")] public sbyte Property { get; set; }
-        [JsonPropertyName("type")] public string Type => "topologyMapA";
 
         public TopologyMapA()
         {
@@ -853,7 +852,6 @@ public class TopologyData
         [JsonPropertyName("costs")] public sbyte[] Costs { get; set; } = new sbyte[MapConstants.NumCells];
         [JsonPropertyName("wallCells")] public sbyte[] MurFins { get; set; } = new sbyte[MapConstants.NumCells];
         [JsonPropertyName("properties")] public sbyte[] Properties { get; set; } = new sbyte[MapConstants.NumCells];
-        [JsonPropertyName("type")] public string Type => "topologyMapB";
         
         public TopologyMapB()
         {
@@ -962,7 +960,6 @@ public class TopologyData
         [JsonPropertyName("wallCells")] public sbyte[] MurFins { get; set; }
         [JsonPropertyName("properties")] public sbyte[] Properties { get; set; }
         [JsonPropertyName("cells")] public int[] Cells { get; set; }
-        [JsonPropertyName("type")] public string Type => "topologyMapBi";
         
         public TopologyMapBi()
         {
@@ -1121,7 +1118,6 @@ public class TopologyData
         [JsonPropertyName("movLos")] public sbyte[] MovLos { get; set; } = new sbyte[MapConstants.NumCells];
         [JsonPropertyName("zs")] public short[] Zs { get; set; } = new short[MapConstants.NumCells];
         [JsonPropertyName("heights")] public sbyte[] Heights { get; set; } = new sbyte[MapConstants.NumCells];
-        [JsonPropertyName("type")] public string Type => "topologyMapC";
         private int[] _orders = new int[MapConstants.NumCells];
         
         public TopologyMapC()
@@ -1316,7 +1312,6 @@ public class TopologyData
         [JsonPropertyName("zs")] public short[] Zs { get; set; }
         [JsonPropertyName("heights")] public sbyte[] Heights { get; set; }
         [JsonPropertyName("cells")] public long[] Cells { get; set; }
-        [JsonPropertyName("type")] public string Type => "topologyMapCi";
 
         public TopologyMapCi()
         {
@@ -1501,7 +1496,6 @@ public class TopologyData
         [JsonPropertyName("heights")] public sbyte[] Heights { get; set; }
         [JsonPropertyName("cells")] public long[] Cells { get; set; }
         [JsonPropertyName("cellsWithMultiZ")] public int[] CellsWithMultiZ { get; set; }
-        [JsonPropertyName("type")] public string Type => "topologyMapDi";
         
         public TopologyMapDi()
         {
